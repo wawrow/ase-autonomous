@@ -1,4 +1,4 @@
-package fileRepository;
+package com.slard.filerepository;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -7,7 +7,7 @@ import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
 import org.jgroups.View;
 
-public class Node extends ReceiverAdapter {
+public class NodeImpl extends ReceiverAdapter {
     JChannel channel;
   
     public void start() throws Exception {

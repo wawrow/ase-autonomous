@@ -1,7 +1,7 @@
-package FileRepositoryInterfaces;
+package com.slard.filerepository;
 
 
-public interface IDataObject {
+public interface DataObject {
 
 	public abstract long GetId();
 	public abstract Byte[] GetData();
@@ -13,5 +13,5 @@ public interface IDataObject {
 	public abstract int GetReplicaCount();
 	
 	//Returns an Array of locations of the file
-	public abstract INodeDescriptor[] GetLocations();
+	public abstract NodeDescriptor[] GetLocations();
 }

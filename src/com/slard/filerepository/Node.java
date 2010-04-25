@@ -1,10 +1,10 @@
-package FileRepositoryInterfaces;
+package com.slard.filerepository;
 
-public interface INode {
+public interface Node {
 	
 	public abstract long[] GetIds();
 	
-	//Below will be used in Template Methods in abstract class for Node
+	//Below will be used in Template Methods in abstract class for NodeImpl
 	public abstract void Start();
 	public abstract void InitializeDataStore();
 	public abstract void JoinTheNetwork();
