@@ -1,46 +1,103 @@
 package com.slard.filerepository;
 
+import org.jgroups.*;
+import org.jgroups.blocks.MethodCall;
+import org.jgroups.blocks.Request;
+import org.jgroups.blocks.RequestOptions;
+import org.jgroups.blocks.RpcDispatcher;
+import org.jgroups.util.FutureListener;
+import org.jgroups.util.NotifyingFuture;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import org.jgroups.JChannel;
-import org.jgroups.Message;
-import org.jgroups.ReceiverAdapter;
-import org.jgroups.View;
+import java.util.concurrent.Future;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class NodeImpl extends ReceiverAdapter {
-    JChannel channel;
-  
-    public void start() throws Exception {
-        channel=new JChannel();
-        channel.setReceiver(this);
-        channel.connect("FileRepositoryCluster");
-        eventLoop();
-        channel.close();
-    }
+public class NodeImpl extends ReceiverAdapter implements Node {
+  private static final String CHANNEL_NAME = "FileRepositoryCluster";
+  private static final int RPC_TIMEOUT = 90;
+
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+
+  private JChannel channel;
+  private RpcDispatcher rpcDispatcher;
+
+  public void initialise() {
+    ConsoleHandler ch = new ConsoleHandler();
+    ch.setLevel(Level.FINEST);
+    logger.addHandler(ch);
+  }
+
+  public long[] getIds() {
+    return new long[0];  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public void start() throws Exception {
+    this.channel = new JChannel();
+    this.rpcDispatcher = new RpcDispatcher(channel, this, this, this);
     
-    private void eventLoop() {
-        BufferedReader in=new BufferedReader(new InputStreamReader(System.in));
-        while(true) {
-        	try {
-                System.out.print("> "); System.out.flush();
-                String line=in.readLine().toLowerCase();
-                if(line.startsWith("quit") || line.startsWith("exit")) {
-                    break;
-                }
-                Message msg=new Message(null, null, line);
-                channel.send(msg);
-            } catch(Exception e) {
-                System.out.println("Exception encountered e=" + e.toString());	
+    channel.connect(CHANNEL_NAME);
+    logger.fine("dispatcher created and channel connected");
+    eventLoop();
+    logger.fine("eventloop finished, closing channel");
+    channel.close();
+  }
+
+  public void initializeDataStore() {
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  public void replicaGuard() {
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  private void eventLoop() {
+    BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+    MethodCall call = new MethodCall("print", null, new Class[]{String.class});
+    while (true) {
+      RequestOptions options = new RequestOptions(Request.GET_ALL, RPC_TIMEOUT);
+      try {
+        System.out.print("> ");
+        System.out.flush();
+        String line = in.readLine().toLowerCase().trim();
+        if (line.startsWith("quit") || line.startsWith("exit")) {
+          break;
+        }        
+        call.setArgs(new String[]{line});
+        Address target = channel.getView().getMembers().firstElement();
+        try {
+          rpcDispatcher.callRemoteMethodWithFuture(target, call, options).setListener(new FutureListener<Object>() {
+            @Override
+            public void futureDone(Future<Object> booleanFuture) {
+             System.out.println("Got my callback");
             }
+          });
+        } catch (Throwable throwable) {
+          throwable.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-    }
-    
-    public void viewAccepted(View new_view) {
-        System.out.println("** view: " + new_view);
-    }
 
-    public void receive(Message msg) {
-        System.out.println(msg.getSrc() + ": " + msg.getObject());
+        rpcDispatcher.callRemoteMethods(null, call, options);
+      } catch (Exception e) {
+        System.out.println("Exception encountered e=" + e.toString());
+      }
     }
+  }
+
+  public Boolean print(String message) {
+    System.out.println("Got the message: " + message);
+
+    return true;
+  }
+
+  public void viewAccepted(View new_view) {
+    System.out.println("** view: " + new_view);
+  }
+
+  public void receive(Message msg) {
+    System.out.println("received message: " + msg.getSrc() + ": " + msg.getObject());
+  }
 }
      

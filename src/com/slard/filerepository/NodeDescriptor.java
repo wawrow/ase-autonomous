@@ -1,6 +1,8 @@
 package com.slard.filerepository;
 
+import org.jgroups.Address;
+
 public interface NodeDescriptor {
-	public abstract long GetId();
-	public abstract com.sun.jndi.cosnaming.IiopUrl.Address GetAddress();	
+	public abstract long getId();
+	public abstract Address getAddress();
 }

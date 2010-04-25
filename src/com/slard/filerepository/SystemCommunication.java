@@ -15,6 +15,6 @@ public interface SystemCommunication {
 	//Stores a file in nodes data storage
 	public abstract void Store(DataObject dataObject);
 	
-	//Retrieve a file form nodes storage
+	//Retrieve a file from nodes storage
 	public abstract DataObject Retrieve(String name);
 }
