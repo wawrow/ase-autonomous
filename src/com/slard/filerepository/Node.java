@@ -9,7 +9,13 @@ public interface Node {
 	public abstract void InitializeDataStore();
 	public abstract void JoinTheNetwork();
 	
-	//This method will loop to keep check the replica nodes and keep the replica count
+	//Method for keeping your replicas in order
 	public abstract void RelpicaGuard();
+	
+	//Event fired every time node has left
+	public abstract void NodeLeft(long[] nodeIds);
+	
+	//Event fired every time node has joined
+	public abstract void NodeJoined(long[] nodeIds);
 
 }
