@@ -5,8 +5,8 @@ import com.slard.filerepository.Node;
 public abstract class BaseNode implements Node{
 
 	public void Start(){
-		this.InitializeDataStore();
-		this.JoinTheNetwork();
+		this.initializeDataStore();
+		this.joinTheNetwork();
 	  //Start the node
 	}
 	
