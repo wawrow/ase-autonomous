@@ -4,7 +4,7 @@ public class FileRepository {
 	
 	public static void main(String[] args) {
 		try {
-		    new NodeImpl().start();
+		   // new NodeImpl().start();
 		} catch (Exception e){			
 		}
 	}

@@ -14,22 +14,48 @@ import java.util.concurrent.Future;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Dictionary;
+import java.util.Vector;
 
 public class NodeImpl extends ReceiverAdapter implements Node {
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
   private static final int RPC_TIMEOUT = 90;
 
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+	private DataStore dataStore;
+	private SystemCommunication systemComm;
+	private ClientCommunication clientComm;
+	private CHTHelper chtHelper;
+	private long[] ids;
+	private Dictionary<Long, NodeDescriptor> nodes;	
+	
+	//Constructor
+	public NodeImpl(DataStore _dataStore, SystemCommunication _systemComm, ClientCommunication _clientComm, CHTHelper _chtHelper){
+		this.dataStore = _dataStore;
+		this.systemComm = _systemComm;
+		this.clientComm = _clientComm;
+		this.chtHelper = _chtHelper;
+	}
 
 
   private JChannel channel;
   private RpcDispatcher rpcDispatcher;
+
 
   public void initialise() {
     ConsoleHandler ch = new ConsoleHandler();
     ch.setLevel(Level.FINEST);
     logger.addHandler(ch);
   }
+	@Override
+	public void joinTheNetwork() {
+		// Find the network
+		this.nodes = this.systemComm.getNodelist();
+		// TODO For each file in dataStore if any, check if I'll become a replica or master and perform actions
+		
+	}
 
   public long[] getIds() {
     return new long[0];  //To change body of implemented methods use File | Settings | File Templates.
@@ -46,11 +72,21 @@ public class NodeImpl extends ReceiverAdapter implements Node {
     channel.close();
   }
 
+
   public void initializeDataStore() {
     //To change body of implemented methods use File | Settings | File Templates.
   }
-
   public void replicaGuard() {
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
+  public void nodeLeft(long[] nodeIds) {
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
+  public void nodeJoined(long[] nodeIds) {
     //To change body of implemented methods use File | Settings | File Templates.
   }
 
@@ -99,5 +135,7 @@ public class NodeImpl extends ReceiverAdapter implements Node {
   public void receive(Message msg) {
     System.out.println("received message: " + msg.getSrc() + ": " + msg.getObject());
   }
+
+ 
 }
      
