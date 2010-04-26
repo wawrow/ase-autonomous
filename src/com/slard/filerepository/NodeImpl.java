@@ -40,8 +40,18 @@ public class NodeImpl implements Node		{
 	public void JoinTheNetwork() {
 		// Find the network
 		this.nodes = this.systemComm.GetNodelist();
+		//
+		    Vector<DataObject> ownedObjects = this.chtHelper.getOwnedObjects(this.nodes, this.ids, this.dataStore.GetAllDataObjects());
+		    for(DataObject ownedObject: ownedObjects){
+		    	//Get previous master Id
+		    	//Match the CRC
+		    	//Retrieve if required
+		    	//Check if previous master will become replica
+		    	//if not then delete
+		    	//Fire Replicate Event on the file
+		    }
+		    
 		// TODO For each file in dataStore if any, check if I'll become a replica or master and perform actions
-		
 	}
 
 	//Fire this method when join or leave node message received
