@@ -1,10 +1,10 @@
-package fileRepository;
+package com.slard.filerepository;
 
 import com.slard.filerepository.Node;
 
-public abstract class BaseNode implements Node{
+public abstract class BaseNode implements Node {
 
-	public void Start(){
+	public void start(){
 		this.initializeDataStore();
 		this.joinTheNetwork();
 	  //Start the node

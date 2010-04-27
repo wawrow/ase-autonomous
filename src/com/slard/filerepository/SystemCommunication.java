@@ -1,31 +1,32 @@
 package com.slard.filerepository;
 
+import org.jgroups.Address;
+import org.jgroups.ChannelException;
+
 import java.util.Dictionary;
+import java.util.Map;
 import java.util.Vector;
 
 
 //Provides methods to call by other nodes in the system
 public interface SystemCommunication {
+  void initialise() throws ChannelException;
 
-  //Initialises connection to cluster.
-  public abstract void initialise();
-	
-	//Returns a list of known nodes
-	public abstract Dictionary<Long, NodeDescriptor> getNodelist();
+  //Returns a list of known nodes
+	Map<Long, NodeDescriptor> getNodelist();
 	
 	//Returns file list of files that are in nodes data storage 
-	public abstract Vector<String> syncFilelist();
+	Vector<String> syncFilelist();
 	
 	//Stores a file in nodes data storage
-	public abstract void store(DataObject dataObject);
+	boolean store(DataObject dataObject, Address target);
 	
 	//Retrieve a file from nodes storage
-	public abstract DataObject retrieve(String name);
+	DataObject retrieve(String name);
 	
 	//Should file NodeImpl.NodeLeft event with node ids
-	public abstract void nodeLeft();
+	void nodeLeft();
 	
 	//Should file NodeImpl.NodeJoined event with node ids
-	public abstract void nodeJoined();
-	
+	void nodeJoined();	
 }

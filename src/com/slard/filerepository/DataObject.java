@@ -3,15 +3,17 @@ package com.slard.filerepository;
 
 public interface DataObject {
 
-	public abstract long GetId();
-	public abstract Byte[] GetData();
-	public abstract String GetName();
+	long getId();
+	byte[] getData();
+	String getName();
 	
 	//Returns true if this object is master object, otherwise it's replica
-	public abstract Boolean IsMaster();
+	boolean isMaster();
 	
-	public abstract int GetReplicaCount();
+	int getReplicaCount();
 	
 	//Returns an Array of locations of the file
-	public abstract NodeDescriptor[] GetLocations();
+	NodeDescriptor[] getLocations();
+
+  SystemCommunications.FileContents toMessageFileContents();
 }

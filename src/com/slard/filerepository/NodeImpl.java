@@ -10,6 +10,7 @@ import org.jgroups.util.NotifyingFuture;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -29,7 +30,7 @@ public class NodeImpl extends ReceiverAdapter implements Node {
 	private ClientCommunication clientComm;
 	private CHTHelper chtHelper;
 	private long[] ids;
-	private Dictionary<Long, NodeDescriptor> nodes;	
+	private Map<Long, NodeDescriptor> nodes;	
 	
 	//Constructor
 	public NodeImpl(DataStore _dataStore, SystemCommunication _systemComm, ClientCommunication _clientComm, CHTHelper _chtHelper){
