@@ -10,6 +10,9 @@ public interface CHT {
 
   // use view to completely recalculate the CHT.
   void recalculate(View view);
+	
+  //Returns objects that I'm owner of
+  public Vector<DataObject> getOwnedObjects(Long[] allNodes, long[] myIds, Vector<DataObject> myObjects);
 
   // Remove the node with address from the CHT.
   void leave(Address address);

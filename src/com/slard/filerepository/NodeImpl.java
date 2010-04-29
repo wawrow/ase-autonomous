@@ -2,8 +2,9 @@ package com.slard.filerepository;
 
 import org.jgroups.*;
 
-import java.util.Map;
 import java.util.logging.Logger;
+import java.util.Dictionary;
+import java.util.Map;
 
 public class NodeImpl implements Node, MessageListener, MembershipListener {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -35,7 +36,24 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     return new long[0];  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-  public void initializeDataStore() {
+	@Override
+	public void joinTheNetwork() {
+		// Find the network
+		// TODO I don't know whether we need additional method for finding the network or will finding the node list be enough
+		// Get current node list
+		this.nodes = this.systemComm.getNodelist();
+		
+	    Vector<DataObject> ownedObjects = this.chtHelper.getOwnedObjects(this.nodes.keySet().toArray(new Long[0]), this.ids, this.dataStore.GetAllDataObjects());
+	    for(DataObject ownedObject: ownedObjects){
+	    	//Get previous master Id
+	    	//Match the CRC
+	    	//Retrieve if required
+	    	//Check if previous master will become replica
+	    	//if not then delete
+	    	//Fire Replicate Event on the file
+	    }
+	
+		// TODO For each file in dataStore if any, check if I'll become a replica or master and perform actions
     //To change body of implemented methods use File | Settings | File Templates.
   }
 
@@ -79,9 +97,15 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     cht.leave(address);
   }
 
+  }
+
+@Override
+public void initializeDataStore() {
+	// TODO Auto-generated method stub
   @Override
   public void block() {
     // probably can be left empty.
-  }
+	
+}
 }
      

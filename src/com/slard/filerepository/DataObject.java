@@ -2,14 +2,14 @@ package com.slard.filerepository;
 
 public interface DataObject {
 
-  long getId();
+ long getId();
+ byte[] getData();
+ String getName();
+ String getCRC(); 
+ String getName();
 
-  byte[] getData();
-
-  String getName();
-
-  //Returns true if this object is master object, otherwise it's replica
-  boolean isMaster();
+ //Returns true if this object is master object, otherwise it's replica
+ boolean isMaster();
 
   int getReplicaCount();
 
