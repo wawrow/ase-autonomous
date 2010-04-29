@@ -1,5 +1,7 @@
 package com.slard.filerepository;
 
+import java.util.Vector;
+
 import org.jgroups.Address;
 import org.jgroups.View;
 
@@ -35,4 +37,11 @@ public class CHTImpl implements CHT {
   public NodeDescriptor previous(NodeDescriptor node) {
     return null;  //To change body of implemented methods use File | Settings | File Templates.
   }
+
+@Override
+public Vector<DataObject> getOwnedObjects(Long[] allNodes, long[] myIds,
+		Vector<DataObject> myObjects) {
+	// TODO Auto-generated method stub
+	return null;
+}
 }

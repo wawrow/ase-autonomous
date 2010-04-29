@@ -6,7 +6,6 @@ public interface DataObject {
  byte[] getData();
  String getName();
  String getCRC(); 
- String getName();
 
  //Returns true if this object is master object, otherwise it's replica
  boolean isMaster();
