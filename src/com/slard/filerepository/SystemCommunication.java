@@ -1,6 +1,6 @@
 package com.slard.filerepository;
 
-import java.util.Dictionary;
+import java.util.Map;
 import java.util.Vector;
 
 
@@ -11,7 +11,7 @@ public interface SystemCommunication {
   public abstract void initialise();
 	
 	//Returns a list of known nodes
-	public abstract Dictionary<Long, NodeDescriptor> getNodelist();
+	public abstract Map<Long, NodeDescriptor> getNodelist();
 	
 	//Returns file list of files that are in nodes data storage 
 	public abstract Vector<String> syncFilelist();

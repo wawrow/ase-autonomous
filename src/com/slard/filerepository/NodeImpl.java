@@ -6,7 +6,6 @@ import org.jgroups.blocks.Request;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.RpcDispatcher;
 import org.jgroups.util.FutureListener;
-import org.jgroups.util.NotifyingFuture;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -15,6 +14,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Dictionary;
+import java.util.Map;
 import java.util.Vector;
 
 public class NodeImpl extends ReceiverAdapter implements Node {
@@ -29,7 +29,7 @@ public class NodeImpl extends ReceiverAdapter implements Node {
 	private ClientCommunication clientComm;
 	private CHTHelper chtHelper;
 	private long[] ids;
-	private Dictionary<Long, NodeDescriptor> nodes;	
+	private Map<Long, NodeDescriptor> nodes;	
 	
 	//Constructor
 	public NodeImpl(DataStore _dataStore, SystemCommunication _systemComm, ClientCommunication _clientComm, CHTHelper _chtHelper){
@@ -49,13 +49,6 @@ public class NodeImpl extends ReceiverAdapter implements Node {
     ch.setLevel(Level.FINEST);
     logger.addHandler(ch);
   }
-	@Override
-	public void joinTheNetwork() {
-		// Find the network
-		this.nodes = this.systemComm.getNodelist();
-		// TODO For each file in dataStore if any, check if I'll become a replica or master and perform actions
-		
-	}
 
   public long[] getIds() {
     return new long[0];  //To change body of implemented methods use File | Settings | File Templates.
@@ -73,20 +66,23 @@ public class NodeImpl extends ReceiverAdapter implements Node {
   }
 
 	@Override
-	public void JoinTheNetwork() {
+	public void joinTheNetwork() {
 		// Find the network
-		this.nodes = this.systemComm.GetNodelist();
-		//
-		    Vector<DataObject> ownedObjects = this.chtHelper.getOwnedObjects(this.nodes, this.ids, this.dataStore.GetAllDataObjects());
-		    for(DataObject ownedObject: ownedObjects){
-		    	//Get previous master Id
-		    	//Match the CRC
-		    	//Retrieve if required
-		    	//Check if previous master will become replica
-		    	//if not then delete
-		    	//Fire Replicate Event on the file
-		    }
+		// TODO I don't know whether we need additional method for finding the network or will finding the node list be enough
+		// Get current node list
 		
+		this.nodes = this.systemComm.getNodelist();
+		
+	    Vector<DataObject> ownedObjects = this.chtHelper.getOwnedObjects(this.nodes.keySet().toArray(new Long[0]), this.ids, this.dataStore.GetAllDataObjects());
+	    for(DataObject ownedObject: ownedObjects){
+	    	//Get previous master Id
+	    	//Match the CRC
+	    	//Retrieve if required
+	    	//Check if previous master will become replica
+	    	//if not then delete
+	    	//Fire Replicate Event on the file
+	    }
+	
 		// TODO For each file in dataStore if any, check if I'll become a replica or master and perform actions
     //To change body of implemented methods use File | Settings | File Templates.
   }
@@ -149,6 +145,12 @@ public class NodeImpl extends ReceiverAdapter implements Node {
   public void receive(Message msg) {
     System.out.println("received message: " + msg.getSrc() + ": " + msg.getObject());
   }
+
+@Override
+public void initializeDataStore() {
+	// TODO Auto-generated method stub
+	
+}
 
  
 }
