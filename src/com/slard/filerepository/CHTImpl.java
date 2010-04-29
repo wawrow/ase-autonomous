@@ -14,7 +14,7 @@ import org.jgroups.View;
  */
 public class CHTImpl implements CHT {
   @Override
-  public long[] GetIds() {
+  public long[] GetIdsForNode(Node node) {
     return new long[0];  //To change body of implemented methods use File | Settings | File Templates.
   }
 

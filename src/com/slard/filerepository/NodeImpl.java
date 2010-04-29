@@ -34,14 +34,15 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   public long[] getIds() {
-    return new long[0];  //To change body of implemented methods use File | Settings | File Templates.
+	  if(this.ids == null){
+		  this.ids = this.cht.GetIdsForNode(this);
+	  }
+    return this.ids;
   }
 
 	@Override
 	public void joinTheNetwork() {
-		// Find the network
-		// TODO I don't know whether we need additional method for finding the network or will finding the node list be enough
-		// Get current node list
+		// Get current node list - probably not required as JGroups will tak care of most - we'll see
 		this.nodes = this.systemComs.getNodelist();
 		
 	    Vector<DataObject> ownedObjects = this.cht.getOwnedObjects(this.nodes.keySet().toArray(new Long[0]), this.ids, this.dataStore.GetAllDataObjects());
@@ -62,16 +63,21 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     //To change body of implemented methods use File | Settings | File Templates.
   }
 
-//  @Override
-//  public void nodeLeft(long[] nodeIds) {
-//    //To change body of implemented methods use File | Settings | File Templates.
-//  }
-//
-//  @Override
-//  public void nodeJoined(long[] nodeIds) {
-//    //To change body of implemented methods use File | Settings | File Templates.
-//  }
-
+  private void nodeJoined(NodeDescriptor node){
+	  //Check if I should pass over any owned files 
+	  //If so - pass them over
+	  //Check if any of the replica files I've had aren't required to store any more
+	  //If so - delete them
+  }
+  
+  private void nodeLeft(NodeDescriptor node){
+	  //remove node from CHT
+	  //Check if I'm replica of files that leaving node left behind
+	  //if so, check if I'll become owner
+	  //if so, mark as owned and fire replication event 
+  }
+  
+  
   @Override
   public void receive(Message message) {
     //To change body of implemented methods use File | Settings | File Templates.
@@ -87,27 +93,31 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     // Not totally sure what messages we can receive, probably broadcast of system state (disk space etc)
     // probably in rdf.
   }
-
+  //Joined the network
   @Override
   public void viewAccepted(View view) {
+	  System.out.println("View accepted");
+	  System.out.println(view.printDetails());
     cht.recalculate(view);
   }
 
+  //Left the network
   @Override
   public void suspect(Address address) {
+	  System.out.println("Suspect ");
+	  System.out.println(address.toString());
     cht.leave(address);
   }
 
-
-@Override
-public void initializeDataStore() {
-	// TODO Auto-generated method stub
-}
   @Override
   public void block() {
-    // probably can be left empty.
-	
-}
+    // probably can be left empty.	
+  }
+  
+  @Override
+  public void initializeDataStore() {
+  	// TODO Auto-generated method stub
+  }
 
 }
      

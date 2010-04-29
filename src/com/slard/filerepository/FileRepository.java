@@ -7,12 +7,13 @@ public class FileRepository {
 
   public static void main(String[] args) {
     // Intend to replace these instantiations with Guicey modules and injectors.
-    DataStore store = new DataStoreImpl();
+	String curDir = System.getProperty("user.dir");
+    DataStore store = new DataStoreImpl(curDir);
     CHT cht = new CHTImpl();
     NodeImpl node = new NodeImpl(store, cht);
     try {
       node.start();
-    } catch (Exception e) {
+    } catch (Exception e) {    	
     }
   }
 }

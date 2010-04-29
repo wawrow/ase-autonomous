@@ -8,7 +8,7 @@ import org.jgroups.View;
 public interface CHT {
   //Will return an array of 4 Ids of the node based on some unique identifier (MAC+PATH or IP+PATH)
   //Might require providing parameter - if required just add it
-  long[] GetIds();
+  long[] GetIdsForNode(Node node);
 
   // use view to completely recalculate the CHT.
   void recalculate(View view);
