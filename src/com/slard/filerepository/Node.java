@@ -14,6 +14,7 @@ public interface Node {
   //This method will loop to keep check the replica nodes and keep the replica count
   public abstract void replicaGuard();
 
+  public abstract void joinTheNetwork();
   //Event fired every time node has left
 //	public abstract void nodeLeft(long[] nodeIds);
 

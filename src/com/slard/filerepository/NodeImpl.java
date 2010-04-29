@@ -5,6 +5,7 @@ import org.jgroups.*;
 import java.util.logging.Logger;
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.Vector;
 
 public class NodeImpl implements Node, MessageListener, MembershipListener {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -41,9 +42,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 		// Find the network
 		// TODO I don't know whether we need additional method for finding the network or will finding the node list be enough
 		// Get current node list
-		this.nodes = this.systemComm.getNodelist();
+		this.nodes = this.systemComs.getNodelist();
 		
-	    Vector<DataObject> ownedObjects = this.chtHelper.getOwnedObjects(this.nodes.keySet().toArray(new Long[0]), this.ids, this.dataStore.GetAllDataObjects());
+	    Vector<DataObject> ownedObjects = this.cht.getOwnedObjects(this.nodes.keySet().toArray(new Long[0]), this.ids, this.dataStore.GetAllDataObjects());
 	    for(DataObject ownedObject: ownedObjects){
 	    	//Get previous master Id
 	    	//Match the CRC
@@ -97,15 +98,16 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     cht.leave(address);
   }
 
-  }
 
 @Override
 public void initializeDataStore() {
 	// TODO Auto-generated method stub
+}
   @Override
   public void block() {
     // probably can be left empty.
 	
 }
+
 }
      
