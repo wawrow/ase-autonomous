@@ -1,5 +1,6 @@
 package com.slard.filerepository;
 
+import java.util.Enumeration;
 import java.util.Vector;
 
 public interface CHTHelper {
@@ -9,5 +10,5 @@ public interface CHTHelper {
 	public abstract long[] GetIds();
 	
 	//Returns objects that I'm owner of
-	public Vector<DataObject> getOwnedObjects(long[] allNodes, long[] myIds, Vector<DataObject> myObjects);
+	public Vector<DataObject> getOwnedObjects(Long[] allNodes, long[] myIds, Vector<DataObject> myObjects);
 }
