@@ -1,32 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" readonly="true" id="7d40679d-8b7c-42f9-8217-1bedc4759d68" name="Default" comment="Move to simpler pure-jgroups rpc mechanism.&#10;&#10;Implement a bit of some of the interesting modules.&#10;&#10;Improve specification of CHT based on what seems to be needed.">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test2.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/CHTHelper.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/system_communications.proto" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test.txt" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataObject.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataObject.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/ClientCommunication.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/ClientComs.java" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/SystemCommunicationImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/SystemComsClient.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/genfiles/com/slard/filerepository/SystemCommunications.java" afterPath="" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/SystemComsServer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" />
+    <list default="true" readonly="true" id="7d40679d-8b7c-42f9-8217-1bedc4759d68" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/ClientCommunication.java" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/Node.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/Node.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/jgroupsprotobuf/JGroupsRpcController.java" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataObjectImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataObjectImpl.java" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/jgroupsprotobuf/JGroupsSyncRpcChannel.java" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/CHTHelper.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/CHT.java" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/SystemCommunication.java" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/SystemCommunicationImpl.java" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/SystemCommunication.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lib/protobuf-java-2.3.0.jar" afterPath="" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java" />
     </list>
     <ignored path="ase-autonomous.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -143,7 +119,7 @@
       <file leaf-file-name="NodeImpl.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="83" column="34" selection-start="2346" selection-end="2346" vertical-scroll-proportion="1.3617021">
+            <state line="83" column="34" selection-start="2346" selection-end="2346" vertical-scroll-proportion="2.1333334">
               <folding />
             </state>
           </provider>
@@ -380,6 +356,104 @@
       <recent name="com.slard.filerepository" />
     </key>
   </component>
+  <component name="RestoreUpdateTree">
+    <UpdateInfo date="29/04/10 01:20" ActionInfo="Inte_grate">
+      <UpdatedFiles>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated from server" />
+          <option name="myStatusName" value="Changed on server" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CHANGED_ON_SERVER" />
+          <FILE-GROUP>
+            <option name="myUpdateName" value="Updated" />
+            <option name="myStatusName" value="Changed" />
+            <option name="mySupportsDeletion" value="false" />
+            <option name="myCanBeAbsent" value="false" />
+            <option name="myId" value="UPDATED" />
+          </FILE-GROUP>
+          <FILE-GROUP>
+            <option name="myUpdateName" value="Created" />
+            <option name="myStatusName" value="Created" />
+            <option name="mySupportsDeletion" value="false" />
+            <option name="myCanBeAbsent" value="false" />
+            <option name="myId" value="CREATED" />
+          </FILE-GROUP>
+          <FILE-GROUP>
+            <option name="myUpdateName" value="Deleted" />
+            <option name="myStatusName" value="Deleted" />
+            <option name="mySupportsDeletion" value="false" />
+            <option name="myCanBeAbsent" value="true" />
+            <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+          </FILE-GROUP>
+          <FILE-GROUP>
+            <option name="myUpdateName" value="Restored" />
+            <option name="myStatusName" value="Will be restored" />
+            <option name="mySupportsDeletion" value="false" />
+            <option name="myCanBeAbsent" value="false" />
+            <option name="myId" value="RESTORED" />
+          </FILE-GROUP>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Modified" />
+          <option name="myStatusName" value="Modified" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="MODIFIED" />
+          <PATH vcs="hg4idea" revision="11:bba8b29fabd0">$PROJECT_DIR$/.idea/workspace.xml</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Skipped" />
+          <option name="myStatusName" value="Skipped" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="SKIPPED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Merged with conflicts" />
+          <option name="myStatusName" value="Will be merged with conflicts" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="MERGED_WITH_CONFLICTS" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Merged" />
+          <option name="myStatusName" value="Will be merged" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="MERGED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Not in repository" />
+          <option name="myStatusName" value="Not in repository" />
+          <option name="mySupportsDeletion" value="true" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UNKNOWN" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Locally added" />
+          <option name="myStatusName" value="Locally added" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="LOCALLY_ADDED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Locally removed" />
+          <option name="myStatusName" value="Locally removed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="LOCALLY_REMOVED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Switched" />
+          <option name="myStatusName" value="Switched" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="SWITCHED" />
+        </FILE-GROUP>
+      </UpdatedFiles>
+    </UpdateInfo>
+  </component>
   <component name="RunManager" selected="Application.FileRepository">
     <configuration default="false" name="FileRepository" type="Application" factoryName="Application" temporary="true">
       <extension name="coverage" enabled="false" merge="false">
@@ -519,12 +593,12 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-2" y="22" width="1440" height="874" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32997844" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32997844" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22358015" sideWeight="0.530504" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22358015" sideWeight="0.6618037" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4602122" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -534,7 +608,7 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3275862" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39943075" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32891247" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32891247" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -668,7 +742,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="83" column="34" selection-start="2346" selection-end="2346" vertical-scroll-proportion="1.3617021">
+        <state line="83" column="34" selection-start="2346" selection-end="2346" vertical-scroll-proportion="2.1333334">
           <folding />
         </state>
       </provider>
