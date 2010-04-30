@@ -2,18 +2,18 @@ package com.slard.filerepository;
 
 import org.jgroups.*;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 public class NodeImpl implements Node, MessageListener, MembershipListener {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
+  SystemComsServer systemComs = null;
   private DataStore dataStore;
   private CHT cht;
+  byte[] state;
 
-  private SystemComs systemComs = null;
-  private long[] ids;
-  private Map<Long, NodeDescriptor> nodes;
+  // private long[] ids;
+  //private Map<Long, NodeDescriptor> nodes;
   private Channel channel;
 
   //Constructor
@@ -25,10 +25,15 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public void start() throws ChannelException {
     this.channel = new JChannel();
     channel.connect(CHANNEL_NAME);
-    this.systemComs = new SystemComsServer(channel, dataStore, this, this);
+    systemComs = new SystemComsServer(channel, dataStore, this, this);
     logger.fine("channel connected and system coms server ready");
 
     // start even loop here (in new thread?)
+  }
+
+  public void stop() {
+    systemComs.stop();
+    channel.close();
   }
 
   public long[] getIds() {
@@ -43,16 +48,6 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     //To change body of implemented methods use File | Settings | File Templates.
   }
 
-//  @Override
-//  public void nodeLeft(long[] nodeIds) {
-//    //To change body of implemented methods use File | Settings | File Templates.
-//  }
-//
-//  @Override
-//  public void nodeJoined(long[] nodeIds) {
-//    //To change body of implemented methods use File | Settings | File Templates.
-//  }
-
   @Override
   public void receive(Message message) {
     //To change body of implemented methods use File | Settings | File Templates.
@@ -60,23 +55,24 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   @Override
   public byte[] getState() {
-    return new byte[0];  //To change body of implemented methods use File | Settings | File Templates.
+    return state;
   }
 
   @Override
   public void setState(byte[] bytes) {
     // Not totally sure what messages we can receive, probably broadcast of system state (disk space etc)
     // probably in rdf.
+    state = bytes;
   }
 
   @Override
   public void viewAccepted(View view) {
-    cht.recalculate(view);
+    CHT.MemberDelta changes = cht.recalculate(view);  // cht updated but need to apply net chages.
   }
 
   @Override
   public void suspect(Address address) {
-    cht.leave(address);
+    cht.remove(address);
   }
 
   @Override

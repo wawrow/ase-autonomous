@@ -3,20 +3,39 @@ package com.slard.filerepository;
 import org.jgroups.Address;
 import org.jgroups.View;
 
+import java.util.Set;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: kbrady
+ * Date: 30-Apr-2010
+ * Time: 15:43:23
+ * To change this template use File | Settings | File Templates.
+ */
 public interface CHT {
-  //Will return an array of 4 Ids of the node based on some unique identifier (MAC+PATH or IP+PATH)
-  //Might require providing parameter - if required just add it
-  long[] GetIds();
+  class MemberDelta {
+    public MemberDelta(Set<Address> added, Set<Address> removed) {
+      this.added = added;
+      this.removed = removed;
+    }
 
-  // use view to completely recalculate the CHT.
-  void recalculate(View view);
+    public Set<Address> removed;
+    public Set<Address> added;
+  }
 
-  // Remove the node with address from the CHT.
-  void leave(Address address);
+  void insert(Address newMember);
 
-  // Give me the node responsible for this DataObject.
-  NodeDescriptor master(DataObject file);
+  void remove(Address address);
 
-  // Give me the node before this one.
-  NodeDescriptor previous(NodeDescriptor node);
+  MemberDelta recalculate(View view);
+
+  // Use findMaster to find the unique master ID for a string.
+
+  byte[] findMaster(String name);
+  // Find the previous ID (ie the replica candidate) for an ID.
+
+  byte[] findPrevious(byte[] id);
+  // Actually return the address of the node we care about.
+
+  Address getAddress(byte[] id);
 }
