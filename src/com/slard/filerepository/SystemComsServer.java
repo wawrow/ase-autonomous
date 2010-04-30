@@ -45,4 +45,8 @@ public class SystemComsServer implements SystemComs {
   public DataObject retrieve(String name) {
     return store.GetDataObject(name);
   }
+
+  public void stop() {
+    dispatcher.stop();
+  }
 }
