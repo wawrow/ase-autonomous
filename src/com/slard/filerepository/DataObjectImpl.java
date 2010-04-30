@@ -46,9 +46,9 @@ public class DataObjectImpl implements DataObject {
     return new NodeDescriptor[0];  //To change body of implemented methods use File | Settings | File Templates.
   }
 
-@Override
-public String getCRC() {
-	// TODO Auto-generated method stub
-	return null;
-}
+  @Override
+  public String getCRC() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

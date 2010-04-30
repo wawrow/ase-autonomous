@@ -2,7 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="7d40679d-8b7c-42f9-8217-1bedc4759d68" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/CHT.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/CHT.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/Node.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/Node.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataObject.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataObject.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataObjectImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataObjectImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java" />
     </list>
     <ignored path="ase-autonomous.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -65,16 +74,16 @@
       <file leaf-file-name="FileRepository.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="13" column="19" selection-start="450" selection-end="450" vertical-scroll-proportion="0.0">
+            <state line="14" column="19" selection-start="508" selection-end="508" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CHT.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/CHT.java">
+      <file leaf-file-name="BaseNode.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/BaseNode.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="13" column="11" selection-start="388" selection-end="388" vertical-scroll-proportion="0.0">
+            <state line="6" column="0" selection-start="141" selection-end="190" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -83,8 +92,22 @@
       <file leaf-file-name="CHTImpl.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="24" column="19" selection-start="600" selection-end="600" vertical-scroll-proportion="0.0">
-              <folding />
+            <state line="158" column="1" selection-start="3988" selection-end="3988" vertical-scroll-proportion="0.0">
+              <folding>
+                <marker date="1272659920000" expanded="false" signature="42:282" placeholder="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="CHT.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/CHT.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="docComment;class#CHT#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -92,7 +115,7 @@
       <file leaf-file-name="SystemComsServer.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/SystemComsServer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="46" column="3" selection-start="1274" selection-end="1274" vertical-scroll-proportion="0.0">
+            <state line="49" column="22" selection-start="1321" selection-end="1321" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -107,20 +130,15 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DataStoreImpl.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="14" column="4" selection-start="333" selection-end="424" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="NodeImpl.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="83" column="34" selection-start="2346" selection-end="2346" vertical-scroll-proportion="2.1333334">
-              <folding />
+            <state line="7" column="0" selection-start="93" selection-end="93" vertical-scroll-proportion="0.11914894">
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="method#getState#0;class#NodeImpl#0" expanded="true" />
+                <element signature="method#setState#0;class#NodeImpl#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -128,7 +146,7 @@
       <file leaf-file-name="Node.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/Node.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="20" column="52" selection-start="623" selection-end="623" vertical-scroll-proportion="0.0">
+            <state line="4" column="23" selection-start="96" selection-end="96" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -162,7 +180,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemCommsRequest.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemCommsServer.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemCommsClient.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/DataObject.java" />
@@ -171,12 +188,13 @@
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/CHTHelperImpl.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" />
-        <option value="$PROJECT_DIR$/src/com/slard/filerepository/Node.java" />
-        <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemComsServer.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemComsClient.java" />
+        <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemComsServer.java" />
+        <option value="$PROJECT_DIR$/src/com/slard/filerepository/BaseNode.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/CHT.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" />
+        <option value="$PROJECT_DIR$/src/com/slard/filerepository/Node.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" />
       </list>
     </option>
@@ -342,10 +360,14 @@
     <property name="MemberChooser.showClasses" value="true" />
     <property name="dynamic.classpath" value="false" />
     <property name="project.structure.side.proportion" value="0.2" />
+    <property name="options.lastSelected" value="preferences.keymap" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="OverrideImplement.combined" value="true" />
   </component>
   <component name="RecentsManager">
+    <key name="ExtractSuperBase.RECENT_KEYS">
+      <recent name="com.slard.filerepository" />
+    </key>
     <key name="CreateClassDialog.RecentsKey">
       <recent name="com.slard.filerepository" />
     </key>
@@ -357,7 +379,7 @@
     </key>
   </component>
   <component name="RestoreUpdateTree">
-    <UpdateInfo date="29/04/10 01:20" ActionInfo="Inte_grate">
+    <UpdateInfo date="30/04/10 08:09" ActionInfo="Inte_grate">
       <UpdatedFiles>
         <FILE-GROUP>
           <option name="myUpdateName" value="Updated from server" />
@@ -400,7 +422,7 @@
           <option name="mySupportsDeletion" value="false" />
           <option name="myCanBeAbsent" value="false" />
           <option name="myId" value="MODIFIED" />
-          <PATH vcs="hg4idea" revision="11:bba8b29fabd0">$PROJECT_DIR$/.idea/workspace.xml</PATH>
+          <PATH vcs="hg4idea" revision="19:2729a9ee1f16">$PROJECT_DIR$/.idea/workspace.xml</PATH>
         </FILE-GROUP>
         <FILE-GROUP>
           <option name="myUpdateName" value="Skipped" />
@@ -593,12 +615,13 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-2" y="22" width="1440" height="874" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32997844" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32997844" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22358015" sideWeight="0.6618037" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22358015" sideWeight="0.530504" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32891247" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4602122" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -608,9 +631,8 @@
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3275862" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39943075" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32891247" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32891247" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32891247" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
@@ -630,7 +652,7 @@
     <option name="ENABLE_BACKGROUND_PROCESSES" value="false" />
     <option name="CHANGED_ON_SERVER_INTERVAL" value="60" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" value="Move to simpler pure-jgroups rpc mechanism.&#10;&#10;Implement a bit of some of the interesting modules.&#10;&#10;Improve specification of CHT based on what seems to be needed." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor to use Long and actually feed the address into the hash." />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="true" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -647,6 +669,8 @@
     <MESSAGE value="Add test dir and beginnings of a test class.&#10;write a simple test async call in Node to try out jgroups async." />
     <MESSAGE value="Add test dir and beginnings of a test class.&#10;write a simple test async call in Node to try out jgroups async.&#10;&#10;Merge in mifff changes and tweak camelCase etc." />
     <MESSAGE value="Move to simpler pure-jgroups rpc mechanism.&#10;&#10;Implement a bit of some of the interesting modules.&#10;&#10;Improve specification of CHT based on what seems to be needed." />
+    <MESSAGE value="Implemented CHT." />
+    <MESSAGE value="Refactor to use Long and actually feed the address into the hash." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -656,11 +680,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/BaseNode.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="47" selection-start="121" selection-end="121" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataObject.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="8" column="9" selection-start="119" selection-end="119" vertical-scroll-proportion="0.0" />
@@ -681,25 +700,6 @@
         <state line="71" column="0" selection-start="2245" selection-end="2513" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="19" selection-start="450" selection-end="450" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/SystemComsServer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="46" column="3" selection-start="1274" selection-end="1274" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStore.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="23" selection-start="146" selection-end="146" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="14" column="4" selection-start="333" selection-end="424" vertical-scroll-proportion="0.0" />
@@ -712,13 +712,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/Node.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="52" selection-start="623" selection-end="623" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/NodeDescriptor.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="4" column="17" selection-start="81" selection-end="81" vertical-scroll-proportion="0.0">
@@ -726,24 +719,68 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/SystemComsServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="22" selection-start="1321" selection-end="1321" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/BaseNode.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="6" column="0" selection-start="141" selection-end="190" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="14" column="19" selection-start="508" selection-end="508" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="5" column="23" selection-start="146" selection-end="146" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/CHT.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="11" selection-start="388" selection-end="388" vertical-scroll-proportion="0.0">
-          <folding />
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="docComment;class#CHT#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="19" selection-start="600" selection-end="600" vertical-scroll-proportion="0.0">
+        <state line="158" column="1" selection-start="3988" selection-end="3988" vertical-scroll-proportion="0.0">
+          <folding>
+            <marker date="1272659920000" expanded="false" signature="42:282" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/Node.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="4" column="23" selection-start="96" selection-end="96" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="83" column="34" selection-start="2346" selection-end="2346" vertical-scroll-proportion="2.1333334">
-          <folding />
+        <state line="7" column="0" selection-start="93" selection-end="93" vertical-scroll-proportion="0.11914894">
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="method#getState#0;class#NodeImpl#0" expanded="true" />
+            <element signature="method#setState#0;class#NodeImpl#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

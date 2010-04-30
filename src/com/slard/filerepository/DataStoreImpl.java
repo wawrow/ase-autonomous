@@ -34,8 +34,8 @@ public class DataStoreImpl implements DataStore {
   public Vector<DataObject> GetAllDataObjects() {
     return null;  //To change body of implemented methods use File | Settings | File Templates.
   }
-  
-  public DataStoreImpl(String path){
-	//Construct with path as working path    
+
+  public DataStoreImpl(String path) {
+    //Construct with path as working path
   }
 }
