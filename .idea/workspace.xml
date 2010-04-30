@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" readonly="true" id="7d40679d-8b7c-42f9-8217-1bedc4759d68" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" />
-    </list>
+    <list default="true" readonly="true" id="7d40679d-8b7c-42f9-8217-1bedc4759d68" name="Default" comment="" />
     <ignored path="ase-autonomous.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -84,7 +81,7 @@
       <file leaf-file-name="CHTImpl.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="48" column="44" selection-start="1533" selection-end="1533" vertical-scroll-proportion="0.0">
+            <state line="48" column="44" selection-start="1534" selection-end="1534" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -640,7 +637,7 @@
     <option name="ENABLE_BACKGROUND_PROCESSES" value="false" />
     <option name="CHANGED_ON_SERVER_INTERVAL" value="60" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented CHT." />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor to use Long and actually feed the address into the hash." />
     <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="true" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="true" />
     <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
@@ -658,6 +655,7 @@
     <MESSAGE value="Add test dir and beginnings of a test class.&#10;write a simple test async call in Node to try out jgroups async.&#10;&#10;Merge in mifff changes and tweak camelCase etc." />
     <MESSAGE value="Move to simpler pure-jgroups rpc mechanism.&#10;&#10;Implement a bit of some of the interesting modules.&#10;&#10;Improve specification of CHT based on what seems to be needed." />
     <MESSAGE value="Implemented CHT." />
+    <MESSAGE value="Refactor to use Long and actually feed the address into the hash." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -729,7 +727,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="48" column="44" selection-start="1533" selection-end="1533" vertical-scroll-proportion="0.0">
+        <state line="48" column="44" selection-start="1534" selection-end="1534" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
