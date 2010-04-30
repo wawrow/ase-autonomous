@@ -31,11 +31,11 @@ public interface CHT {
 
   // Use findMaster to find the unique master ID for a string.
 
-  byte[] findMaster(String name);
+  Long findMaster(String name);
   // Find the previous ID (ie the replica candidate) for an ID.
 
-  byte[] findPrevious(byte[] id);
+  Long findPrevious(Long id);
   // Actually return the address of the node we care about.
 
-  Address getAddress(byte[] id);
+  Address getAddress(Long id);
 }

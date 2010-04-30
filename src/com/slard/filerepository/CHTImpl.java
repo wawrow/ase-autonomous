@@ -20,11 +20,19 @@ public class CHTImpl implements CHT {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private ReentrantReadWriteLock locks = new ReentrantReadWriteLock();
-  private SortedMap<byte[], Address> idToAddress = new TreeMap<byte[], Address>();
-  private Map<Address, byte[][]> addressToID = new HashMap<Address, byte[][]>();
+  private SortedMap<Long, Address> idToAddress = new TreeMap<Long, Address>();
+  private Map<Address, long[]> addressToID = new HashMap<Address, long[]>();
 
   MessageDigest md;
   private static final byte[][] PREFIXES = {"one".getBytes(), "two".getBytes(), "three".getBytes(), "four".getBytes()};
+
+  private static long bytesToLong(byte[] in) {
+    long ret = in[0];
+    for (int i = 1; i < in.length && i < 8; i++) {
+      ret = (ret << 8) & in[i];
+    }
+    return ret;
+  }
 
   public CHTImpl() {
     try {
@@ -33,13 +41,13 @@ public class CHTImpl implements CHT {
     }
   }
 
-  private byte[][] getIDs(Address member) {
-    byte[][] ret = new byte[PREFIXES.length][];
+  private long[] getIDs(Address member) {
+    long[] ret = new long[PREFIXES.length];
     for (int i = 0; i < PREFIXES.length; i++) {
       md.reset();
       md.update(PREFIXES[i]);  // md5 is strong and so this works well.
-      md.update(Address.UUID_ADDR);
-      ret[i] = md.digest();
+      md.update(member.toString().getBytes());
+      ret[i] = bytesToLong(md.digest());
     }
     return ret;
   }
@@ -49,7 +57,7 @@ public class CHTImpl implements CHT {
     try {
       locks.writeLock().lock();
 
-      for (byte[] id : getIDs(newMember)) {
+      for (long id : getIDs(newMember)) {
         idToAddress.put(id, newMember);
       }
     } finally {
@@ -97,32 +105,16 @@ public class CHTImpl implements CHT {
   }
 
   @Override
-  public byte[] findMaster(String name) {
+  public Long findMaster(String name) {
     md.reset();
-    byte[] id = md.digest(name.getBytes());  // no need to seed.
-    byte[] ret = null;
+    long id = bytesToLong(md.digest(name.getBytes()));  // no need to seed.
+    Long ret = null;
 
     try {
       locks.readLock().lock();
-      ArrayList<byte[]> ids = new ArrayList<byte[]>(idToAddress.keySet());
+      ArrayList<Long> ids = new ArrayList<Long>(idToAddress.keySet());
 
-      class ByteCompare implements Comparator<byte[]> {
-        public int compare(byte[] a, byte[] b) {
-          int ret = 0;
-          for (int i = 0; i < a.length && i < b.length; i++) {
-            ret = b[i] - a[i];
-            if (ret < 0) {
-              break;
-            }
-          }
-          if (ret >= 0) {
-            ret = b.length - a.length;
-          }
-          return ret;
-        }
-      }
-
-      int i = Collections.binarySearch(ids, id, new ByteCompare());
+      int i = Collections.binarySearch(ids, id);
       if (i < 0) { // not sure, how it won't be.
         i = -(i + 2);
         if (i < 0) {
@@ -137,11 +129,16 @@ public class CHTImpl implements CHT {
   }
 
   @Override
-  public byte[] findPrevious(byte[] id) {
-    byte[] ret = null;
+  public Long findPrevious(Long id) {
+    Long ret = null;
     try {
       locks.readLock().lock();
-      ret = idToAddress.headMap(id).lastKey();
+      SortedMap<Long, Address> headMap = idToAddress.headMap(id);
+      if (headMap == null) {
+        ret = idToAddress.lastKey();
+      } else {
+        ret = headMap.lastKey();
+      }
     } finally {
       locks.readLock().unlock();
     }
@@ -149,7 +146,7 @@ public class CHTImpl implements CHT {
   }
 
   @Override
-  public Address getAddress(byte[] id) {
+  public Address getAddress(Long id) {
     Address ret = null;
     try {
       locks.readLock().lock();
