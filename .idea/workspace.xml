@@ -5,12 +5,13 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataStore.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataStore.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/CHT.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/CHT.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/Node.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/Node.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataObject.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataObject.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataObjectImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataObjectImpl.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/DataObjectImpl.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/DataObjectImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java" afterPath="$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java" />
     </list>
     <ignored path="ase-autonomous.iws" />
@@ -124,16 +125,27 @@
       <file leaf-file-name="DataStore.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStore.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="5" column="23" selection-start="146" selection-end="146" vertical-scroll-proportion="0.0">
+            <state line="18" column="69" selection-start="576" selection-end="576" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DataStoreImpl.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="93" column="78" selection-start="2668" selection-end="2668" vertical-scroll-proportion="1.0723404">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="NodeImpl.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="NodeImpl.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="7" column="0" selection-start="93" selection-end="93" vertical-scroll-proportion="0.11914894">
+            <state line="7" column="0" selection-start="93" selection-end="93" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="method#getState#0;class#NodeImpl#0" expanded="true" />
@@ -161,15 +173,6 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SystemComs.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="19" column="35" selection-start="501" selection-end="501" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
     </leaf>
   </component>
   <component name="FindManager">
@@ -180,12 +183,10 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemCommsServer.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemCommsClient.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/DataObject.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/DataObjectImpl.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/ClientComs.java" />
-        <option value="$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/CHTHelperImpl.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/FileRepository.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java" />
@@ -196,6 +197,8 @@
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/Node.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" />
+        <option value="$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java" />
+        <option value="$PROJECT_DIR$/src/com/slard/filerepository/DataStore.java" />
       </list>
     </option>
   </component>
@@ -700,11 +703,6 @@
         <state line="71" column="0" selection-start="2245" selection-end="2513" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="14" column="4" selection-start="333" selection-end="424" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="19" column="35" selection-start="501" selection-end="501" vertical-scroll-proportion="0.0">
@@ -740,13 +738,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStore.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="23" selection-start="146" selection-end="146" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/CHT.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
@@ -775,12 +766,28 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="0" selection-start="93" selection-end="93" vertical-scroll-proportion="0.11914894">
+        <state line="7" column="0" selection-start="93" selection-end="93" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="method#getState#0;class#NodeImpl#0" expanded="true" />
             <element signature="method#setState#0;class#NodeImpl#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="18" column="69" selection-start="576" selection-end="576" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/slard/filerepository/DataStoreImpl.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="93" column="78" selection-start="2668" selection-end="2668" vertical-scroll-proportion="1.0723404">
+          <folding />
         </state>
       </provider>
     </entry>
