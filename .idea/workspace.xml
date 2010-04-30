@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" readonly="true" id="7d40679d-8b7c-42f9-8217-1bedc4759d68" name="Default" comment="" />
+    <list default="true" readonly="true" id="7d40679d-8b7c-42f9-8217-1bedc4759d68" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+    </list>
     <ignored path="ase-autonomous.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -177,10 +179,10 @@
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemComs.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemComsClient.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/SystemComsServer.java" />
-        <option value="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/BaseNode.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/CHT.java" />
         <option value="$PROJECT_DIR$/src/com/slard/filerepository/CHTImpl.java" />
+        <option value="$PROJECT_DIR$/src/com/slard/filerepository/NodeImpl.java" />
       </list>
     </option>
   </component>
