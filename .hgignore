@@ -1,0 +1,4 @@
+glob:bin/*
+glob:.idea/*
+glob:dist/*
+glob:build/*

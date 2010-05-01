@@ -1,0 +1,93 @@
+package com.slard.filerepository;
+
+import org.jgroups.*;
+
+import java.util.Properties;
+import java.util.logging.Logger;
+
+
+public class NodeImpl implements Node, MessageListener, MembershipListener {
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+
+  private static final String CHANNEL_NAME = "FileRepositoryCluster";
+  SystemComsServerImpl systemComs = null;
+  private DataStore dataStore;
+  private CHT cht;
+  Properties options;
+  byte[] state;
+
+  private Channel channel;
+
+  //Constructor
+  public NodeImpl(DataStore dataStore, CHT cht, Properties options) {
+    this.dataStore = dataStore;
+    this.cht = cht;
+    this.options = options;
+  }
+
+  public void start() throws ChannelException {
+    this.channel = new JChannel();
+    channel.connect(CHANNEL_NAME);
+    systemComs = new SystemComsServerImpl(channel, dataStore, this, this);
+    logger.fine("channel connected and system coms server ready");
+
+    // start even loop here (in new thread?)
+  }
+
+  public void stop() {
+    systemComs.stop();
+    channel.close();
+  }
+
+  public void replicaGuard() {
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
+  public void receive(Message message) {
+    //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
+  public byte[] getState() {
+    return state;
+  }
+
+  @Override
+  public void setState(byte[] bytes) {
+    // Not totally sure what messages we can receive, probably broadcast of system state (disk space etc)
+    // probably in rdf.
+    state = bytes;
+  }
+
+  //Joined the network
+  @Override
+  public void viewAccepted(View view) {
+
+    CHT.MemberDelta changes = cht.recalculate(view);  // cht updated but need to apply net chages.
+    for (Address newnode : changes.added) {
+      System.out.println("new node: " + newnode.toString());
+    }
+    for (Address leavingnode : changes.removed) {
+      System.out.println("leving node: " + leavingnode.toString());
+    }
+  }
+
+  //Left the network
+  @Override
+  public void suspect(Address address) {
+    //cht.remove(address);
+  }
+
+  @Override
+  public void block() {
+    // probably can be left empty.	
+  }
+
+  @Override
+  public void initializeDataStore() {
+    // TODO Auto-generated method stub
+  }
+
+}
+     
