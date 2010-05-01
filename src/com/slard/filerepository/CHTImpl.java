@@ -10,19 +10,21 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 
 /**
- * Created by IntelliJ IDEA. User: kbrady Date: 28-Apr-2010 Time: 09:26:08 To
- * change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA.
+ * User: kbrady
+ * Date: 28-Apr-2010
+ * Time: 09:26:08
+ * To change this template use File | Settings | File Templates.
  */
 public class CHTImpl implements CHT {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final byte DEFAULT_NODES = 4;  // default number of hashes per address.
 
   private ReentrantReadWriteLock locks = new ReentrantReadWriteLock();
   private SortedMap<Long, Address> idToAddress = new TreeMap<Long, Address>();
   private Map<Address, long[]> addressToID = new HashMap<Address, long[]>();
 
   MessageDigest md;
-  private static final byte[][] PREFIXES = { "one".getBytes(),
-      "two".getBytes(), "three".getBytes(), "four".getBytes() };
 
   private static long bytesToLong(byte[] in) {
     long ret = in[0];
@@ -34,39 +36,38 @@ public class CHTImpl implements CHT {
 
   public CHTImpl() {
     try {
-      this.md = MessageDigest.getInstance("MD5"); // no need to be secure.
+      this.md = MessageDigest.getInstance("MD5");  // no need to be secure.
     } catch (NoSuchAlgorithmException e) {
     }
   }
 
-  @Override
-  public long[] getIDs(Address member) {
-    long[] ret = new long[PREFIXES.length];
-    for (int i = 0; i < PREFIXES.length; i++) {
-      ret[i] = this.calculateId((PREFIXES[i] + member.toString()).getBytes());
+  private long[] getIDs(Address member, byte size) {
+    long[] ret = new long[size];
+    byte[] prefix = new byte[1];
+    for (int i = 0; i < size; i++) {
+      md.reset();
+      prefix[0] = (byte) i;
+      md.update(prefix);  // md5 is strong and so this works well.
+      md.update(member.toString().getBytes());
+      ret[i] = bytesToLong(md.digest());
     }
     return ret;
   }
 
   @Override
-  public long calculateId(byte[] data) {
-    md.reset();
-    md.update(data);
-    return bytesToLong(md.digest());
+  public void insert(Address newMember) {
+    insert(newMember, DEFAULT_NODES);
   }
 
   @Override
-  public void insert(Address newMember) {
+  public void insert(Address newMember, byte size) {
+    long[] ids = getIDs(newMember, size);
     try {
       locks.writeLock().lock();
-
-      long[] addresses = getIDs(newMember);
-      addressToID.put(newMember, addresses);
-
-      for (long id : addresses) {
+      for (long id : ids) {
         idToAddress.put(id, newMember);
-
       }
+      addressToID.put(newMember, ids);
     } finally {
       locks.writeLock().unlock();
     }
@@ -76,10 +77,7 @@ public class CHTImpl implements CHT {
   public void remove(Address address) {
     try {
       locks.writeLock().lock();
-      for (long ids : addressToID.get(address)) {
-        idToAddress.remove(ids);
-      }
-      addressToID.remove(address);
+      idToAddress.remove(addressToID.remove(address));
     } finally {
       locks.writeLock().unlock();
     }
@@ -98,9 +96,9 @@ public class CHTImpl implements CHT {
         if (!newView.contains(member)) {
           deadMembers.add(member);
         }
-      } // deadMembers contains removed nodes.
+      }  // deadMembers contains removed nodes.
 
-      newView.removeAll(entries); // now contains new nodes.
+      newView.removeAll(entries);  // now contains new nodes.
     } finally {
       locks.readLock().unlock();
     }
@@ -117,7 +115,7 @@ public class CHTImpl implements CHT {
   @Override
   public Long findMaster(String name) {
     md.reset();
-    long id = bytesToLong(md.digest(name.getBytes())); // no need to seed.
+    long id = bytesToLong(md.digest(name.getBytes()));  // no need to seed.
     Long ret = null;
 
     try {
@@ -167,3 +165,4 @@ public class CHTImpl implements CHT {
     return ret;
   }
 }
+

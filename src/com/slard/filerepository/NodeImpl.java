@@ -2,23 +2,27 @@ package com.slard.filerepository;
 
 import org.jgroups.*;
 
+import java.util.Properties;
 import java.util.logging.Logger;
 
 
 public class NodeImpl implements Node, MessageListener, MembershipListener {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
   SystemComsServerImpl systemComs = null;
   private DataStore dataStore;
   private CHT cht;
+  Properties options;
   byte[] state;
 
   private Channel channel;
 
   //Constructor
-  public NodeImpl(DataStore dataStore, CHT cht) {
+  public NodeImpl(DataStore dataStore, CHT cht, Properties options) {
     this.dataStore = dataStore;
     this.cht = cht;
+    this.options = options;
   }
 
   public void start() throws ChannelException {
@@ -59,13 +63,13 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   //Joined the network
   @Override
   public void viewAccepted(View view) {
-    
+
     CHT.MemberDelta changes = cht.recalculate(view);  // cht updated but need to apply net chages.
-    for(Address newnode: changes.added){
-      System.out.println("new node: " + newnode.toString());  
+    for (Address newnode : changes.added) {
+      System.out.println("new node: " + newnode.toString());
     }
-    for(Address leavingnode: changes.removed){
-      System.out.println("leving node: " + leavingnode.toString());  
+    for (Address leavingnode : changes.removed) {
+      System.out.println("leving node: " + leavingnode.toString());
     }
   }
 

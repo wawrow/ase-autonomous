@@ -7,22 +7,13 @@ package com.slard.filerepository;
 public class DataObjectImpl implements DataObject {
   private String name;
   private byte[] content;
-  private CHT cht;
   private long id = 0;
 
-  public DataObjectImpl(String name, byte[] content, CHT cht) {
+  public DataObjectImpl(String name, byte[] content) {
     this.name = name;
     this.content = content;
-    this.cht = cht;
   }
 
-  @Override
-  public long getId() {
-    if (id == 0) {
-      id = cht.calculateId(this.name.getBytes());
-    }
-    return id; 
-  }
 
   @Override
   public byte[] getData() {
@@ -37,19 +28,19 @@ public class DataObjectImpl implements DataObject {
   @Override
   public boolean isMaster() {
     return false; // To change body of implemented methods use File | Settings |
-                  // File Templates.
+    // File Templates.
   }
 
   @Override
   public int getReplicaCount() {
     return 0; // To change body of implemented methods use File | Settings |
-              // File Templates.
+    // File Templates.
   }
 
   @Override
   public NodeDescriptor[] getLocations() {
     return new NodeDescriptor[0]; // To change body of implemented methods use
-                                  // File | Settings | File Templates.
+    // File | Settings | File Templates.
   }
 
   @Override

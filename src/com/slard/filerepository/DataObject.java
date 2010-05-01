@@ -2,7 +2,6 @@ package com.slard.filerepository;
 
 public interface DataObject {
 
-  long getId();
 
   byte[] getData();
 

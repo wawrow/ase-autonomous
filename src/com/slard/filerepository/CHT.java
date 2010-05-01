@@ -23,7 +23,11 @@ public interface CHT {
     public Set<Address> added;
   }
 
+  // We can user the number of ids to load-balance the new member.
+
   void insert(Address newMember);
+
+  void insert(Address newMember, byte numberIDs);
 
   void remove(Address address);
 
@@ -38,8 +42,4 @@ public interface CHT {
   // Actually return the address of the node we care about.
 
   Address getAddress(Long id);
-
-  long calculateId(byte[] data);
-
-  long[] getIDs(Address member);
 }
