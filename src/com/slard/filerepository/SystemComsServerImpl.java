@@ -8,12 +8,13 @@ import org.jgroups.blocks.RpcDispatcher;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Vector;
+import java.util.zip.CRC32;
 
 /**
  * Created by IntelliJ IDEA. User: kbrady Date: 28-Apr-2010 Time: 01:24:59 To
  * change this template use File | Settings | File Templates.
  */
-public class SystemComsServerImpl implements SystemComsServer {
+public class SystemComsServerImpl implements SystemComs {
 
 	private DataStore store = null;
 	private RpcDispatcher dispatcher = null;
@@ -47,4 +48,22 @@ public class SystemComsServerImpl implements SystemComsServer {
 	public void stop() {
 		dispatcher.stop();
 	}
+
+  @Override
+  public CRC32 getCRC(String fileName) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean hasFile(String name) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public Vector<String> list() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
