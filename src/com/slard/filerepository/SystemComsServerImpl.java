@@ -8,6 +8,7 @@ import org.jgroups.blocks.RpcDispatcher;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Logger;
 import java.util.zip.CRC32;
 
 /**
@@ -23,8 +24,12 @@ public class SystemComsServerImpl implements SystemComs {
 			MessageListener messages, MembershipListener members) {
 		this.store = store;
 		this.dispatcher = new RpcDispatcher(channel, messages, members, this);
-	}
+}
 
+	public RpcDispatcher GetDispatcher(){
+	  return this.dispatcher;
+	}
+	
 	@Override
 	public Boolean store(DataObject dataObject) {
 		try {
@@ -58,6 +63,7 @@ public class SystemComsServerImpl implements SystemComs {
   @Override
   public boolean hasFile(String name) {
     // TODO Auto-generated method stub
+    System.out.println("test worked");
     return false;
   }
 

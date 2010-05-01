@@ -8,7 +8,7 @@ public interface DataObject {
 
   String getName();
 
-  String getCRC();
+  Long getCRC();
 
   //Returns true if this object is master object, otherwise it's replica
   boolean isMaster();

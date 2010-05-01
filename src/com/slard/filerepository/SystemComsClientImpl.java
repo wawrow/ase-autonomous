@@ -23,8 +23,8 @@ public class SystemComsClientImpl implements SystemComs {
   private MethodCall storeCall = new MethodCall("store", null, new Class[]{DataObject.class});
   private MethodCall retrieveCall = new MethodCall("retrieve", null, new Class[]{String.class});
 
-  private SystemComsClientImpl(Channel channel, Address target) {
-    this.dispatcher = new RpcDispatcher(channel, null, null, null);
+  private SystemComsClientImpl(RpcDispatcher dispatcher, Address target) {
+    this.dispatcher = dispatcher;
     this.target = target;
   }
 
@@ -55,8 +55,8 @@ public class SystemComsClientImpl implements SystemComs {
   }
 
   //Factory Method
-  public static SystemComs getSystemComsClient(Channel channel, Address target) {
-    return new SystemComsClientImpl(channel, target);
+  public static SystemComs getSystemComsClient(RpcDispatcher dispatcher, Address target) {
+    return new SystemComsClientImpl(dispatcher, target);
   }
 
   @Override
