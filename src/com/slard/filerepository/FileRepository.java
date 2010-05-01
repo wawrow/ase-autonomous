@@ -8,8 +8,8 @@ public class FileRepository {
   public static void main(String[] args) {
     // Intend to replace these instantiations with Guicey modules and injectors.
     String curDir = System.getProperty("user.dir");
-    DataStore store = new DataStoreImpl(curDir);
     CHT cht = new CHTImpl();
+    DataStore store = new DataStoreImpl(curDir, cht);
     NodeImpl node = new NodeImpl(store, cht);
     try {
       node.start();

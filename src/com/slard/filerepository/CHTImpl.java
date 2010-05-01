@@ -44,12 +44,16 @@ public class CHTImpl implements CHT {
   private long[] getIDs(Address member) {
     long[] ret = new long[PREFIXES.length];
     for (int i = 0; i < PREFIXES.length; i++) {
-      md.reset();
-      md.update(PREFIXES[i]);  // md5 is strong and so this works well.
-      md.update(member.toString().getBytes());
-      ret[i] = bytesToLong(md.digest());
+      ret[i] = this.calculateId((PREFIXES[i] + member.toString()).getBytes());
     }
     return ret;
+  }
+  
+  @Override
+  public long calculateId(byte[] data){
+    md.reset();
+    md.update(data);
+    return bytesToLong(md.digest());
   }
 
   @Override

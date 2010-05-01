@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.slard.filerepository.CHT;
 import com.slard.filerepository.DataObject;
 import com.slard.filerepository.DataStore;
 import com.slard.filerepository.DataStoreImpl;
@@ -20,15 +21,19 @@ public class DataStoreTest {
   byte[] TESTDATA  = new byte[] { 0, 1, 1 };  
   DataStore dataStore;
   DataObject mockedDataObject;
+  CHT mockedCHT;
   
   @Before
   public void setUp() throws Exception {
-    dataStore = new DataStoreImpl();
-    
-    //Set Up Mocks
+    //Set Up Mocks - possibly will be refactored to common place for other tests
     mockedDataObject = Mockito.mock(DataObject.class);
     Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
     Mockito.when(mockedDataObject.getName()).thenReturn(TESTFILENAME);
+    
+    mockedCHT = Mockito.mock(CHT.class);
+
+    //Prepare test objects
+    dataStore = new DataStoreImpl(mockedCHT);
     this.dataStore.storeDataObject(mockedDataObject);    
   }
 
