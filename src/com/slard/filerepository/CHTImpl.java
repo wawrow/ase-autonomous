@@ -10,11 +10,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 
 /**
- * Created by IntelliJ IDEA.
- * User: kbrady
- * Date: 28-Apr-2010
- * Time: 09:26:08
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: kbrady Date: 28-Apr-2010 Time: 09:26:08 To
+ * change this template use File | Settings | File Templates.
  */
 public class CHTImpl implements CHT {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -24,7 +21,8 @@ public class CHTImpl implements CHT {
   private Map<Address, long[]> addressToID = new HashMap<Address, long[]>();
 
   MessageDigest md;
-  private static final byte[][] PREFIXES = {"one".getBytes(), "two".getBytes(), "three".getBytes(), "four".getBytes()};
+  private static final byte[][] PREFIXES = { "one".getBytes(),
+      "two".getBytes(), "three".getBytes(), "four".getBytes() };
 
   private static long bytesToLong(byte[] in) {
     long ret = in[0];
@@ -36,7 +34,7 @@ public class CHTImpl implements CHT {
 
   public CHTImpl() {
     try {
-      this.md = MessageDigest.getInstance("MD5");  // no need to be secure.
+      this.md = MessageDigest.getInstance("MD5"); // no need to be secure.
     } catch (NoSuchAlgorithmException e) {
     }
   }
@@ -48,9 +46,9 @@ public class CHTImpl implements CHT {
     }
     return ret;
   }
-  
+
   @Override
-  public long calculateId(byte[] data){
+  public long calculateId(byte[] data) {
     md.reset();
     md.update(data);
     return bytesToLong(md.digest());
@@ -61,8 +59,12 @@ public class CHTImpl implements CHT {
     try {
       locks.writeLock().lock();
 
-      for (long id : getIDs(newMember)) {
+      long[] addresses = getIDs(newMember);
+      addressToID.put(newMember, addresses);
+
+      for (long id : addresses) {
         idToAddress.put(id, newMember);
+
       }
     } finally {
       locks.writeLock().unlock();
@@ -73,7 +75,10 @@ public class CHTImpl implements CHT {
   public void remove(Address address) {
     try {
       locks.writeLock().lock();
-      idToAddress.remove(addressToID.remove(address));
+      for (long ids : addressToID.get(address)) {
+        idToAddress.remove(ids);
+      }
+      addressToID.remove(address);
     } finally {
       locks.writeLock().unlock();
     }
@@ -92,9 +97,9 @@ public class CHTImpl implements CHT {
         if (!newView.contains(member)) {
           deadMembers.add(member);
         }
-      }  // deadMembers contains removed nodes.
+      } // deadMembers contains removed nodes.
 
-      newView.removeAll(entries);  // now contains new nodes.
+      newView.removeAll(entries); // now contains new nodes.
     } finally {
       locks.readLock().unlock();
     }
@@ -111,7 +116,7 @@ public class CHTImpl implements CHT {
   @Override
   public Long findMaster(String name) {
     md.reset();
-    long id = bytesToLong(md.digest(name.getBytes()));  // no need to seed.
+    long id = bytesToLong(md.digest(name.getBytes())); // no need to seed.
     Long ret = null;
 
     try {
@@ -161,4 +166,3 @@ public class CHTImpl implements CHT {
     return ret;
   }
 }
-
