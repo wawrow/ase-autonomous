@@ -21,7 +21,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   Properties options;
   byte[] state;
 
-  private long[] ids;
+  private long[] ids = null;
 
   public long[] getIds() {
     if (ids == null) {
@@ -49,6 +49,14 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     logger.finer("My Address: " + channel.getAddress().toString());
     this.initializeDataStore();
     // start even loop here (in new thread?)
+
+    for (Long id : this.getIds()) {
+      System.out.println("ID: " + id.toString());
+    }
+
+    // initial cht
+    this.cht.recalculate(this.channel.getView());
+
   }
 
   public void stop() {
@@ -125,12 +133,16 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public void nodeJoined(NodeDescriptor node) {
     System.out.println("Let's check the files.");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
-//      System.out.println("Checking " + obj.getName() + " as " + this.getIds().toString());
       long owner = this.cht.findMaster(obj.getName());
-      System.out.println("Owner is " + owner);
-      if (Arrays.asList(this.getIds()).contains(owner)) {
-        // I'm the owner! now was i before?
-        System.out.println(obj.getName() + " is mine!!!");
+      if (this.cht.getAddress(owner) == this.channel.getAddress()) {
+
+        for(Address replica: this.cht.findPrevousUniqueAddresses(owner, 1)){
+          // check if joining node is previous
+          if(replica == node.getAddress()){
+              // take care of replicas
+              System.out.println("Will Have to replicate this file.");
+          }          
+        }       
       }
     }
   }
