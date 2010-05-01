@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 public class NodeImpl implements Node, MessageListener, MembershipListener {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
-  SystemComsServer systemComs = null;
+  SystemComsServerImpl systemComs = null;
   private DataStore dataStore;
   private CHT cht;
   byte[] state;
@@ -24,7 +24,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public void start() throws ChannelException {
     this.channel = new JChannel();
     channel.connect(CHANNEL_NAME);
-    systemComs = new SystemComsServer(channel, dataStore, this, this);
+    systemComs = new SystemComsServerImpl(channel, dataStore, this, this);
     logger.fine("channel connected and system coms server ready");
 
     // start even loop here (in new thread?)

@@ -39,7 +39,8 @@ public class CHTImpl implements CHT {
     }
   }
 
-  private long[] getIDs(Address member) {
+  @Override
+  public long[] getIDs(Address member) {
     long[] ret = new long[PREFIXES.length];
     for (int i = 0; i < PREFIXES.length; i++) {
       ret[i] = this.calculateId((PREFIXES[i] + member.toString()).getBytes());

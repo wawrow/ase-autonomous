@@ -40,4 +40,6 @@ public interface CHT {
   Address getAddress(Long id);
 
   long calculateId(byte[] data);
+
+  long[] getIDs(Address member);
 }
