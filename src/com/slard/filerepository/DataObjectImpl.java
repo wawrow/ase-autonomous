@@ -1,5 +1,7 @@
 package com.slard.filerepository;
 
+import java.util.zip.CRC32;
+
 /**
  * Created by IntelliJ IDEA. User: kbrady Date: 28-Apr-2010 Time: 08:45:22 To
  * change this template use File | Settings | File Templates.
@@ -53,8 +55,10 @@ public class DataObjectImpl implements DataObject {
   }
 
   @Override
-  public String getCRC() {
-    // TODO Auto-generated method stub
-    return null;
+  public Long getCRC() {
+    CRC32 crc = new CRC32();
+    crc.reset();
+    crc.update(this.getData());
+    return crc.getValue();
   }
 }

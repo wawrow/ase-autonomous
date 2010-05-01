@@ -12,4 +12,7 @@ public interface Node {
   //This method will loop to keep check the replica nodes and keep the replica count
   public abstract void replicaGuard();
 
+  void nodeLeft(NodeDescriptor node);
+  void nodeJoined(NodeDescriptor node);
+  
 }
