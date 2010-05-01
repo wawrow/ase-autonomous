@@ -13,8 +13,6 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   private CHT cht;
   byte[] state;
 
-  // private long[] ids;
-  //private Map<Long, NodeDescriptor> nodes;
   private Channel channel;
 
   //Constructor
