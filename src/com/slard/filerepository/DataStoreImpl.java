@@ -10,12 +10,15 @@ import java.io.FileNotFoundException;
 import java.util.Vector;
 
 public class DataStoreImpl implements DataStore {
+  private CHT cht;
   private String storeLocation;
 
-  public DataStoreImpl() {
-    this.storeLocation = ".";
+  public DataStoreImpl(CHT cht) {
+    this(".", cht);
   }
-  public DataStoreImpl(String storeLocation) {
+
+  public DataStoreImpl(String storeLocation, CHT cht) {
+    this.cht = cht;
     this.storeLocation = storeLocation;
   }
 
@@ -60,7 +63,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public DataObjectImpl getDataObject(String name) throws IOException {
-  	return new DataObjectImpl(name, readFile(name));
+  	return new DataObjectImpl(name, readFile(name), this.cht);
   }
 
   /**
