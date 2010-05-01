@@ -27,8 +27,9 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   
   public NodeDescriptorImpl(Address address, CHT cht, SystemComs systemComsClient)
   {
+    this.address = address;
     this.cht = cht; 
-    this.systemComs = systemComs;
+    this.systemComs = systemComsClient;
   }
 
   @Override

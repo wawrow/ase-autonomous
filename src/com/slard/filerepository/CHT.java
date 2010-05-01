@@ -4,6 +4,7 @@ import org.jgroups.Address;
 import org.jgroups.View;
 
 import java.util.Set;
+import java.util.Vector;
 
 /**
  * Created by IntelliJ IDEA.
@@ -38,10 +39,15 @@ public interface CHT {
   Long findMaster(String name);
   // Find the previous ID (ie the replica candidate) for an ID.
 
-  Long findPrevious(Long id);
   // Actually return the address of the node we care about.
 
   Address getAddress(Long id);
 
   long[] getIDs(Address member);
+
+  Long findPreviousId(Long id);
+
+  Address findPrevousUniqueAddress(Long startId, Vector<Address> avoid);
+
+  Vector<Address> findPrevousUniqueAddresses(Long startId, int depth);
 }

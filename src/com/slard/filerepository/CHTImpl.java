@@ -25,10 +25,11 @@ public class CHTImpl implements CHT {
   MessageDigest md;
 
   private static long bytesToLong(byte[] in) {
-    long ret = in[0];
-    for (int i = 1; i < in.length && i < 8; i++) {
-      ret = (ret << 8) & in[i];
-    }
+    long ret = 0;
+    for(int i =0; i < 8; i++){      
+      ret <<= 8;  
+      ret ^= (long)in[i] & 0xFF;      
+    }  
     return ret;
   }
 
@@ -52,7 +53,7 @@ public class CHTImpl implements CHT {
       prefix[0] = (byte) i;
       md.update(prefix); // md5 is strong and so this works well.
       md.update(member.toString().getBytes());
-      ret[i] = bytesToLong(md.digest());
+      ret[i] = bytesToLong(md.digest());      
     }
     return ret;
   }
@@ -143,7 +144,7 @@ public class CHTImpl implements CHT {
   }
 
   @Override
-  public Long findPrevious(Long id) {
+  public Long findPreviousId(Long id) {
     Long ret = null;
     try {
       locks.readLock().lock();
@@ -169,5 +170,41 @@ public class CHTImpl implements CHT {
       locks.readLock().unlock();
     }
     return ret;
+  }
+
+  @Override
+  public Vector<Address> findPrevousUniqueAddresses(Long startId, int depth) {
+    Vector<Address> result = new Vector<Address>();
+    for(int i = 0; i < depth; i++){
+      Address prevAddress = this.findPrevousUniqueAddress(startId, result);
+      if(prevAddress == null) break;
+      result.add(prevAddress);
+    }
+    return result;
+  }
+  
+  //Will avoid starting node by default
+  @Override
+  public Address findPrevousUniqueAddress(Long startId, Vector<Address> avoid) {
+    if(avoid == null) avoid = new Vector<Address>();
+    if(!avoid.contains(this.getAddress(startId))){
+      avoid.add(this.getAddress(startId));
+    }
+
+    //Special cases
+    try {
+      locks.readLock().lock();
+      if(addressToID.size() == 1 || addressToID.size() == avoid.size()) return null;
+    } finally {
+      locks.readLock().unlock();
+    }
+
+    SortedMap<Long, Address> headMap = idToAddress.headMap(startId);
+    Address result = null; 
+    while(result == null && headMap.size() > 0){
+      if(!avoid.contains(idToAddress.get(headMap.lastKey()))) result =idToAddress.get(headMap.lastKey()); 
+      headMap = idToAddress.headMap(startId);
+    }
+    return result;
   }
 }
