@@ -59,13 +59,20 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   //Joined the network
   @Override
   public void viewAccepted(View view) {
+    
     CHT.MemberDelta changes = cht.recalculate(view);  // cht updated but need to apply net chages.
+    for(Address newnode: changes.added){
+      System.out.println("new node: " + newnode.toString());  
+    }
+    for(Address leavingnode: changes.removed){
+      System.out.println("leving node: " + leavingnode.toString());  
+    }
   }
 
   //Left the network
   @Override
   public void suspect(Address address) {
-    cht.remove(address);
+    //cht.remove(address);
   }
 
   @Override
