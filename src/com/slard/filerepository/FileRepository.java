@@ -34,12 +34,13 @@ public class FileRepository {
     }
     DataStore store = new DataStoreImpl(options);
     CHT cht = new CHTImpl();
-    NodeImpl node = new NodeImpl(store, cht, options);
-    DataStore store = new DataStoreImpl(curDir + "/store", cht);
+    //DataStore store = new DataStoreImpl(curDir + "/store", cht);
+    
+     NodeImpl node = new NodeImpl(store, cht, options);
     try {
       node.start();
     } catch (ChannelException e) {
     }
-    node.stop();
+    //node.stop();
   }
 }

@@ -42,4 +42,6 @@ public interface CHT {
   // Actually return the address of the node we care about.
 
   Address getAddress(Long id);
+
+  long[] getIDs(Address member);
 }

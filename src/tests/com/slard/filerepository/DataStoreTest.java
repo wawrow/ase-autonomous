@@ -1,6 +1,7 @@
 package tests.com.slard.filerepository;
 
 import java.util.Arrays;
+import java.util.Properties;
 
 import junit.framework.Assert;
 
@@ -18,7 +19,7 @@ public class DataStoreTest {
 
   String TESTFILENAME = "testName";
   byte[] TESTDATA = new byte[] { 0, 1, 1 };
-  String TESTSTOREDIR = "c:\teststore";
+  String TESTSTOREDIR = "teststore";
   DataStore dataStore;
   DataObject mockedDataObject;
   CHT mockedCHT;
@@ -33,8 +34,11 @@ public class DataStoreTest {
 
     mockedCHT = Mockito.mock(CHT.class);
 
+    String curDir = System.getProperty("user.dir");
+    Properties options = new Properties();
+    options.put("datastore.dir", curDir + TESTSTOREDIR);
     // Prepare test objects
-    dataStore = new DataStoreImpl(TESTSTOREDIR, mockedCHT);
+    dataStore = new DataStoreImpl(options);
     this.dataStore.storeDataObject(mockedDataObject);
   }
 
