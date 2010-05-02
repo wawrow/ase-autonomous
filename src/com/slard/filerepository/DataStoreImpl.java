@@ -11,8 +11,22 @@ public class DataStoreImpl implements DataStore {
   public DataStoreImpl(Properties options) {
     this.options = options;
     this.storeLocation = options.getProperty("datastore.dir", System.getProperty("user.dir", "."));
+    
+    // Make sure the directory exists...
+    File directory = new File(storeLocation);
+    directory.mkdirs();
   }
 
+  /**
+   * Gets the directory in which the DataStore stores its files
+   *
+   * @return String
+   */
+  @Override
+  public String getStoreLocation() {
+    return this.storeLocation;
+  }
+  
   /**
    * Checks if the named object is present in the object store
    *
@@ -27,7 +41,7 @@ public class DataStoreImpl implements DataStore {
   /**
    * Gets all the DataObjects in the object store
    *
-   * @return Vector<DataObject>
+   * @return ArrayList<DataObject>
    */
   @Override
   public ArrayList<DataObject> getAllDataObjects() {
@@ -65,9 +79,6 @@ public class DataStoreImpl implements DataStore {
   @Override
   public void deleteDataObject(String name) throws IOException {
     File file = new File(storeLocation, name);
-    if (!file.exists()) {
-      //  throw new FileNotFoundException(name + " not found");    // better to do nothing.
-    }
     if (!file.delete()) {
       throw new IOException(name + " deletion failed");
     }
@@ -79,15 +90,15 @@ public class DataStoreImpl implements DataStore {
    *
    * @param dataObject the DataObject containing the object name and data
    *                   to be added to the object store
-   * @throws //FileAlreadyExistsException
+   * @throws DataObjectExistsException
    * @throws IOException
    */
   @Override
-  public void storeDataObject(DataObject dataObject) throws IOException {
+  public void storeDataObject(DataObject dataObject) throws IOException, DataObjectExistsException {
     File file = new File(storeLocation, dataObject.getName());
-    //if (file.exists()) {  // keith: I think it's better to silently replace.
-    //  throw new DataObjectExistsException(dataObject.getName() + " already exists");
-    //}
+    if (file.exists()) {
+      throw new DataObjectExistsException(dataObject.getName() + " already exists");
+    }
     writeFile(file, dataObject.getData());
   }
 
@@ -106,8 +117,10 @@ public class DataStoreImpl implements DataStore {
     }
 
     // Rename to something temporary until we know the add worked
-    String tempFileName = dataObject.getName() + ".$tmp";
-    file.renameTo(new File(tempFileName));
+    String tempFileName = dataObject.getName() + ".tmp";
+    if (!file.renameTo(new File(storeLocation, tempFileName))){
+      throw new Exception("Could not rename " + dataObject.getName() + " to " + tempFileName);
+    }
     try {
       storeDataObject(dataObject);
     } catch (Exception e) {

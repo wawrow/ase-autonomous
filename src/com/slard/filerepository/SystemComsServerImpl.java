@@ -34,7 +34,7 @@ public class SystemComsServerImpl implements SystemComs {
 	public Boolean store(DataObject dataObject) {
 		try {
 			store.storeDataObject(dataObject);
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			return false;
 		}
 		return true;
