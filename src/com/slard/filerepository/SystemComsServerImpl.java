@@ -17,6 +17,7 @@ import java.util.zip.CRC32;
  */
 public class SystemComsServerImpl implements SystemComs {
 
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 	private DataStore store = null;
 	private RpcDispatcher dispatcher = null;
 
@@ -32,6 +33,7 @@ public class SystemComsServerImpl implements SystemComs {
 	
 	@Override
 	public Boolean store(DataObject dataObject) {
+	  this.logger.info("Requested to store: " + dataObject.getName());
 		try {
 			store.storeDataObject(dataObject);
 		} catch (Exception ex) {
@@ -42,6 +44,7 @@ public class SystemComsServerImpl implements SystemComs {
 
 	@Override
 	public DataObject retrieve(String name) {
+    this.logger.info("Requested to retrieve: " + name);
 	  try{
 		return store.getDataObject(name);
 	  } catch(IOException ex){
@@ -55,21 +58,28 @@ public class SystemComsServerImpl implements SystemComs {
 	}
 
   @Override
-  public CRC32 getCRC(String fileName) {
-    // TODO Auto-generated method stub
-    return null;
+  public Long getCRC(String fileName) {
+    this.logger.info("Requested CRC: " + fileName);
+    try{
+    return store.getDataObject(fileName).getCRC();
+    } catch(Exception ex){
+      return null;
+    }
   }
 
   @Override
   public boolean hasFile(String name) {
-    // TODO Auto-generated method stub
-    System.out.println("test worked");
-    return false;
+    this.logger.info("Requested hasFile: " + name);    
+    return store.contains(name);
   }
 
   @Override
   public Vector<String> list() {
-    // TODO Auto-generated method stub
-    return null;
+    this.logger.info("Requested list.");    
+    Vector<String> result = new Vector<String>();
+    for(DataObject dataObj: store.getAllDataObjects()){
+      result.add(dataObj.getName());
+    }
+    return result;
   }
 }

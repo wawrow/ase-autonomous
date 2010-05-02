@@ -52,15 +52,13 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     systemComs = new SystemComsServerImpl(channel, dataStore, this, this);
     logger.fine("channel connected and system coms server ready");
     logger.finer("My Address: " + channel.getAddress().toString());
+    this.cht.recalculate(this.channel.getView());
+
     this.initializeDataStore();
-    // start even loop here (in new thread?)
 
     for (Long id : this.getIds()) {
       System.out.println("ID: " + id.toString());
     }
-
-    // initial cht
-    this.cht.recalculate(this.channel.getView());
 
   }
 
@@ -112,13 +110,12 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  private NodeDescriptor createNodeDescriptor(Address address){
-    NodeDescriptor node = new NodeDescriptorImpl(address, this.cht,
-        SystemComsClientImpl.getSystemComsClient(this.systemComs
-            .GetDispatcher(), address));
+  private NodeDescriptor createNodeDescriptor(Address address) {
+    NodeDescriptor node = new NodeDescriptorImpl(address, this.cht, SystemComsClientImpl.getSystemComsClient(this.systemComs
+        .GetDispatcher(), address));
     return node;
   }
-  
+
   // Suspect Left the network
   @Override
   public void suspect(Address address) {
@@ -135,8 +132,29 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public void initializeDataStore() {
     System.out.println("My Current Data Store:");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
-      System.out.println(obj.getName() + " CRC: " + obj.getCRC().toString());
+      System.out.println("File: " + obj.getName() + " CRC " + obj.getCRC());
+      long masterId = this.cht.findMaster(obj.getName());
+      System.out.println("My: " + this.channel.getAddress() + " Belongs to: " + this.cht.getAddress(masterId));
+      if (this.channel.getAddress() == this.cht.getAddress(masterId)) {
+        System.out.println("Me is master");
+        NodeDescriptor oldMaster = this.createNodeDescriptor(this.cht.findPrevousUniqueAddresses(masterId, 1).elementAt(0));
+        if (!oldMaster.hasFile(obj.getName())) {
+          // TODO Call to manage replicas
+        }
+      } else {
+        NodeDescriptor master = this.createNodeDescriptor(this.cht.getAddress(masterId));
+        if (!master.hasFile(obj.getName())) {
+          master.store(obj);
+        }
+        try {
+          this.dataStore.deleteDataObject(obj.getName());
+        } catch (Exception ex) {
+          // TODO Implement some better error handling
+        }
+      }
     }
+
+    // If i'm not the first in cluster - sent the message that I'm ready to go
     if (this.channel.getView().size() > 1) {
       try {
         this.channel.send(new Message(null, null, JOINED_AND_INITIALIZED));

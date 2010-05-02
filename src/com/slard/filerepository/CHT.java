@@ -43,5 +43,7 @@ public interface CHT  {
   Vector<Address> findPrevousUniqueAddresses(Long startId, int depth);
   
   int getNodeCount();
+
+  Address findMasterAddress(String name);
   
 }

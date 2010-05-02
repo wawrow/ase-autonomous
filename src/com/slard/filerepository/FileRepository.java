@@ -26,12 +26,13 @@ public class FileRepository {
     
     String curDir = System.getProperty("user.dir");
     Properties options = new Properties();
-    File configFile = new File(curDir, "filerepository.config");
-    try {
-      options.load(new FileInputStream(configFile));
-    } catch (Exception e) {
-      // should die here since we didn't load the config.
-    }
+//    File configFile = new File(curDir, "filerepository.config");
+//    try {
+//      options.load(new FileInputStream(configFile));
+//    } catch (Exception e) {
+//      // should die here since we didn't load the config.
+//    }
+    options.put("datastore.dir", curDir + "\\store");
     DataStore store = new DataStoreImpl(options);
     CHT cht = new CHTImpl();
     //DataStore store = new DataStoreImpl(curDir + "/store", cht);

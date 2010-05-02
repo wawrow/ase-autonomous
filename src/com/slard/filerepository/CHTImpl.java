@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class CHTImpl implements CHT {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final byte DEFAULT_NODES = 4; // default number of hashes per
-                                               // address.
+  // address.
 
   private ReentrantReadWriteLock locks = new ReentrantReadWriteLock();
   private SortedMap<Long, Address> idToAddress = new TreeMap<Long, Address>();
@@ -22,10 +22,10 @@ public class CHTImpl implements CHT {
 
   private static long bytesToLong(byte[] in) {
     long ret = 0;
-    for(int i =0; i < 8; i++){      
-      ret <<= 8;  
-      ret ^= (long)in[i] & 0xFF;      
-    }  
+    for (int i = 0; i < 8; i++) {
+      ret <<= 8;
+      ret ^= (long) in[i] & 0xFF;
+    }
     return ret;
   }
 
@@ -49,7 +49,7 @@ public class CHTImpl implements CHT {
       prefix[0] = (byte) i;
       md.update(prefix); // md5 is strong and so this works well.
       md.update(member.toString().getBytes());
-      ret[i] = bytesToLong(md.digest());      
+      ret[i] = bytesToLong(md.digest());
     }
     return ret;
   }
@@ -171,41 +171,49 @@ public class CHTImpl implements CHT {
   @Override
   public Vector<Address> findPrevousUniqueAddresses(Long startId, int depth) {
     Vector<Address> result = new Vector<Address>();
-    for(int i = 0; i < depth; i++){
+    for (int i = 0; i < depth; i++) {
       Address prevAddress = this.findPrevousUniqueAddress(startId, result);
-      if(prevAddress == null) break;
+      if (prevAddress == null)
+        break;
       result.add(prevAddress);
     }
     return result;
   }
-  
+
   private Address findPrevousUniqueAddress(Long startId, Vector<Address> avoid) {
-    if(avoid == null) avoid = new Vector<Address>();
-    if(!avoid.contains(this.getAddress(startId))){
+    if (avoid == null)
+      avoid = new Vector<Address>();
+    if (!avoid.contains(this.getAddress(startId))) {
       avoid.add(this.getAddress(startId));
     }
 
-    //Special cases
+    // Special cases
     try {
       locks.readLock().lock();
-      if(addressToID.size() == 1 || addressToID.size() == avoid.size()) return null;
+      if (addressToID.size() == 1 || addressToID.size() == avoid.size())
+        return null;
     } finally {
       locks.readLock().unlock();
     }
 
     SortedMap<Long, Address> headMap = idToAddress.headMap(startId);
-    Address result = null; 
-    while(result == null && headMap.size() > 0){
-      if(!avoid.contains(idToAddress.get(headMap.lastKey()))) result =idToAddress.get(headMap.lastKey()); 
+    Address result = null;
+    while (result == null && headMap.size() > 0) {
+      if (!avoid.contains(idToAddress.get(headMap.lastKey())))
+        result = idToAddress.get(headMap.lastKey());
       headMap = idToAddress.headMap(startId);
     }
     return result;
   }
 
-   
   @Override
-  public int getNodeCount(){
+  public int getNodeCount() {
     return addressToID.size();
+  }
+
+  @Override
+  public Address findMasterAddress(String name) {
+    return this.getAddress(this.findMaster(name));
   }
 
 }
