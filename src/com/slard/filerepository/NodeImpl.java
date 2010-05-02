@@ -12,6 +12,8 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Properties;
 import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,10 +30,12 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   Properties options;
   byte[] state;
   private Channel commonChannel;
-  private Channel rpcChannel;
-  private MessageDispatcher commonDispatcher;
+  // private Channel rpcChannel;
+  // private MessageDispatcher commonDispatcher;
 
   private long[] ids = null;
+
+  private Timer replicaGuardTimer;
 
   public long[] getIds() {
     if (ids == null) {
@@ -49,14 +53,14 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   public void start() throws ChannelException {
-    this.commonChannel = new JChannel();
+    this.commonChannel = new JChannel("mping.xml");
     System.out.println(this.commonChannel.getProperties());
     commonChannel.connect(CHANNEL_NAME);
 
-    this.commonDispatcher = new MessageDispatcher(commonChannel, this, this);
+    // this.commonDispatcher = new MessageDispatcher(commonChannel, this, this);
 
-    this.rpcChannel = new JChannel("tcp.xml");
-    systemComs = new SystemComsServerImpl(rpcChannel, dataStore, null, null, this);
+    // this.rpcChannel = new JChannel("tcp.xml");
+    systemComs = new SystemComsServerImpl(commonChannel, dataStore, this, this, this);
 
     logger.fine("channel connected and system coms server ready");
     logger.finer("My Address: " + commonChannel.getAddress().toString());
@@ -68,6 +72,14 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
       System.out.println("ID: " + id.toString());
     }
 
+    this.replicaGuardTimer = new Timer();
+    replicaGuardTimer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        replicaGuard();
+      }
+    }, 1000, 5000);
+
   }
 
   public void stop() {
@@ -76,8 +88,12 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   public void replicaGuard() {
-    // To change body of implemented methods use File | Settings | File
-    // Templates.
+    System.out.println("Replica Guardian!!!");
+    for (DataObject obj : this.dataStore.getAllDataObjects()) {
+     if(this.amIMaster(obj.getName())){
+       this.replicateDataObject(obj);
+     }
+    }
   }
 
   @Override
@@ -128,6 +144,8 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   @Override
   public void suspect(Address address) {
     logger.info("Suspecting node: " + address.toString());
+    this.ch.removeMember(address);
+    this.nodeLeft(address);
     // cht.remove(address);
   }
 
@@ -144,30 +162,32 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
         Vector<Address> oldMasterAddress = this.ch.findPreviousUniqueAddresses(masterId, 1);
         if (oldMasterAddress != null && oldMasterAddress.size() > 0) {
           NodeDescriptor oldMaster = this.createNodeDescriptor(oldMasterAddress.elementAt(0));
-          System.out.println("Checkpoint 1");
           if (!oldMaster.hasFile(obj.getName())) {
             this.replicateDataObject(obj);
           }
         }
       } else {
         NodeDescriptor master = this.createNodeDescriptor(this.ch.getAddress(masterId));
-        System.out.println("Checkpoint 2");
         if (!master.hasFile(obj.getName())) {
           master.store(obj);
         }
         try {
           this.dataStore.deleteDataObject(obj.getName());
         } catch (Exception ex) {
+          logger.warning(ex.toString());
           // TODO Implement some better error handling
         }
       }
     }
 
+    System.out.println("Now send the message");
     // If i'm not the first in cluster - sent the message that I'm ready to go
     if (this.commonChannel.getView().size() > 1) {
       try {
         this.commonChannel.send(new Message(null, null, JOINED_AND_INITIALIZED));
+        System.out.println("message sent");
       } catch (Exception ex) {
+        System.out.println(ex.toString());
         // make me crash!!!
       }
     }
@@ -177,22 +197,36 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public void nodeJoined(NodeDescriptor node) {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       // If the guy is master of any of my files
+      System.out.println("Checking file " + obj.getName());
       if (node.getAddress().equals(this.ch.findMasterAddress(obj.getName()))) {
+        System.out.println("Joining node is master for " + obj.getName());
         // Check if i was master before
         if (this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()), 1).contains(this.commonChannel.getAddress())) {
           if (node.hasFile(obj.getName())) {
-            if (node.getCRC(obj.getName()) != obj.getCRC()) {
+            if (!node.getCRC(obj.getName()).equals(obj.getCRC())) {
               node.replace(obj);
             }
           } else {
             node.store(obj);
           }
         }
-        try {
-          this.dataStore.deleteDataObject(obj.getName());
-        } catch (Exception ex) {
-          // TODO better exception handing
+        if (!this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()), REPLICA_COUNT).contains(
+            this.commonChannel.getAddress())) {
+          // If I'm not replica - delete that file
+          try {
+            this.dataStore.deleteDataObject(obj.getName());
+          } catch (Exception ex) {
+            // TODO better exception handing
+          }
         }
+      } else if (this.amIMaster(obj.getName())) {
+        // Check if he'll become a replica
+
+        // if(this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()),
+        // REPLICA_COUNT).contains(node.getAddress())){
+        this.replicateDataObject(obj);
+        // TODO Delete from previous replicas
+        // }
       }
     }
   }
@@ -222,10 +256,13 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   @Override
   public void replicateDataObject(DataObject obj) {
+    logger.fine("Replicating file: " + obj.getName() + " ch " + this.ch.getNodeCount());
     for (Address nodeAddress : this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()), REPLICA_COUNT)) {
+      logger.fine("Replicating file: " + obj.getName() + " to " + nodeAddress);
       NodeDescriptor node = this.createNodeDescriptor(nodeAddress);
       if (node.hasFile(obj.getName())) {
-        if (node.getCRC(obj.getName()) != obj.getCRC()) {
+        
+        if (!node.getCRC(obj.getName()).equals(obj.getCRC())) {
           node.replace(obj);
         }
       } else {
