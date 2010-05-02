@@ -13,12 +13,14 @@ public interface Node {
   //This method will loop to keep check the replica nodes and keep the replica count
   public abstract void replicaGuard();
 
-  void nodeJoined(NodeDescriptor node);
+  void nodeJoined(NodeDescriptor node, NewBetterCHT<Address> oldCh);
 
-  void nodeLeft(Address nodeAddress);
+  void nodeLeft(Address nodeAddress, NewBetterCHT<Address> oldCh);
 
   void replicateDataObject(DataObject obj);
 
   boolean amIMaster(String fileName);
+
+  
   
 }
