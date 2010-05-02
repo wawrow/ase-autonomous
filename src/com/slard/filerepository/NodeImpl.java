@@ -31,7 +31,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   SystemComsServerImpl systemComs = null;
   private DataStore dataStore;
-  private NewBetterCHTImpl<Address> ch;
+  private ConsistentHashTableImpl<Address> ch;
   Properties options;
   byte[] state;
   private Channel commonChannel;
@@ -44,7 +44,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public NodeImpl(DataStore dataStore, Properties options) {
     this.logger.setLevel(Level.ALL);
     this.dataStore = dataStore;
-    this.ch = new NewBetterCHTImpl<Address>(CH_REPLICA_COUNT, null);
+    this.ch = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, null);
     this.options = options;
   }
 
@@ -100,7 +100,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
       this.logger.fine("Node joined: " + message.getSrc().toString());
       List<Address> oldCh = new ArrayList<Address>(this.ch.getAllValues());
       oldCh.remove(message.getSrc());
-      this.nodeJoined(this.createNodeDescriptor(message.getSrc()), new NewBetterCHTImpl<Address>(CH_REPLICA_COUNT, oldCh));
+      this.nodeJoined(this.createNodeDescriptor(message.getSrc()), new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, oldCh));
     }
   }
 
@@ -127,7 +127,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     List<Address> removedValues = this.ch.getAllValues();
     List<Address> newNodes = new ArrayList<Address>();
 
-    NewBetterCHT<Address> oldCh = new NewBetterCHTImpl<Address>(CH_REPLICA_COUNT, this.ch.getAllValues());
+    ConsistentHashTable<Address> oldCh = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, this.ch.getAllValues());
 
     for (Address addr : view.getMembers()) {
       if (removedValues.contains(addr))
@@ -162,7 +162,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public void suspect(Address address) {
     logger.info("Suspecting node: " + address.toString());
     if (this.ch.contains(address)) {
-      NewBetterCHT<Address> oldCh = new NewBetterCHTImpl<Address>(CH_REPLICA_COUNT, this.ch.getAllValues());
+      ConsistentHashTable<Address> oldCh = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, this.ch.getAllValues());
       this.ch.remove(address);
       this.nodeLeft(address, oldCh);
     }
@@ -180,7 +180,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
       if (oldAddr.size() > 1) {
 
         oldAddr.remove(this.commonChannel.getAddress());
-        NewBetterCHT<Address> oldCh = new NewBetterCHTImpl<Address>(CH_REPLICA_COUNT, oldAddr);
+        ConsistentHashTable<Address> oldCh = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, oldAddr);
 
         if (this.amIMaster(obj.getName())) {
           Address oldMasterAddress = oldCh.get(obj.getName());
@@ -217,7 +217,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   @Override
-  public void nodeJoined(NodeDescriptor node, NewBetterCHT<Address> oldCh) {
+  public void nodeJoined(NodeDescriptor node, ConsistentHashTable<Address> oldCh) {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       // If the guy is master of any of my files
       System.out.println("Checking file " + obj.getName());
@@ -252,7 +252,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   @Override
-  public void nodeLeft(Address nodeAddress, NewBetterCHT<Address> oldCh) {
+  public void nodeLeft(Address nodeAddress, ConsistentHashTable<Address> oldCh) {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       // Was he master for any of mine files?
       if (oldCh.get(obj.getName()).equals(nodeAddress)) {

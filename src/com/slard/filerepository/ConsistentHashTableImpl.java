@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class NewBetterCHTImpl<T> implements NewBetterCHT<T> {
+public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
 
   private final int numberOfReplicas;
   private final SortedMap<Long, T> circle = new TreeMap<Long, T>();
 
-  public NewBetterCHTImpl(int numberOfReplicas, Collection<T> nodes) {
+  public ConsistentHashTableImpl(int numberOfReplicas, Collection<T> nodes) {
 
     this.numberOfReplicas = numberOfReplicas;
 
