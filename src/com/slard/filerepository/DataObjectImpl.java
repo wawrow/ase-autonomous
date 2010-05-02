@@ -1,21 +1,25 @@
 package com.slard.filerepository;
 
+import java.util.Vector;
 import java.util.zip.CRC32;
 
-/**
- * Created by IntelliJ IDEA. User: kbrady Date: 28-Apr-2010 Time: 08:45:22 To
- * change this template use File | Settings | File Templates.
- */
 public class DataObjectImpl implements DataObject {
   private String name;
   private byte[] content;
   private long id = 0;
 
+  private Vector<NodeDescriptor> replicaNodes;
+  private NodeDescriptor masterNode;
+
   public DataObjectImpl(String name, byte[] content) {
     this.name = name;
     this.content = content;
+    this.replicaNodes = new Vector<NodeDescriptor>();
+//    if (master)
+//      this.setMasterNode(node);
+//    else
+//      this.replicaNodes.add(node);
   }
-
 
   @Override
   public byte[] getData() {
@@ -51,5 +55,30 @@ public class DataObjectImpl implements DataObject {
     crc.reset();
     crc.update(this.getData());
     return crc.getValue();
+  }
+
+  @Override
+  public void addReplicaNode(NodeDescriptor node) {
+    this.replicaNodes.add(node);
+  }
+
+  @Override
+  public NodeDescriptor getMasterNode() {
+    return this.masterNode;
+  }
+
+  @Override
+  public Vector<NodeDescriptor> getReplicaNodes() {
+    return this.replicaNodes;
+  }
+
+  @Override
+  public void removeReplicaNode(NodeDescriptor node) {
+    this.replicaNodes.remove(node);
+  }
+
+  @Override
+  public void setMasterNode(NodeDescriptor node) {
+    this.masterNode = node;
   }
 }

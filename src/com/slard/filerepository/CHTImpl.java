@@ -9,10 +9,6 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 
-/**
- * Created by IntelliJ IDEA. User: kbrady Date: 28-Apr-2010 Time: 09:26:08 To
- * change this template use File | Settings | File Templates.
- */
 public class CHTImpl implements CHT {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final byte DEFAULT_NODES = 4; // default number of hashes per
@@ -183,9 +179,7 @@ public class CHTImpl implements CHT {
     return result;
   }
   
-  //Will avoid starting node by default
-  @Override
-  public Address findPrevousUniqueAddress(Long startId, Vector<Address> avoid) {
+  private Address findPrevousUniqueAddress(Long startId, Vector<Address> avoid) {
     if(avoid == null) avoid = new Vector<Address>();
     if(!avoid.contains(this.getAddress(startId))){
       avoid.add(this.getAddress(startId));
@@ -207,4 +201,11 @@ public class CHTImpl implements CHT {
     }
     return result;
   }
+
+   
+  @Override
+  public int getNodeCount(){
+    return addressToID.size();
+  }
+
 }

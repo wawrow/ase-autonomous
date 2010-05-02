@@ -6,12 +6,17 @@ import org.jgroups.blocks.Request;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.RpcDispatcher;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Properties;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NodeImpl implements Node, MessageListener, MembershipListener {
+  private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
+
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
@@ -71,8 +76,13 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   @Override
   public void receive(Message message) {
-    // To change body of implemented methods use File | Settings | File
-    // Templates.
+    if (message.getSrc() == this.channel.getAddress()) {
+      return;
+    }
+    if (message.getObject().toString().equalsIgnoreCase(JOINED_AND_INITIALIZED)) {
+      this.logger.fine("Node joined: " + message.getSrc().toString());
+      this.nodeJoined(this.createNodeDescriptor(message.getSrc()));
+    }
   }
 
   @Override
@@ -88,28 +98,28 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     state = bytes;
   }
 
-  // Joined the network
+  // Joined/Left the network - synchronized causes less problems and solves lots
+  // issues i find
   @Override
-  public void viewAccepted(View view) {
-    CHT.MemberDelta changes = cht.recalculate(view); // cht updated but need to
-    // apply net chages.
-    for (Address address : changes.added) {
-      this.logger.fine("Node joined: " + address.toString());
-      NodeDescriptor node = new NodeDescriptorImpl(address, this.cht,
-          SystemComsClientImpl.getSystemComsClient(this.systemComs
-              .GetDispatcher(), address));
-      this.nodeJoined(node);
-    }
+  public synchronized void viewAccepted(View view) {
+    logger.fine("ViewAccepted");
+    CHT.MemberDelta changes = cht.recalculate(view);
+    // Don't do anything for freshly joined nodes until they send initialize
+    // message
     for (Address address : changes.removed) {
       this.logger.fine("Node left: " + address.toString());
-      NodeDescriptor node = new NodeDescriptorImpl(address, this.cht,
-          SystemComsClientImpl.getSystemComsClient(this.systemComs
-              .GetDispatcher(), address));
-      this.nodeLeft(node);
+      this.nodeLeft(this.createNodeDescriptor(address));
     }
   }
 
-  // Left the network
+  private NodeDescriptor createNodeDescriptor(Address address){
+    NodeDescriptor node = new NodeDescriptorImpl(address, this.cht,
+        SystemComsClientImpl.getSystemComsClient(this.systemComs
+            .GetDispatcher(), address));
+    return node;
+  }
+  
+  // Suspect Left the network
   @Override
   public void suspect(Address address) {
     logger.info("Suspecting node: " + address.toString());
@@ -127,6 +137,13 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       System.out.println(obj.getName() + " CRC: " + obj.getCRC().toString());
     }
+    if (this.channel.getView().size() > 1) {
+      try {
+        this.channel.send(new Message(null, null, JOINED_AND_INITIALIZED));
+      } catch (Exception ex) {
+        // make me crash!!!
+      }
+    }
   }
 
   @Override
@@ -134,15 +151,18 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     System.out.println("Let's check the files.");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       long owner = this.cht.findMaster(obj.getName());
-      if (this.cht.getAddress(owner) == this.channel.getAddress()) {
-
-        for(Address replica: this.cht.findPrevousUniqueAddresses(owner, 1)){
+      Address ownerAddress = this.cht.getAddress(owner);
+      if (ownerAddress == this.channel.getAddress()) {
+        for (Address replica : this.cht.findPrevousUniqueAddresses(owner, 1)) {
           // check if joining node is previous
-          if(replica == node.getAddress()){
-              // take care of replicas
-              System.out.println("Will Have to replicate this file.");
-          }          
-        }       
+          if (replica == node.getAddress()) {
+            // take care of replicas
+            System.out.println("Will Have to replicate this file.");
+          }
+        }
+      } else if (ownerAddress == node.getAddress()) {
+        // I have a file and this guy will be master
+        // I should check with this fella if I shold keep the file
       }
     }
   }
