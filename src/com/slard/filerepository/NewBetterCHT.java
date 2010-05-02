@@ -12,4 +12,6 @@ public interface NewBetterCHT<T> {
 
   public abstract List<T> getPreviousNodes(String key, int count);
 
+  List<T> getAllValues();
+
 }

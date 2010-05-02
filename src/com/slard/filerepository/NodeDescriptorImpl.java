@@ -9,7 +9,6 @@ public class NodeDescriptorImpl implements NodeDescriptor {
 
   private Address address;
   private long[] ids;
-  private ConsistentHash ch;
   private SystemComs systemComs;
 
   @Override
@@ -17,18 +16,8 @@ public class NodeDescriptorImpl implements NodeDescriptor {
     return this.address;
   }
 
-  @Override
-  public long[] getIds() {
-    if (ids == null) {
-      ids = ch.calculateHashes(this.address);
-    }
-    return ids;
-  }
-
-  public NodeDescriptorImpl(Address address, ConsistentHash ch,
-      SystemComs systemComsClient) {
+  public NodeDescriptorImpl(Address address, SystemComs systemComsClient) {
     this.address = address;
-    this.ch = ch;
     this.systemComs = systemComsClient;
   }
 

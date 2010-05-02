@@ -4,5 +4,4 @@ import org.jgroups.Address;
 
 public interface NodeDescriptor extends SystemComs {
   Address getAddress();
-  long[] getIds();
 }

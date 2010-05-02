@@ -24,7 +24,9 @@ public class NewBetterCHTImpl<T> implements NewBetterCHT<T> {
     }
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.slard.filerepository.NewBetterCHT#add(T)
    */
   public void add(T node) {
@@ -33,7 +35,9 @@ public class NewBetterCHTImpl<T> implements NewBetterCHT<T> {
     }
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.slard.filerepository.NewBetterCHT#remove(T)
    */
   public void remove(T node) {
@@ -42,7 +46,9 @@ public class NewBetterCHTImpl<T> implements NewBetterCHT<T> {
     }
   }
 
-  /* (non-Javadoc)
+  /*
+   * (non-Javadoc)
+   * 
    * @see com.slard.filerepository.NewBetterCHT#get(java.lang.String)
    */
   public T get(String key) {
@@ -62,7 +68,7 @@ public class NewBetterCHTImpl<T> implements NewBetterCHT<T> {
     return hash;
   }
 
-  private Long hash(String key) {
+  private synchronized Long hash(String key) {
     MessageDigest md5 = null;
     try {
       md5 = MessageDigest.getInstance("MD5");
@@ -83,8 +89,12 @@ public class NewBetterCHTImpl<T> implements NewBetterCHT<T> {
     return ret;
   }
 
-  /* (non-Javadoc)
-   * @see com.slard.filerepository.NewBetterCHT#getPreviousNodes(java.lang.String, int)
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * com.slard.filerepository.NewBetterCHT#getPreviousNodes(java.lang.String,
+   * int)
    */
   public List<T> getPreviousNodes(String key, int count) {
     List<T> result = new ArrayList<T>();
@@ -93,7 +103,7 @@ public class NewBetterCHTImpl<T> implements NewBetterCHT<T> {
     long currHash = headMap.isEmpty() ? circle.lastKey() : headMap.lastKey();
     T startingNode = this.get(key);
     while (result.size() < count && currHash != startingPoint) {
-      T curNode =circle.get(currHash); 
+      T curNode = circle.get(currHash);
       if (!curNode.equals(startingNode) && !result.contains(curNode)) {
         result.add(circle.get(currHash));
       }
@@ -102,4 +112,19 @@ public class NewBetterCHTImpl<T> implements NewBetterCHT<T> {
     }
     return result;
   }
+
+  public boolean contains(T node) {
+    // Will check only first hash
+    return circle.containsValue(node);
+  }
+  
+  @Override
+  public List<T> getAllValues(){
+    ArrayList<T> result = new ArrayList<T>();
+    for(T node:this.circle.values()){
+      if(!result.contains(node)) result.add(node);
+    }
+    return result;
+  }
+
 }

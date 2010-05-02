@@ -55,7 +55,19 @@ public class NewCHTTests {
     List<String> result = ch.getPreviousNodes("test1", 3);
     Assert.assertEquals(result.size(), 2);    
   }
-
+  
+  @Test
+  public void testGetValues() throws Exception {
+    NewBetterCHT<String> ch = new NewBetterCHTImpl<String>(4, null);
+    ch.add("Node1");
+    ch.add("Node2");
+    ch.add("Node3");
+    ch.add("Node4");
+    ch.add("Node5");
+    ch.add("Node6");
+    List<String> values = ch.getAllValues();
+    Assert.assertEquals(values.size(), 6);    
+  }
   
   @After
   public void tearDown() throws Exception {
