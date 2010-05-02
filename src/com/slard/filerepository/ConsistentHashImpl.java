@@ -9,7 +9,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
 
-public class CHTImpl implements CHT {
+public class ConsistentHashImpl implements ConsistentHash {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final byte DEFAULT_NODES = 4; // default number of hashes per
   // address.
@@ -29,7 +29,7 @@ public class CHTImpl implements CHT {
     return ret;
   }
 
-  public CHTImpl() {
+  public ConsistentHashImpl() {
     try {
       this.md = MessageDigest.getInstance("MD5"); // no need to be secure.
     } catch (NoSuchAlgorithmException e) {

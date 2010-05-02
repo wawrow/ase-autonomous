@@ -22,7 +22,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
   SystemComsServerImpl systemComs = null;
   private DataStore dataStore;
-  private CHT cht;
+  private ConsistentHash ch;
   Properties options;
   byte[] state;
 
@@ -30,7 +30,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   public long[] getIds() {
     if (ids == null) {
-      ids = this.cht.getIDs(this.channel.getAddress());
+      ids = this.ch.getIDs(this.channel.getAddress());
     }
     return ids;
   }
@@ -38,10 +38,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   private Channel channel;
 
   // Constructor
-  public NodeImpl(DataStore dataStore, CHT cht, Properties options) {
+  public NodeImpl(DataStore dataStore, ConsistentHash cht, Properties options) {
     this.logger.setLevel(Level.ALL);
     this.dataStore = dataStore;
-    this.cht = cht;
+    this.ch = cht;
     this.options = options;
   }
 
@@ -52,7 +52,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     systemComs = new SystemComsServerImpl(channel, dataStore, this, this);
     logger.fine("channel connected and system coms server ready");
     logger.finer("My Address: " + channel.getAddress().toString());
-    this.cht.recalculate(this.channel.getView());
+    this.ch.recalculate(this.channel.getView());
 
     this.initializeDataStore();
 
@@ -101,7 +101,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   @Override
   public synchronized void viewAccepted(View view) {
     logger.fine("ViewAccepted");
-    CHT.MemberDelta changes = cht.recalculate(view);
+    ConsistentHash.MemberDelta changes = ch.recalculate(view);
     // Don't do anything for freshly joined nodes until they send initialize
     // message
     for (Address address : changes.removed) {
@@ -111,7 +111,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   private NodeDescriptor createNodeDescriptor(Address address) {
-    NodeDescriptor node = new NodeDescriptorImpl(address, this.cht, SystemComsClientImpl.getSystemComsClient(this.systemComs
+    NodeDescriptor node = new NodeDescriptorImpl(address, this.ch, SystemComsClientImpl.getSystemComsClient(this.systemComs
         .GetDispatcher(), address));
     return node;
   }
@@ -133,16 +133,16 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     System.out.println("My Current Data Store:");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       System.out.println("File: " + obj.getName() + " CRC " + obj.getCRC());
-      long masterId = this.cht.findMaster(obj.getName());
-      System.out.println("My: " + this.channel.getAddress() + " Belongs to: " + this.cht.getAddress(masterId));
-      if (this.channel.getAddress() == this.cht.getAddress(masterId)) {
+      long masterId = this.ch.findMaster(obj.getName());
+      System.out.println("My: " + this.channel.getAddress() + " Belongs to: " + this.ch.getAddress(masterId));
+      if (this.channel.getAddress() == this.ch.getAddress(masterId)) {
         System.out.println("Me is master");
-        NodeDescriptor oldMaster = this.createNodeDescriptor(this.cht.findPrevousUniqueAddresses(masterId, 1).elementAt(0));
+        NodeDescriptor oldMaster = this.createNodeDescriptor(this.ch.findPrevousUniqueAddresses(masterId, 1).elementAt(0));
         if (!oldMaster.hasFile(obj.getName())) {
           // TODO Call to manage replicas
         }
       } else {
-        NodeDescriptor master = this.createNodeDescriptor(this.cht.getAddress(masterId));
+        NodeDescriptor master = this.createNodeDescriptor(this.ch.getAddress(masterId));
         if (!master.hasFile(obj.getName())) {
           master.store(obj);
         }
@@ -168,10 +168,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public void nodeJoined(NodeDescriptor node) {
     System.out.println("Let's check the files.");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
-      long owner = this.cht.findMaster(obj.getName());
-      Address ownerAddress = this.cht.getAddress(owner);
+      long owner = this.ch.findMaster(obj.getName());
+      Address ownerAddress = this.ch.getAddress(owner);
       if (ownerAddress == this.channel.getAddress()) {
-        for (Address replica : this.cht.findPrevousUniqueAddresses(owner, 1)) {
+        for (Address replica : this.ch.findPrevousUniqueAddresses(owner, 1)) {
           // check if joining node is previous
           if (replica == node.getAddress()) {
             // take care of replicas
