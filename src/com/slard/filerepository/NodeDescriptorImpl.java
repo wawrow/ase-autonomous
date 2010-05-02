@@ -9,7 +9,7 @@ public class NodeDescriptorImpl implements NodeDescriptor {
 
   private Address address;
   private long[] ids;
-  private CHT cht;
+  private ConsistentHash ch;
   private SystemComs systemComs;
 
   @Override
@@ -20,15 +20,15 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   @Override
   public long[] getIds() {
     if (ids == null) {
-      ids = cht.getIDs(this.address);
+      ids = ch.getIDs(this.address);
     }
     return ids;
   }
 
-  public NodeDescriptorImpl(Address address, CHT cht,
+  public NodeDescriptorImpl(Address address, ConsistentHash ch,
       SystemComs systemComsClient) {
     this.address = address;
-    this.cht = cht;
+    this.ch = ch;
     this.systemComs = systemComsClient;
   }
 
@@ -56,5 +56,4 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   public Vector<String> list() {
     return this.systemComs.list();
   }
-
 }

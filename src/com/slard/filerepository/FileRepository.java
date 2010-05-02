@@ -34,10 +34,10 @@ public class FileRepository {
 //    }
     options.put("datastore.dir", curDir + "\\store");
     DataStore store = new DataStoreImpl(options);
-    CHT cht = new CHTImpl();
+    ConsistentHash ch = new ConsistentHashImpl();
     //DataStore store = new DataStoreImpl(curDir + "/store", cht);
     
-     NodeImpl node = new NodeImpl(store, cht, options);
+     NodeImpl node = new NodeImpl(store, ch, options);
     try {
       node.start();
     } catch (ChannelException e) {

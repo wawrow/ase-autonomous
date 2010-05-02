@@ -6,7 +6,7 @@ import org.jgroups.View;
 import java.util.Set;
 import java.util.Vector;
 
-public interface CHT  {
+public interface ConsistentHash  {
   class MemberDelta {
     public MemberDelta(Set<Address> added, Set<Address> removed) {
       this.added = added;
