@@ -1,8 +1,19 @@
 package com.slard.filerepository;
 
+import java.util.Vector;
+
 public interface DataObject {
 
-
+  
+  NodeDescriptor getMasterNode();
+  void setMasterNode(NodeDescriptor node);
+  
+  Vector<NodeDescriptor> getReplicaNodes();
+  
+  void addReplicaNode(NodeDescriptor node);
+  void removeReplicaNode(NodeDescriptor node);
+  
+  
   byte[] getData();
 
   String getName();

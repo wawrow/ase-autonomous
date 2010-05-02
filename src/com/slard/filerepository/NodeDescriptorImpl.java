@@ -11,7 +11,7 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   private long[] ids;
   private CHT cht;
   private SystemComs systemComs;
-  
+
   @Override
   public Address getAddress() {
     return this.address;
@@ -19,16 +19,16 @@ public class NodeDescriptorImpl implements NodeDescriptor {
 
   @Override
   public long[] getIds() {
-    if(ids == null){
+    if (ids == null) {
       ids = cht.getIDs(this.address);
     }
     return ids;
   }
-  
-  public NodeDescriptorImpl(Address address, CHT cht, SystemComs systemComsClient)
-  {
+
+  public NodeDescriptorImpl(Address address, CHT cht,
+      SystemComs systemComsClient) {
     this.address = address;
-    this.cht = cht; 
+    this.cht = cht;
     this.systemComs = systemComsClient;
   }
 
@@ -44,20 +44,17 @@ public class NodeDescriptorImpl implements NodeDescriptor {
 
   @Override
   public CRC32 getCRC(String fileName) {
-    // TODO Auto-generated method stub
-    return null;
+    return this.systemComs.getCRC(fileName);
   }
 
   @Override
   public boolean hasFile(String name) {
-    // TODO Auto-generated method stub
-    return false;
+    return this.systemComs.hasFile(name);
   }
 
   @Override
   public Vector<String> list() {
-    // TODO Auto-generated method stub
-    return null;
+    return this.systemComs.list();
   }
 
 }

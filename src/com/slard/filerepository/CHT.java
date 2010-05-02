@@ -6,14 +6,7 @@ import org.jgroups.View;
 import java.util.Set;
 import java.util.Vector;
 
-/**
- * Created by IntelliJ IDEA.
- * User: kbrady
- * Date: 30-Apr-2010
- * Time: 15:43:23
- * To change this template use File | Settings | File Templates.
- */
-public interface CHT {
+public interface CHT  {
   class MemberDelta {
     public MemberDelta(Set<Address> added, Set<Address> removed) {
       this.added = added;
@@ -47,7 +40,8 @@ public interface CHT {
 
   Long findPreviousId(Long id);
 
-  Address findPrevousUniqueAddress(Long startId, Vector<Address> avoid);
-
   Vector<Address> findPrevousUniqueAddresses(Long startId, int depth);
+  
+  int getNodeCount();
+  
 }
