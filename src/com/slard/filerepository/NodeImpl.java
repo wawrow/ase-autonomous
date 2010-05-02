@@ -1,6 +1,7 @@
 package com.slard.filerepository;
 
 import org.jgroups.*;
+import org.jgroups.blocks.MessageDispatcher;
 import org.jgroups.blocks.MethodCall;
 import org.jgroups.blocks.Request;
 import org.jgroups.blocks.RequestOptions;
@@ -11,33 +12,33 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Properties;
 import java.util.Arrays;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NodeImpl implements Node, MessageListener, MembershipListener {
   private static final int REPLICA_COUNT = 1;
-
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
-
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
+
   SystemComsServerImpl systemComs = null;
   private DataStore dataStore;
   private ConsistentHash ch;
   Properties options;
   byte[] state;
+  private Channel commonChannel;
+  private Channel rpcChannel;
+  private MessageDispatcher commonDispatcher;
 
   private long[] ids = null;
 
   public long[] getIds() {
     if (ids == null) {
-      ids = this.ch.calculateHashes(this.channel.getAddress());
+      ids = this.ch.calculateHashes(this.commonChannel.getAddress());
     }
     return ids;
   }
-
-  private Channel channel;
 
   // Constructor
   public NodeImpl(DataStore dataStore, ConsistentHash cht, Properties options) {
@@ -48,13 +49,18 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   public void start() throws ChannelException {
-    this.channel = new JChannel();
-    channel.connect(CHANNEL_NAME);
-    // this should probably be passed in as a parameter in constructor /Larry
-    systemComs = new SystemComsServerImpl(channel, dataStore, this, this, this);
+    this.commonChannel = new JChannel();
+    System.out.println(this.commonChannel.getProperties());
+    commonChannel.connect(CHANNEL_NAME);
+
+    this.commonDispatcher = new MessageDispatcher(commonChannel, this, this);
+
+    this.rpcChannel = new JChannel("tcp.xml");
+    systemComs = new SystemComsServerImpl(rpcChannel, dataStore, null, null, this);
+
     logger.fine("channel connected and system coms server ready");
-    logger.finer("My Address: " + channel.getAddress().toString());
-    this.ch.recalculate(this.channel.getView());
+    logger.finer("My Address: " + commonChannel.getAddress().toString());
+    this.ch.recalculate(this.commonChannel.getView());
 
     this.initializeDataStore();
 
@@ -66,7 +72,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   public void stop() {
     systemComs.stop();
-    channel.close();
+    commonChannel.close();
   }
 
   public void replicaGuard() {
@@ -76,7 +82,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   @Override
   public synchronized void receive(Message message) {
-    if (message.getSrc() == this.channel.getAddress()) {
+    if (message.getSrc() == this.commonChannel.getAddress()) {
       return;
     }
     if (message.getObject().toString().equalsIgnoreCase(JOINED_AND_INITIALIZED)) {
@@ -134,13 +140,18 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public void initializeDataStore() {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       long masterId = this.ch.findMaster(obj.getName());
-      if (this.channel.getAddress().equals(this.ch.getAddress(masterId))) {
-        NodeDescriptor oldMaster = this.createNodeDescriptor(this.ch.findPreviousUniqueAddresses(masterId, 1).elementAt(0));
-        if (!oldMaster.hasFile(obj.getName())) {
-          this.replicateDataObject(obj);
+      if (this.commonChannel.getAddress().equals(this.ch.getAddress(masterId))) {
+        Vector<Address> oldMasterAddress = this.ch.findPreviousUniqueAddresses(masterId, 1);
+        if (oldMasterAddress != null && oldMasterAddress.size() > 0) {
+          NodeDescriptor oldMaster = this.createNodeDescriptor(oldMasterAddress.elementAt(0));
+          System.out.println("Checkpoint 1");
+          if (!oldMaster.hasFile(obj.getName())) {
+            this.replicateDataObject(obj);
+          }
         }
       } else {
         NodeDescriptor master = this.createNodeDescriptor(this.ch.getAddress(masterId));
+        System.out.println("Checkpoint 2");
         if (!master.hasFile(obj.getName())) {
           master.store(obj);
         }
@@ -153,9 +164,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
 
     // If i'm not the first in cluster - sent the message that I'm ready to go
-    if (this.channel.getView().size() > 1) {
+    if (this.commonChannel.getView().size() > 1) {
       try {
-        this.channel.send(new Message(null, null, JOINED_AND_INITIALIZED));
+        this.commonChannel.send(new Message(null, null, JOINED_AND_INITIALIZED));
       } catch (Exception ex) {
         // make me crash!!!
       }
@@ -168,7 +179,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
       // If the guy is master of any of my files
       if (node.getAddress().equals(this.ch.findMasterAddress(obj.getName()))) {
         // Check if i was master before
-        if (this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()), 1).contains(this.channel.getAddress())) {
+        if (this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()), 1).contains(this.commonChannel.getAddress())) {
           if (node.hasFile(obj.getName())) {
             if (node.getCRC(obj.getName()) != obj.getCRC()) {
               node.replace(obj);
@@ -188,16 +199,17 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   @Override
   public void nodeLeft(Address nodeAddress) {
-    for(DataObject obj: this.dataStore.getAllDataObjects()){
-      //Was he master for any of mine files?
-      if(this.ch.findMasterAddress(obj.getName(), nodeAddress).equals(nodeAddress)){
-        //Am i Master now?
-        if(this.amIMaster(obj.getName())){
+    for (DataObject obj : this.dataStore.getAllDataObjects()) {
+      // Was he master for any of mine files?
+      if (this.ch.findMasterAddress(obj.getName(), nodeAddress).equals(nodeAddress)) {
+        // Am i Master now?
+        if (this.amIMaster(obj.getName())) {
           this.replicateDataObject(obj);
         }
       }
-      //Was he a replica for my file?
-      else if(this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName(), nodeAddress), REPLICA_COUNT, nodeAddress).contains(nodeAddress)){
+      // Was he a replica for my file?
+      else if (this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName(), nodeAddress), REPLICA_COUNT, nodeAddress)
+          .contains(nodeAddress)) {
         this.replicateDataObject(obj);
       }
     }
@@ -205,15 +217,15 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   @Override
   public boolean amIMaster(String fileName) {
-    return this.ch.findMasterAddress(fileName).equals(this.channel.getAddress());
+    return this.ch.findMasterAddress(fileName).equals(this.commonChannel.getAddress());
   }
-  
+
   @Override
-  public void replicateDataObject(DataObject obj){
-    for(Address nodeAddress: this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()), REPLICA_COUNT)){
+  public void replicateDataObject(DataObject obj) {
+    for (Address nodeAddress : this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()), REPLICA_COUNT)) {
       NodeDescriptor node = this.createNodeDescriptor(nodeAddress);
-      if(node.hasFile(obj.getName()) ){
-        if(node.getCRC(obj.getName()) != obj.getCRC()){
+      if (node.hasFile(obj.getName())) {
+        if (node.getCRC(obj.getName()) != obj.getCRC()) {
           node.replace(obj);
         }
       } else {

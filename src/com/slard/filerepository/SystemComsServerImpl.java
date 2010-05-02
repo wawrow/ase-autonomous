@@ -34,7 +34,7 @@ public class SystemComsServerImpl implements SystemComs {
 	}
 	
 	@Override
-	public Boolean store(DataObject dataObject) {
+	public synchronized Boolean store(DataObject dataObject) {
 	  this.logger.info("Requested to store: " + dataObject.getName());
 		try {
 			store.storeDataObject(dataObject);
@@ -49,7 +49,7 @@ public class SystemComsServerImpl implements SystemComs {
 	}
 
 	@Override
-	public DataObject retrieve(String name) {
+	public synchronized DataObject retrieve(String name) {
     this.logger.info("Requested to retrieve: " + name);
 	  try{
 		return store.getDataObject(name);
@@ -64,7 +64,7 @@ public class SystemComsServerImpl implements SystemComs {
 	}
 
   @Override
-  public Long getCRC(String fileName) {
+  public synchronized Long getCRC(String fileName) {
     this.logger.info("Requested CRC: " + fileName);
     try{
     return store.getDataObject(fileName).getCRC();
@@ -74,13 +74,13 @@ public class SystemComsServerImpl implements SystemComs {
   }
 
   @Override
-  public boolean hasFile(String name) {
+  public synchronized boolean hasFile(String name) {
     this.logger.info("Requested hasFile: " + name);    
     return store.contains(name);
   }
 
   @Override
-  public Vector<String> list() {
+  public synchronized Vector<String> list() {
     this.logger.info("Requested list.");    
     Vector<String> result = new Vector<String>();
     for(DataObject dataObj: store.getAllDataObjects()){
@@ -90,7 +90,7 @@ public class SystemComsServerImpl implements SystemComs {
   }
 
   @Override
-  public boolean replace(DataObject dataObject) {
+  public synchronized boolean replace(DataObject dataObject) {
     this.logger.info("Requested to replaceDataObject: " + dataObject.getName());
     try {
       store.replaceDataObject(dataObject);

@@ -152,7 +152,7 @@ public class ConsistentHashImpl implements ConsistentHash {
   public Vector<Address> findPreviousUniqueAddresses(Long startId, int depth) {
     Vector<Address> result = new Vector<Address>();
     for (int i = 0; i < depth; i++) {
-      Address prevAddress = this.findPrevousUniqueAddress(startId, result);
+      Address prevAddress = this.findPrevousUniqueAddress(startId, (Vector<Address>)result.clone());
       if (prevAddress == null)
         break;
       result.add(prevAddress);
@@ -178,7 +178,7 @@ public class ConsistentHashImpl implements ConsistentHash {
       SortedMap<Long, Address> headMap = ring.headMap(startId);
       while (result == null && headMap.size() > 0) {
         if (!avoid.contains(ring.get(headMap.lastKey())))
-          result = ring.get(headMap.lastKey());
+          result = ring.get(headMap.lastKey());        
         headMap = ring.headMap(startId);
       }
     } finally {
