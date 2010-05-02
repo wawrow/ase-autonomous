@@ -6,6 +6,9 @@ import java.util.ArrayList;
 // Provides internal node interface into Data Store operations
 public interface DataStore {
 
+  // Gets the object store location
+  public String getStoreLocation();
+  
   // Fetches all Objects
   public ArrayList<DataObject> getAllDataObjects();
 
@@ -16,7 +19,7 @@ public interface DataStore {
   public abstract void deleteDataObject(String name) throws IOException;
 
   // Stores object in DataStore
-  public abstract void storeDataObject(DataObject dataObject) throws IOException;
+  public abstract void storeDataObject(DataObject dataObject) throws IOException, DataObjectExistsException;
 
   // Replaces object in DataStore
   public abstract void replaceDataObject(DataObject dataObject) throws Exception;
