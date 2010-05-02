@@ -17,6 +17,6 @@ public interface SystemComs {
   
   boolean hasFile(String name);
   
-  CRC32 getCRC(String fileName);
+  Long getCRC(String fileName);
   
 }

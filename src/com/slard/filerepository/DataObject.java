@@ -1,8 +1,9 @@
 package com.slard.filerepository;
 
+import java.io.Serializable;
 import java.util.Vector;
 
-public interface DataObject {
+public interface DataObject extends Serializable {
 
   
   NodeDescriptor getMasterNode();

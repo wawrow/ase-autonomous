@@ -3,6 +3,7 @@ package com.slard.filerepository;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 public class DataStoreImpl implements DataStore {
   private String storeLocation;
@@ -15,6 +16,8 @@ public class DataStoreImpl implements DataStore {
     // Make sure the directory exists...
     File directory = new File(storeLocation);
     directory.mkdirs();
+    
+    System.out.println("Data store initialized in " + this.storeLocation);
   }
 
   /**

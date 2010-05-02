@@ -42,6 +42,9 @@
 				<attribute name="Main-Class" value="com.slard.filerepository.FileRepository" />
 			</manifest>
 		</jar>
+		<copy file="${dist}/lib/MyProject-${DSTAMP}.jar" todir="${dist}/lib/test1"/>
+		<copy file="${dist}/lib/MyProject-${DSTAMP}.jar" todir="${dist}/lib/test2"/>
+		<copy file="${dist}/lib/MyProject-${DSTAMP}.jar" todir="${dist}/lib/test3"/>
 	</target>
 
 	<target name="clean" description="clean up">

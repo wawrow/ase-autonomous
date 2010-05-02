@@ -4,6 +4,10 @@ import java.util.Vector;
 import java.util.zip.CRC32;
 
 public class DataObjectImpl implements DataObject {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 2411701715160473042L;
   private String name;
   private byte[] content;
   private long id = 0;
