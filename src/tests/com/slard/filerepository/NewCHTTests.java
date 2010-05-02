@@ -11,8 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.slard.filerepository.DataStoreImpl;
-import com.slard.filerepository.NewBetterCHT;
-import com.slard.filerepository.NewBetterCHTImpl;
+import com.slard.filerepository.ConsistentHashTable;
+import com.slard.filerepository.ConsistentHashTableImpl;
 
 public class NewCHTTests {
   @Before
@@ -22,7 +22,7 @@ public class NewCHTTests {
 
   @Test
   public void testReplicasGetting() throws Exception {
-    NewBetterCHT<String> ch = new NewBetterCHTImpl<String>(4, null);
+    ConsistentHashTable<String> ch = new ConsistentHashTableImpl<String>(4, null);
     ch.add("Node1");
     ch.add("Node2");
     Assert.assertEquals(ch.get("test1"), "Node1");
@@ -33,7 +33,7 @@ public class NewCHTTests {
 
   @Test
   public void testReplicasGetting1() throws Exception {
-    NewBetterCHT<String> ch = new NewBetterCHTImpl<String>(4, null);
+    ConsistentHashTable<String> ch = new ConsistentHashTableImpl<String>(4, null);
     ch.add("Node1");
     ch.add("Node2");
     ch.add("Node3");
@@ -47,7 +47,7 @@ public class NewCHTTests {
 
   @Test
   public void testReplicasGetting2() throws Exception {
-    NewBetterCHT<String> ch = new NewBetterCHTImpl<String>(4, null);
+    ConsistentHashTable<String> ch = new ConsistentHashTableImpl<String>(4, null);
     ch.add("Node1");
     ch.add("Node2");
     ch.add("Node3");
@@ -58,7 +58,7 @@ public class NewCHTTests {
   
   @Test
   public void testGetValues() throws Exception {
-    NewBetterCHT<String> ch = new NewBetterCHTImpl<String>(4, null);
+    ConsistentHashTable<String> ch = new ConsistentHashTableImpl<String>(4, null);
     ch.add("Node1");
     ch.add("Node2");
     ch.add("Node3");

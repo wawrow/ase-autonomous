@@ -2,7 +2,7 @@ package com.slard.filerepository;
 
 import java.util.List;
 
-public interface NewBetterCHT<T> {
+public interface ConsistentHashTable<T> {
 
   public abstract void add(T node);
 
