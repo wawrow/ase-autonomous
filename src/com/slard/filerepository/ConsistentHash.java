@@ -38,10 +38,14 @@ public interface ConsistentHash  {
 
   Long findPreviousId(Long id);
 
-  Vector<Address> findPrevousUniqueAddresses(Long startId, int depth);
+  Vector<Address> findPreviousUniqueAddresses(Long startId, int depth);
   
   int getNodeCount();
 
   Address findMasterAddress(String name);
   
+  Address findMasterAddress(String name, Address nodeThatIsNoLongerInCh);
+  Vector<Address> findPreviousUniqueAddresses(Long startId, int depth, Address nodeThatIsNoLongerInCh);
+
+  Long findMaster(String name, Address nodeThatIsNoLongerInCh);
 }
