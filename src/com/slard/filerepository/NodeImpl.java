@@ -30,7 +30,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   public long[] getIds() {
     if (ids == null) {
-      ids = this.ch.getIDs(this.channel.getAddress());
+      ids = this.ch.calculateHashes(this.channel.getAddress());
     }
     return ids;
   }

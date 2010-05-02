@@ -17,13 +17,11 @@ public interface ConsistentHash  {
     public Set<Address> added;
   }
 
-  // We can user the number of ids to load-balance the new member.
+  // We can user the number of replicas to load-balance the new member.
+  void insertMember(Address newMember);
+  void insertMember(Address newMember, int numberOfReplicas);
 
-  void insert(Address newMember);
-
-  void insert(Address newMember, byte numberIDs);
-
-  void remove(Address address);
+  void removeMember(Address address);
 
   MemberDelta recalculate(View view);
 
@@ -36,7 +34,7 @@ public interface ConsistentHash  {
 
   Address getAddress(Long id);
 
-  long[] getIDs(Address member);
+  long[] calculateHashes(Address member);
 
   Long findPreviousId(Long id);
 

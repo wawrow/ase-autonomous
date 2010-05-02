@@ -20,7 +20,7 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   @Override
   public long[] getIds() {
     if (ids == null) {
-      ids = ch.getIDs(this.address);
+      ids = ch.calculateHashes(this.address);
     }
     return ids;
   }
