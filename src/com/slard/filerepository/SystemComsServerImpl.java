@@ -20,11 +20,13 @@ public class SystemComsServerImpl implements SystemComs {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 	private DataStore store = null;
 	private RpcDispatcher dispatcher = null;
+	private Node node = null;
 
 	public SystemComsServerImpl(Channel channel, DataStore store,
-			MessageListener messages, MembershipListener members) {
+			MessageListener messages, MembershipListener members, Node node) {
 		this.store = store;
 		this.dispatcher = new RpcDispatcher(channel, messages, members, this);
+		this.node = node;
 }
 
 	public RpcDispatcher GetDispatcher(){
@@ -36,6 +38,10 @@ public class SystemComsServerImpl implements SystemComs {
 	  this.logger.info("Requested to store: " + dataObject.getName());
 		try {
 			store.storeDataObject(dataObject);
+			//If I'm master make sure the thing get's replicated
+			if(this.node.amIMaster(dataObject.getName())){
+			  this.node.replicateDataObject(dataObject);
+			}
 		} catch (Exception ex) {
 			return false;
 		}
@@ -81,5 +87,16 @@ public class SystemComsServerImpl implements SystemComs {
       result.add(dataObj.getName());
     }
     return result;
+  }
+
+  @Override
+  public boolean replace(DataObject dataObject) {
+    this.logger.info("Requested to replaceDataObject: " + dataObject.getName());
+    try {
+      store.replaceDataObject(dataObject);
+    } catch (Exception ex) {
+      return false;
+    }
+    return true;
   }
 }

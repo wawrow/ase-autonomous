@@ -15,6 +15,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NodeImpl implements Node, MessageListener, MembershipListener {
+  private static final int REPLICA_COUNT = 1;
+
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -49,7 +51,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     this.channel = new JChannel();
     channel.connect(CHANNEL_NAME);
     // this should probably be passed in as a parameter in constructor /Larry
-    systemComs = new SystemComsServerImpl(channel, dataStore, this, this);
+    systemComs = new SystemComsServerImpl(channel, dataStore, this, this, this);
     logger.fine("channel connected and system coms server ready");
     logger.finer("My Address: " + channel.getAddress().toString());
     this.ch.recalculate(this.channel.getView());
@@ -73,7 +75,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   @Override
-  public void receive(Message message) {
+  public synchronized void receive(Message message) {
     if (message.getSrc() == this.channel.getAddress()) {
       return;
     }
@@ -106,7 +108,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     // message
     for (Address address : changes.removed) {
       this.logger.fine("Node left: " + address.toString());
-      this.nodeLeft(this.createNodeDescriptor(address));
+      this.nodeLeft(address);
     }
   }
 
@@ -130,16 +132,12 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   @Override
   public void initializeDataStore() {
-    System.out.println("My Current Data Store:");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
-      System.out.println("File: " + obj.getName() + " CRC " + obj.getCRC());
       long masterId = this.ch.findMaster(obj.getName());
-      System.out.println("My: " + this.channel.getAddress() + " Belongs to: " + this.ch.getAddress(masterId));
-      if (this.channel.getAddress() == this.ch.getAddress(masterId)) {
-        System.out.println("Me is master");
-        NodeDescriptor oldMaster = this.createNodeDescriptor(this.ch.findPrevousUniqueAddresses(masterId, 1).elementAt(0));
+      if (this.channel.getAddress().equals(this.ch.getAddress(masterId))) {
+        NodeDescriptor oldMaster = this.createNodeDescriptor(this.ch.findPreviousUniqueAddresses(masterId, 1).elementAt(0));
         if (!oldMaster.hasFile(obj.getName())) {
-          // TODO Call to manage replicas
+          this.replicateDataObject(obj);
         }
       } else {
         NodeDescriptor master = this.createNodeDescriptor(this.ch.getAddress(masterId));
@@ -166,29 +164,61 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
 
   @Override
   public void nodeJoined(NodeDescriptor node) {
-    System.out.println("Let's check the files.");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
-      long owner = this.ch.findMaster(obj.getName());
-      Address ownerAddress = this.ch.getAddress(owner);
-      if (ownerAddress == this.channel.getAddress()) {
-        for (Address replica : this.ch.findPrevousUniqueAddresses(owner, 1)) {
-          // check if joining node is previous
-          if (replica == node.getAddress()) {
-            // take care of replicas
-            System.out.println("Will Have to replicate this file.");
+      // If the guy is master of any of my files
+      if (node.getAddress().equals(this.ch.findMasterAddress(obj.getName()))) {
+        // Check if i was master before
+        if (this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()), 1).contains(this.channel.getAddress())) {
+          if (node.hasFile(obj.getName())) {
+            if (node.getCRC(obj.getName()) != obj.getCRC()) {
+              node.replace(obj);
+            }
+          } else {
+            node.store(obj);
           }
         }
-      } else if (ownerAddress == node.getAddress()) {
-        // I have a file and this guy will be master
-        // I should check with this fella if I shold keep the file
+        try {
+          this.dataStore.deleteDataObject(obj.getName());
+        } catch (Exception ex) {
+          // TODO better exception handing
+        }
       }
     }
   }
 
   @Override
-  public void nodeLeft(NodeDescriptor node) {
-    // TODO Auto-generated method stub
-
+  public void nodeLeft(Address nodeAddress) {
+    for(DataObject obj: this.dataStore.getAllDataObjects()){
+      //Was he master for any of mine files?
+      if(this.ch.findMasterAddress(obj.getName(), nodeAddress).equals(nodeAddress)){
+        //Am i Master now?
+        if(this.amIMaster(obj.getName())){
+          this.replicateDataObject(obj);
+        }
+      }
+      //Was he a replica for my file?
+      else if(this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName(), nodeAddress), REPLICA_COUNT, nodeAddress).contains(nodeAddress)){
+        this.replicateDataObject(obj);
+      }
+    }
   }
 
+  @Override
+  public boolean amIMaster(String fileName) {
+    return this.ch.findMasterAddress(fileName).equals(this.channel.getAddress());
+  }
+  
+  @Override
+  public void replicateDataObject(DataObject obj){
+    for(Address nodeAddress: this.ch.findPreviousUniqueAddresses(this.ch.findMaster(obj.getName()), REPLICA_COUNT)){
+      NodeDescriptor node = this.createNodeDescriptor(nodeAddress);
+      if(node.hasFile(obj.getName()) ){
+        if(node.getCRC(obj.getName()) != obj.getCRC()){
+          node.replace(obj);
+        }
+      } else {
+        node.store(obj);
+      }
+    }
+  }
 }

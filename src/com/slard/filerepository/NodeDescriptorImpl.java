@@ -43,7 +43,7 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   }
 
   @Override
-  public CRC32 getCRC(String fileName) {
+  public Long getCRC(String fileName) {
     return this.systemComs.getCRC(fileName);
   }
 
@@ -55,5 +55,10 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   @Override
   public Vector<String> list() {
     return this.systemComs.list();
+  }
+
+  @Override
+  public boolean replace(DataObject dataObject) {
+    return this.systemComs.replace(dataObject);
   }
 }

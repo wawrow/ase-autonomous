@@ -1,5 +1,6 @@
 package com.slard.filerepository;
 
+import org.jgroups.Address;
 import org.jgroups.ChannelException;
 
 public interface Node {
@@ -12,7 +13,12 @@ public interface Node {
   //This method will loop to keep check the replica nodes and keep the replica count
   public abstract void replicaGuard();
 
-  void nodeLeft(NodeDescriptor node);
   void nodeJoined(NodeDescriptor node);
+
+  void nodeLeft(Address nodeAddress);
+
+  void replicateDataObject(DataObject obj);
+
+  boolean amIMaster(String fileName);
   
 }
