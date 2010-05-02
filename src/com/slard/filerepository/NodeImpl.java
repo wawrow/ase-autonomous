@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 
 public class NodeImpl implements Node, MessageListener, MembershipListener {
   private static final int CH_REPLICA_COUNT = 4;
-  private static final int REPLICA_COUNT = 1;
+  private static final int REPLICA_COUNT = 2;
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
@@ -49,7 +49,8 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   public void start() throws ChannelException {
-    this.commonChannel = new JChannel("mping.xml");
+//    this.commonChannel = new JChannel("mping.xml");
+    this.commonChannel = new JChannel();
     System.out.println(this.commonChannel.getProperties());
     commonChannel.connect(CHANNEL_NAME);
 
@@ -72,7 +73,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
       public void run() {
         replicaGuard();
       }
-    }, 1000, 5000);
+    }, 15000, 30000);
 
   }
 
