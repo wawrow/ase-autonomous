@@ -19,4 +19,6 @@ public interface SystemComs {
   
   Long getCRC(String fileName);
   
+  boolean replace(DataObject dataObject);
+  
 }

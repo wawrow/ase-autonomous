@@ -8,7 +8,9 @@ import java.util.logging.Logger;
 public class DataStoreImpl implements DataStore {
   private String storeLocation;
   private Properties options;
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
 
+  
   public DataStoreImpl(Properties options) {
     this.options = options;
     this.storeLocation = options.getProperty("datastore.dir", System.getProperty("user.dir", "."));
@@ -16,8 +18,7 @@ public class DataStoreImpl implements DataStore {
     // Make sure the directory exists...
     File directory = new File(storeLocation);
     directory.mkdirs();
-    
-    System.out.println("Data store initialized in " + this.storeLocation);
+    this.logger.info("Data store initialized in " + this.storeLocation);
   }
 
   /**
@@ -81,6 +82,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public void deleteDataObject(String name) throws IOException {
+    this.logger.info("Deleting data object: " + name);
     File file = new File(storeLocation, name);
     if (!file.delete()) {
       throw new IOException(name + " deletion failed");
@@ -98,6 +100,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public void storeDataObject(DataObject dataObject) throws IOException, DataObjectExistsException {
+    this.logger.info("About to store data object: " + dataObject.getName());
     File file = new File(storeLocation, dataObject.getName());
     if (file.exists()) {
       throw new DataObjectExistsException(dataObject.getName() + " already exists");
