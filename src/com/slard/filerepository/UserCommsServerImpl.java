@@ -1,5 +1,6 @@
 package com.slard.filerepository;
 
+import org.jgroups.Address;
 import org.jgroups.Channel;
 import org.jgroups.MembershipListener;
 import org.jgroups.MessageListener;
@@ -60,7 +61,16 @@ public class UserCommsServerImpl implements UserOperations {
   @Override
   public synchronized boolean delete(String name) {
     this.logger.info("Requested delete: " + name);
+    
+    // Send a delete to the master first
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(name));
-    return nodeDescriptor.delete(name);
+    nodeDescriptor.delete(name);
+    
+    // Now delete from all the replicas
+    for (Address nodeAddress : node.ch.getPreviousNodes(name, NodeImpl.REPLICA_COUNT)) {
+      nodeDescriptor = node.createNodeDescriptor(nodeAddress);
+      nodeDescriptor.delete(name);
+    }
+    return true;
   }
 }

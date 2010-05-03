@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 public class NodeImpl implements Node, MessageListener, MembershipListener, SystemFileList {
   private static final int CH_REPLICA_COUNT = 4;
-  private static final int REPLICA_COUNT = 1;
+  public static final int REPLICA_COUNT = 1;
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String SYSTEM_CHANNEL_NAME = "FileRepositoryCluster";

@@ -6,7 +6,6 @@ import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
 
 import java.util.ArrayList;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 public class SystemCommsServerImpl implements FileOperations {
