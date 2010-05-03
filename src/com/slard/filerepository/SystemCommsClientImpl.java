@@ -11,7 +11,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SystemComsClientImpl implements FileOperations, SystemFileList {
+public class SystemCommsClientImpl implements FileOperations, SystemFileList {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final int RPC_TIMEOUT = 3000;
 
@@ -19,7 +19,7 @@ public class SystemComsClientImpl implements FileOperations, SystemFileList {
 
   private RpcDispatcher dispatcher = null;
 
-  private SystemComsClientImpl(RpcDispatcher dispatcher, Address target) {
+  private SystemCommsClientImpl(RpcDispatcher dispatcher, Address target) {
     this.dispatcher = dispatcher;
     this.target = target;
   }
@@ -69,8 +69,8 @@ public class SystemComsClientImpl implements FileOperations, SystemFileList {
   }
 
   // Factory Method
-  public static SystemComsClientImpl getSystemComsClient(RpcDispatcher dispatcher, Address target) {
-    return new SystemComsClientImpl(dispatcher, target);
+  public static SystemCommsClientImpl getSystemComsClient(RpcDispatcher dispatcher, Address target) {
+    return new SystemCommsClientImpl(dispatcher, target);
   }
 
   @Override

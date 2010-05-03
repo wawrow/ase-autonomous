@@ -8,14 +8,14 @@ import org.jgroups.blocks.RpcDispatcher;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-public class SystemComsServerImpl implements FileOperations {
+public class SystemCommsServerImpl implements FileOperations {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private DataStore store = null;
   private RpcDispatcher dispatcher = null;
   private Node node = null;
 
-  public SystemComsServerImpl(Channel channel, DataStore store, MessageListener messages, MembershipListener members, Node node) {
+  public SystemCommsServerImpl(Channel channel, DataStore store, MessageListener messages, MembershipListener members, Node node) {
 
     this.store = store;
     this.dispatcher = new RpcDispatcher(channel, messages, members, this);
