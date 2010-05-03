@@ -86,36 +86,51 @@ public class SystemComsServerImpl implements FileOperations, SystemFileList {
   @Override
   public synchronized boolean replace(DataObject dataObject) {
     this.logger.info("Requested to replaceDataObject: " + dataObject.getName());
-    return store.replace(dataObject);
+    boolean result = store.replace(dataObject);
+    // If I'm master make sure the thing get's replicated
+    if (result && this.node.amIMaster(dataObject.getName())) {
+      this.node.replicateDataObject(dataObject);
+    }
+    return result;
   }
 
   @Override
   public synchronized boolean delete(String name) {
     this.logger.info("Requested delete: " + name);
-    return store.delete(name) && this.fileList.removeFileName(name);
+    boolean result = store.delete(name) && this.fileList.removeFileName(name);
+    // If I'm master make sure the thing get's replicated
+    if (result && this.node.amIMaster(name)) {
+      DataObject deleteObj = new DataObjectImpl(name, null);
+      this.node.replicateDataObject(deleteObj);
+    }
+    return result;
   }
 
   @Override
   public boolean addFileName(String fileName) {
-    if(!this.node.amIMaster(this.store.getFileListName())) return false;
+    if (!this.node.amIMaster(this.store.getFileListName()))
+      return false;
     return this.fileList.addFileName(fileName);
   }
 
   @Override
   public boolean contains(String fileName) {
-    if(!this.node.amIMaster(this.store.getFileListName())) return false;
+    if (!this.node.amIMaster(this.store.getFileListName()))
+      return false;
     return this.fileList.contains(fileName);
   }
 
   @Override
   public List<String> getFileNames() {
-    if(!this.node.amIMaster(this.store.getFileListName())) return null;
+    if (!this.node.amIMaster(this.store.getFileListName()))
+      return null;
     return this.fileList.getFileNames();
   }
 
   @Override
   public boolean removeFileName(String fileName) {
-    if(!this.node.amIMaster(this.store.getFileListName())) return false;
+    if (!this.node.amIMaster(this.store.getFileListName()))
+      return false;
     return this.fileList.removeFileName(fileName);
   }
 }
