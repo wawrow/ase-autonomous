@@ -7,12 +7,10 @@ import java.util.logging.Logger;
 
 public class DataStoreImpl implements DataStore {
   private String storeLocation;
-  private Properties options;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
   
   public DataStoreImpl(Properties options) {
-    this.options = options;
     this.storeLocation = options.getProperty("datastore.dir", System.getProperty("user.dir", "."));
     
     // Make sure the directory exists...

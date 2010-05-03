@@ -6,10 +6,8 @@ import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Logger;
-import java.util.zip.CRC32;
 
 /**
  * Created by IntelliJ IDEA. User: kbrady Date: 28-Apr-2010 Time: 01:24:59 To

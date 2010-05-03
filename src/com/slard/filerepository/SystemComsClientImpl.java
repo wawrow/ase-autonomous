@@ -98,12 +98,13 @@ public class SystemComsClientImpl implements SystemComs {
     return ret;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public Vector<String> list() {
     MethodCall listCall = new MethodCall("list", null, new Class[] { String.class });
     Vector<String> ret = null;
     try {
-      ret = (Vector<String>) this.callWithMethod(listCall);
+        ret = (Vector<String>) this.callWithMethod(listCall);      
     } catch (Throwable throwable) {
       logger.log(Level.WARNING, "rpc failed", throwable);
     }

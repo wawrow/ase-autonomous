@@ -1,7 +1,6 @@
 package com.slard.filerepository;
 
 import java.util.Vector;
-import java.util.zip.CRC32;
 
 // Provides methods to call to other nodes in the system
 public interface SystemComs {

@@ -1,30 +1,18 @@
 package com.slard.filerepository;
 
 import org.jgroups.*;
-import org.jgroups.blocks.MessageDispatcher;
-import org.jgroups.blocks.MethodCall;
-import org.jgroups.blocks.Request;
-import org.jgroups.blocks.RequestOptions;
-import org.jgroups.blocks.RpcDispatcher;
 
-import tests.com.slard.filerepository.NewCHTTests;
-
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NodeImpl implements Node, MessageListener, MembershipListener {
   private static final int CH_REPLICA_COUNT = 4;
-  private static final int REPLICA_COUNT = 2;
+  private static final int REPLICA_COUNT = 1;
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
