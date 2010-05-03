@@ -14,7 +14,6 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   private static final int CH_REPLICA_COUNT = 4;
   private static final int REPLICA_COUNT = 1;
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
-  private static final String FILE_LIST_FILENAME = "filelist.txt";
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
 
@@ -24,6 +23,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   Properties options;
   byte[] state;
   private Channel commonChannel;
+  private SystemFileList fileList;
 
   private Timer replicaGuardTimer;
 
@@ -33,29 +33,28 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     this.dataStore = dataStore;
     this.ch = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, null);
     this.options = options;
+    this.fileList = this;
   }
 
   private NodeDescriptor createNodeDescriptor(Address address) {
-    SystemComsClientImpl syscomscli = SystemComsClientImpl.getSystemComsClient(this.systemComs
-        .GetDispatcher(), address);    
+    SystemComsClientImpl syscomscli = SystemComsClientImpl.getSystemComsClient(this.systemComs.GetDispatcher(), address);
     NodeDescriptor node = new NodeDescriptorImpl(address, syscomscli, syscomscli);
     return node;
   }
-  
+
   public void start() throws ChannelException {
-//    this.commonChannel = new JChannel("mping.xml");
+    // this.commonChannel = new JChannel("mping.xml");
     this.commonChannel = new JChannel();
     commonChannel.connect(CHANNEL_NAME);
 
-    systemComs = new SystemComsServerImpl(commonChannel, dataStore, this, this, this);
+    systemComs = new SystemComsServerImpl(commonChannel, dataStore, this, this, this, this);
 
     logger.fine("channel connected and system coms server ready");
     logger.finer("My Address: " + commonChannel.getAddress().toString());
 
-    for(Address addr: this.commonChannel.getView().getMembers()){
+    for (Address addr : this.commonChannel.getView().getMembers()) {
       this.ch.add(addr);
     }
-
     this.initializeDataStore();
 
     this.replicaGuardTimer = new Timer();
@@ -74,7 +73,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   }
 
   public void replicaGuard() {
-    System.out.println("Replica Guardian!!!");
+    logger.info("replicaGuard tick.");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       if (this.amIMaster(obj.getName())) {
         this.replicateDataObject(obj);
@@ -110,17 +109,19 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
           }
         }
       }
+      // Now check the filelist (for the files I'm master)
+      if (this.amIMaster(obj.getName()) && !this.fileList.contains(obj.getName())) {
+        this.fileList.addFileName(obj.getName());
+      }
     }
 
-    System.out.println("Now send the message");
     // If i'm not the first in cluster - sent the message that I'm ready to go
     if (this.commonChannel.getView().size() > 1) {
       try {
         this.commonChannel.send(new Message(null, null, JOINED_AND_INITIALIZED));
-        System.out.println("message sent");
       } catch (Exception ex) {
-        System.out.println(ex.toString());
-        // make me crash!!!
+        logger.warning(ex.toString());
+        // TODO make me crash!!!
       }
     }
   }
@@ -129,9 +130,8 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   public void nodeJoined(NodeDescriptor node, ConsistentHashTable<Address> oldCh) {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       // If the guy is master of any of my files
-      System.out.println("Checking file " + obj.getName());
       if (this.ch.get(obj.getName()).equals(node.getAddress())) {
-        System.out.println("Joining node is master for " + obj.getName());
+        logger.fine("Joining node is master for " + obj.getName());
         // Check if i was master before
         if (oldCh.get(obj.getName()).equals(this.commonChannel.getAddress())) {
           if (node.hasFile(obj.getName())) {
@@ -199,9 +199,8 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     }
   }
 
+  // JGroups related implementation
 
-  //JGroups related implementation
-  
   @Override
   public synchronized void receive(Message message) {
     if (message.getSrc() == this.commonChannel.getAddress()) {
@@ -278,47 +277,46 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     // probably can be left empty.
   }
 
-  //File List operations
-  
+  // File List operations
+
   @Override
   public boolean addFileName(String fileName) {
-    if(this.amIMaster(FILE_LIST_FILENAME)){
+    if (this.amIMaster(this.dataStore.getFileListName())) {
       return this.dataStore.addFileName(fileName);
     } else {
-      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.addFileName(fileName);
     }
   }
 
   @Override
   public boolean contains(String fileName) {
-    if(this.amIMaster(FILE_LIST_FILENAME)){
+    if (this.amIMaster(this.dataStore.getFileListName())) {
       return this.dataStore.contains(fileName);
     } else {
-      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.contains(fileName);
     }
   }
 
   @Override
   public List<String> getFileNames() {
-    if(this.amIMaster(FILE_LIST_FILENAME)){
+    if (this.amIMaster(this.dataStore.getFileListName())) {
       return this.dataStore.getFileNames();
     } else {
-      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.getFileNames();
     }
   }
 
   @Override
   public boolean removeFileName(String fileName) {
-    if(this.amIMaster(FILE_LIST_FILENAME)){
+    if (this.amIMaster(this.dataStore.getFileListName())) {
       return this.dataStore.removeFileName(fileName);
     } else {
-      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.removeFileName(fileName);
     }
   }
-
 
 }
