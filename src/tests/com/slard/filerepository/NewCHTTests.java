@@ -1,8 +1,6 @@
 package tests.com.slard.filerepository;
 
-import java.io.File;
 import java.util.List;
-import java.util.Properties;
 
 import junit.framework.Assert;
 
@@ -10,7 +8,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.slard.filerepository.DataStoreImpl;
 import com.slard.filerepository.ConsistentHashTable;
 import com.slard.filerepository.ConsistentHashTableImpl;
 

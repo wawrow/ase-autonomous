@@ -1,7 +1,5 @@
 package com.slard.filerepository;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;

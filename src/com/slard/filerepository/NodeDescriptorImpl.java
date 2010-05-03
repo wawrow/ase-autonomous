@@ -1,14 +1,12 @@
 package com.slard.filerepository;
 
 import java.util.Vector;
-import java.util.zip.CRC32;
 
 import org.jgroups.Address;
 
 public class NodeDescriptorImpl implements NodeDescriptor {
 
   private Address address;
-  private long[] ids;
   private SystemComs systemComs;
 
   @Override
