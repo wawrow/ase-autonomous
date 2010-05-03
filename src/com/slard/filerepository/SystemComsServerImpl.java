@@ -9,10 +9,6 @@ import java.io.IOException;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-/**
- * Created by IntelliJ IDEA. User: kbrady Date: 28-Apr-2010 Time: 01:24:59 To
- * change this template use File | Settings | File Templates.
- */
 public class SystemComsServerImpl implements SystemComs {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
@@ -22,6 +18,7 @@ public class SystemComsServerImpl implements SystemComs {
 
 	public SystemComsServerImpl(Channel channel, DataStore store,
 			MessageListener messages, MembershipListener members, Node node) {
+	  
 		this.store = store;
 		this.dispatcher = new RpcDispatcher(channel, messages, members, this);
 		this.node = node;
