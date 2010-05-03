@@ -8,7 +8,6 @@ import org.jgroups.blocks.RpcDispatcher;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
