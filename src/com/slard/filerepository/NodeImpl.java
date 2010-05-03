@@ -23,8 +23,6 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   Properties options;
   byte[] state;
   private Channel commonChannel;
-  // private Channel rpcChannel;
-  // private MessageDispatcher commonDispatcher;
 
   private Timer replicaGuardTimer;
 
@@ -36,19 +34,22 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     this.options = options;
   }
 
+  private NodeDescriptor createNodeDescriptor(Address address) {
+    NodeDescriptor node = new NodeDescriptorImpl(address, SystemComsClientImpl.getSystemComsClient(this.systemComs
+        .GetDispatcher(), address));
+    return node;
+  }
+  
   public void start() throws ChannelException {
 //    this.commonChannel = new JChannel("mping.xml");
     this.commonChannel = new JChannel();
-    System.out.println(this.commonChannel.getProperties());
     commonChannel.connect(CHANNEL_NAME);
 
-    // this.commonDispatcher = new MessageDispatcher(commonChannel, this, this);
-
-    // this.rpcChannel = new JChannel("tcp.xml");
     systemComs = new SystemComsServerImpl(commonChannel, dataStore, this, this, this);
 
     logger.fine("channel connected and system coms server ready");
     logger.finer("My Address: " + commonChannel.getAddress().toString());
+
     for(Address addr: this.commonChannel.getView().getMembers()){
       this.ch.add(addr);
     }
@@ -77,88 +78,6 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
         this.replicateDataObject(obj);
       }
     }
-  }
-
-  @Override
-  public synchronized void receive(Message message) {
-    if (message.getSrc() == this.commonChannel.getAddress()) {
-      return;
-    }
-    if (message.getObject().toString().equalsIgnoreCase(JOINED_AND_INITIALIZED)) {
-      this.logger.fine("Node joined: " + message.getSrc().toString());
-      List<Address> oldCh = new ArrayList<Address>(this.ch.getAllValues());
-      oldCh.remove(message.getSrc());
-      this.nodeJoined(this.createNodeDescriptor(message.getSrc()), new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, oldCh));
-    }
-  }
-
-  @Override
-  public byte[] getState() {
-    return state;
-  }
-
-  @Override
-  public void setState(byte[] bytes) {
-    // Not totally sure what messages we can receive, probably broadcast of
-    // system state (disk space etc)
-    // probably in rdf.
-    state = bytes;
-  }
-
-  // Joined/Left the network - synchronized causes less problems and solves lots
-  // issues i find
-  @Override
-  public synchronized void viewAccepted(View view) {
-    logger.fine("ViewAccepted");
-
-    // find nodes that joined
-    List<Address> removedValues = this.ch.getAllValues();
-    List<Address> newNodes = new ArrayList<Address>();
-
-    ConsistentHashTable<Address> oldCh = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, this.ch.getAllValues());
-
-    for (Address addr : view.getMembers()) {
-      if (removedValues.contains(addr))
-        removedValues.remove(addr);
-      else {
-        newNodes.add(addr);
-      }
-    }
-
-    // Now update new ch
-    for (Address addr : removedValues) {
-      this.ch.remove(addr);
-    }
-    for (Address addr : newNodes) {
-      this.ch.add(addr);
-    }
-
-    for (Address addr : removedValues) {
-      this.nodeLeft(addr, oldCh);
-    }
-
-  }
-
-  private NodeDescriptor createNodeDescriptor(Address address) {
-    NodeDescriptor node = new NodeDescriptorImpl(address, SystemComsClientImpl.getSystemComsClient(this.systemComs
-        .GetDispatcher(), address));
-    return node;
-  }
-
-  // Suspect Left the network
-  @Override
-  public void suspect(Address address) {
-    logger.info("Suspecting node: " + address.toString());
-    if (this.ch.contains(address)) {
-      ConsistentHashTable<Address> oldCh = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, this.ch.getAllValues());
-      this.ch.remove(address);
-      this.nodeLeft(address, oldCh);
-    }
-  }
-
-  @Override
-  public void block() {
-    // probably can be left empty.
   }
 
   @Override
@@ -277,4 +196,85 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
       }
     }
   }
+
+
+  //JGroups related implementation
+  
+  @Override
+  public synchronized void receive(Message message) {
+    if (message.getSrc() == this.commonChannel.getAddress()) {
+      return;
+    }
+    if (message.getObject().toString().equalsIgnoreCase(JOINED_AND_INITIALIZED)) {
+      this.logger.fine("Node joined: " + message.getSrc().toString());
+      List<Address> oldCh = new ArrayList<Address>(this.ch.getAllValues());
+      oldCh.remove(message.getSrc());
+      this.nodeJoined(this.createNodeDescriptor(message.getSrc()), new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, oldCh));
+    }
+  }
+
+  @Override
+  public byte[] getState() {
+    return state;
+  }
+
+  @Override
+  public void setState(byte[] bytes) {
+    // Not totally sure what messages we can receive, probably broadcast of
+    // system state (disk space etc)
+    // probably in rdf.
+    state = bytes;
+  }
+
+  // Joined/Left the network - synchronized causes less problems and solves lots
+  // issues i find
+  @Override
+  public synchronized void viewAccepted(View view) {
+    logger.fine("ViewAccepted");
+
+    // find nodes that joined
+    List<Address> removedValues = this.ch.getAllValues();
+    List<Address> newNodes = new ArrayList<Address>();
+
+    ConsistentHashTable<Address> oldCh = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, this.ch.getAllValues());
+
+    for (Address addr : view.getMembers()) {
+      if (removedValues.contains(addr))
+        removedValues.remove(addr);
+      else {
+        newNodes.add(addr);
+      }
+    }
+
+    // Now update new ch
+    for (Address addr : removedValues) {
+      this.ch.remove(addr);
+    }
+    for (Address addr : newNodes) {
+      this.ch.add(addr);
+    }
+
+    for (Address addr : removedValues) {
+      this.nodeLeft(addr, oldCh);
+    }
+
+  }
+
+  // Suspect Left the network
+  @Override
+  public void suspect(Address address) {
+    logger.info("Suspecting node: " + address.toString());
+    if (this.ch.contains(address)) {
+      ConsistentHashTable<Address> oldCh = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, this.ch.getAllValues());
+      this.ch.remove(address);
+      this.nodeLeft(address, oldCh);
+    }
+  }
+
+  @Override
+  public void block() {
+    // probably can be left empty.
+  }
+
+
 }
