@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 public class DataStoreImpl implements DataStore {
@@ -25,7 +24,7 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Gets the directory in which the DataStore stores its files
-   * 
+   *
    * @return String
    */
   @Override
@@ -35,9 +34,8 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Checks if the named object is present in the object store
-   * 
-   * @param name
-   *          the data object name
+   *
+   * @param name the data object name
    */
   @Override
   public boolean hasFile(String name) {
@@ -47,13 +45,12 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Gets all the DataObjects in the object store
-   * 
+   *
    * @return ArrayList<DataObject>
    */
   @Override
   public ArrayList<DataObject> getAllDataObjects() {
     ArrayList<DataObject> list = new ArrayList<DataObject>();
-    System.out.println(storeLocation);
     File directory = new File(storeLocation);
     for (String file : directory.list()) {
       DataObject obj = retrieve(file);
@@ -65,9 +62,8 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Gets the named object from the data store
-   * 
-   * @param name
-   *          the data object name
+   *
+   * @param name the data object name
    * @return DataObjectImpl
    */
   @Override
@@ -82,9 +78,8 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Deletes the named object from the object store
-   * 
-   * @param name
-   *          the data object name
+   *
+   * @param name the data object name
    * @throws IOException
    * @throws FileNotFoundException
    */
@@ -98,10 +93,9 @@ public class DataStoreImpl implements DataStore {
   /**
    * Adds an object to the object store. If the object already exists then the
    * add operation will fail with a DataObjectExistsException
-   * 
-   * @param dataObject
-   *          the DataObject containing the object name and data to be added to
-   *          the object store
+   *
+   * @param dataObject the DataObject containing the object name and data to be added to
+   *                   the object store
    * @throws DataObjectExistsException
    * @throws IOException
    */
@@ -125,24 +119,22 @@ public class DataStoreImpl implements DataStore {
   /**
    * Replaces an object in the object store. If the object does not already
    * exist then the operation fails with a FileNotFoundException
-   * 
-   * @param dataObject
-   *          the DataObject to be replaced
+   *
+   * @param dataObject the DataObject to be replaced
    * @throws Exception
    */
   @Override
   public boolean replace(DataObject dataObject) {
     File file = new File(storeLocation, dataObject.getName());
     if (!file.exists()) {
-      // throw new FileNotFoundException(dataObject.getName() + " not found");
+      //throw new FileNotFoundException(dataObject.getName() + " not found");
       return false;
     }
 
     // Rename to something temporary until we know the add worked
     String tempFileName = dataObject.getName() + ".tmp";
     if (!file.renameTo(new File(storeLocation, tempFileName))) {
-      // throw new Exception("Could not rename " + dataObject.getName() + " to "
-      // + tempFileName);
+      //throw new Exception("Could not rename " + dataObject.getName() + " to " + tempFileName);
       return false;
     }
     try {
@@ -150,7 +142,7 @@ public class DataStoreImpl implements DataStore {
     } catch (Exception e) {
       // The add failed so rename the temporary file back to the original
       file.renameTo(new File(dataObject.getName()));
-      // throw e;
+      //throw e;
       return false;
     }
     delete(tempFileName);
@@ -191,9 +183,9 @@ public class DataStoreImpl implements DataStore {
   }
 
   @Override
-  public Vector<String> list() {
+  public ArrayList<String> list() {
     File directory = new File(storeLocation);
-    return new Vector<String>(Arrays.asList(directory.list()));
+    return new ArrayList<String>(Arrays.asList(directory.list()));
   }
 
   private SystemFileList getSystemFileList() {

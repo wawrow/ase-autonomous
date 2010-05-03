@@ -1,7 +1,6 @@
-package tests.com.slard.filerepository;
+package com.slard.filerepository;
 
 import junit.framework.Assert;
-
 import org.junit.Test;
 
 public class NodeImplTest {
@@ -13,5 +12,5 @@ public class NodeImplTest {
   @Test
   public void passTest() throws Exception {
     Assert.assertTrue(true);
-  }  
+  }
 }
