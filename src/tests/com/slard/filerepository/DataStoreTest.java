@@ -1,8 +1,4 @@
-package tests.com.slard.filerepository;
-
-import java.io.*;
-import java.util.Arrays;
-import java.util.Properties;
+package com.slard.filerepository;
 
 import junit.framework.Assert;
 import org.junit.After;
@@ -10,13 +6,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.slard.filerepository.DataObject;
-import com.slard.filerepository.DataStore;
-import com.slard.filerepository.DataStoreImpl;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Properties;
 
 public class DataStoreTest {
 
-  private final byte[] TESTDATA = new byte[] { 0, 1, 1 };
+  private final byte[] TESTDATA = new byte[]{0, 1, 1};
   private final String TESTSTOREDIR = "teststore";
   private String dataStoreLocation;
   private DataStore dataStore;
@@ -25,7 +21,7 @@ public class DataStoreTest {
   public void setUp() throws Exception {
     String currentDirectory = System.getProperty("user.dir");
     Properties options = new Properties();
-    dataStoreLocation = new String(currentDirectory + TESTSTOREDIR);
+    dataStoreLocation = currentDirectory + File.pathSeparator + TESTSTOREDIR;
     options.put("datastore.dir", dataStoreLocation);
     dataStore = new DataStoreImpl(options);
   }
@@ -42,19 +38,18 @@ public class DataStoreTest {
     Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
     Mockito.when(mockedDataObject.getName()).thenReturn(name);
 
-    try {      
+    try {
       this.dataStore.store(mockedDataObject);
-    } catch(Exception e) {
+    } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
-    
-    try {      
-      this.dataStore.store(mockedDataObject);
-      Assert.fail("Erroneously succeeded in adding the same file twice");
-    } catch(Exception e) {
+
+    try {
+      Assert.assertFalse("Erroneously succeeded in adding the same file twice", dataStore.store(mockedDataObject));
+    } catch (Exception e) {
     }
   }
-  
+
   @Test
   public void testReplaceDataObject() throws Exception {
     String name = new String("testReplace");
@@ -62,9 +57,9 @@ public class DataStoreTest {
     Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
     Mockito.when(mockedDataObject.getName()).thenReturn(name);
 
-      this.dataStore.store(mockedDataObject);
-      Assert.assertTrue(this.dataStore.replace(mockedDataObject));      
-      //Assert.fail(e.getMessage());
+    this.dataStore.store(mockedDataObject);
+    Assert.assertTrue(this.dataStore.replace(mockedDataObject));
+    //Assert.fail(e.getMessage());
   }
 
   @Test
@@ -74,12 +69,12 @@ public class DataStoreTest {
       DataObject mockedDataObject = Mockito.mock(DataObject.class);
       Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
       Mockito.when(mockedDataObject.getName()).thenReturn(name);
-      
+
       this.dataStore.store(mockedDataObject);
-      DataObject dataObject = this.dataStore.retrieve(name);    
+      DataObject dataObject = this.dataStore.retrieve(name);
       Assert.assertNotNull(dataObject);
       Assert.assertTrue(Arrays.equals(dataObject.getData(), TESTDATA));
-    } catch(Exception e) {
+    } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }
@@ -91,11 +86,11 @@ public class DataStoreTest {
       DataObject mockedDataObject = Mockito.mock(DataObject.class);
       Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
       Mockito.when(mockedDataObject.getName()).thenReturn(name);
-      
+
       this.dataStore.store(mockedDataObject);
-      this.dataStore.delete(name);    
+      this.dataStore.delete(name);
       Assert.assertFalse(this.dataStore.hasFile(name));
-    } catch(Exception e) {
+    } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }
@@ -110,7 +105,7 @@ public class DataStoreTest {
     try {
       this.dataStore.store(mockedDataObject);
       Assert.assertFalse(this.dataStore.getAllDataObjects().isEmpty());
-    } catch(Exception e) {
+    } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }
@@ -125,7 +120,7 @@ public class DataStoreTest {
     try {
       this.dataStore.store(mockedDataObject);
       Assert.assertTrue(this.dataStore.hasFile(name));
-    } catch(Exception e) {
+    } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }

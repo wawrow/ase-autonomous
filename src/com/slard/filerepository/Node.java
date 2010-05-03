@@ -20,7 +20,4 @@ public interface Node {
   void replicateDataObject(DataObject obj);
 
   boolean amIMaster(String fileName);
-
-  
-  
 }

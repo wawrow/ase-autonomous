@@ -5,13 +5,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 public class DataStoreImpl implements DataStore {
   private String storeLocation;
   private final FileSystemHelper fileSystemHelper = new FileSystemHelper();  
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final String FILE_LIST_FILENAME = "filelist.txt";
+  private SystemFileList fileList = null;
 
   public DataStoreImpl(Properties options) {
     this.storeLocation = options.getProperty("datastore.dir", System.getProperty("user.dir", "."));
@@ -24,7 +25,7 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Gets the directory in which the DataStore stores its files
-   * 
+   *
    * @return String
    */
   @Override
@@ -34,9 +35,8 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Checks if the named object is present in the object store
-   * 
-   * @param name
-   *          the data object name
+   *
+   * @param name the data object name
    */
   @Override
   public boolean hasFile(String name) {
@@ -46,7 +46,7 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Gets all the DataObjects in the object store
-   * 
+   *
    * @return ArrayList<DataObject>
    */
   @Override
@@ -55,7 +55,7 @@ public class DataStoreImpl implements DataStore {
     File directory = new File(storeLocation);
     for (String file : directory.list()) {
       DataObject obj = retrieve(file);
-      if (obj == null)
+      if (obj != null)
         list.add(obj);
     }
     return list;
@@ -63,9 +63,8 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Gets the named object from the data store
-   * 
-   * @param name
-   *          the data object name
+   *
+   * @param name the data object name
    * @return DataObjectImpl
    */
   @Override
@@ -81,14 +80,13 @@ public class DataStoreImpl implements DataStore {
 
   /**
    * Deletes the named object from the object store
-   * 
-   * @param name
-   *          the data object name
+   *
+   * @param name the data object name
    * @throws IOException
    * @throws FileNotFoundException
    */
   @Override
-  public boolean delete(String name){
+  public boolean delete(String name) {
     this.logger.info("Deleting data object: " + name);
     File file = new File(storeLocation, name);
     return file.delete();
@@ -97,10 +95,9 @@ public class DataStoreImpl implements DataStore {
   /**
    * Adds an object to the object store. If the object already exists then the
    * add operation will fail with a DataObjectExistsException
-   * 
-   * @param dataObject
-   *          the DataObject containing the object name and data to be added to
-   *          the object store
+   *
+   * @param dataObject the DataObject containing the object name and data to be added to
+   *                   the object store
    * @throws DataObjectExistsException
    * @throws IOException
    */
@@ -124,13 +121,12 @@ public class DataStoreImpl implements DataStore {
   /**
    * Replaces an object in the object store. If the object does not already
    * exist then the operation fails with a FileNotFoundException
-   * 
-   * @param dataObject
-   *          the DataObject to be replaced
+   *
+   * @param dataObject the DataObject to be replaced
    * @throws Exception
    */
   @Override
-  public boolean replace(DataObject dataObject){
+  public boolean replace(DataObject dataObject) {
     File file = new File(storeLocation, dataObject.getName());
     if (!file.exists()) {
       //throw new FileNotFoundException(dataObject.getName() + " not found");
@@ -161,33 +157,42 @@ public class DataStoreImpl implements DataStore {
   }
 
   @Override
-  public Vector<String> list() {
+  public ArrayList<String> list() {
     File directory = new File(storeLocation);
-    return new Vector<String>(Arrays.asList(directory.list()));      
+    return new ArrayList<String>(Arrays.asList(directory.list()));
+  }
+
+  private SystemFileList getSystemFileList() {
+    if (this.fileList == null) {
+      // TODO This probably is too thigh coupling
+      this.fileList = new FileListDataObjectImpl(this);
+    }
+    return fileList;
   }
 
   @Override
   public boolean addFileName(String fileName) {
-    // TODO Auto-generated method stub
-    return false;
+    return this.getSystemFileList().addFileName(fileName);
   }
 
   @Override
   public boolean contains(String fileName) {
-    // TODO Auto-generated method stub
-    return false;
+    return this.getSystemFileList().contains(fileName);
   }
 
   @Override
   public List<String> getFileNames() {
-    // TODO Auto-generated method stub
-    return null;
+    return this.getSystemFileList().getFileNames();
   }
 
   @Override
   public boolean removeFileName(String fileName) {
-    // TODO Auto-generated method stub
-    return false;
+    return this.getSystemFileList().removeFileName(fileName);
+  }
+
+  @Override
+  public String getFileListName() {
+    return FILE_LIST_FILENAME;
   }
 
 }

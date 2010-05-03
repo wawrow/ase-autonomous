@@ -2,11 +2,7 @@ package com.slard.filerepository;
 
 import org.jgroups.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,7 +10,6 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   private static final int CH_REPLICA_COUNT = 4;
   private static final int REPLICA_COUNT = 1;
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
-  private static final String FILE_LIST_FILENAME = "filelist.txt";
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String SYSTEM_CHANNEL_NAME = "FileRepositoryCluster";
   private static final String USER_CHANNEL_NAME = "FileRepositoryClusterClient";
@@ -27,6 +22,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   byte[] state;
   private Channel systemChannel;
   private Channel userChannel;
+  private SystemFileList fileList;
   private Timer replicaGuardTimer;
 
   public NodeImpl(DataStore dataStore, Properties options) {
@@ -34,6 +30,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     this.dataStore = dataStore;
     this.ch = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, null);
     this.options = options;
+    this.fileList = this;
   }
 
   public NodeDescriptor createNodeDescriptor(Address address) {
@@ -42,7 +39,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     NodeDescriptor node = new NodeDescriptorImpl(address, systemCommsClient, systemCommsClient);
     return node;
   }
-  
+
   public void start() throws ChannelException {
     // Channel for system communications (within the cluster)
     this.systemChannel = new JChannel();
@@ -79,7 +76,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   }
 
   public void replicaGuard() {
-    System.out.println("Replica Guardian!!!");
+    logger.info("replicaGuard tick.");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       if (this.amIMaster(obj.getName())) {
         this.replicateDataObject(obj);
@@ -115,17 +112,19 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
           }
         }
       }
+      // Now check the filelist (for the files I'm master)
+      if (this.amIMaster(obj.getName()) && !this.fileList.contains(obj.getName())) {
+        this.fileList.addFileName(obj.getName());
+      }
     }
 
-    System.out.println("Now send the message");
     // If i'm not the first in cluster - sent the message that I'm ready to go
     if (this.systemChannel.getView().size() > 1) {
       try {
         this.systemChannel.send(new Message(null, null, JOINED_AND_INITIALIZED));
-        System.out.println("message sent");
       } catch (Exception ex) {
-        System.out.println(ex.toString());
-        // make me crash!!!
+        logger.warning(ex.toString());
+        // TODO make me crash!!!
       }
     }
   }
@@ -134,9 +133,8 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   public void nodeJoined(NodeDescriptor node, ConsistentHashTable<Address> oldCh) {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
       // If the guy is master of any of my files
-      System.out.println("Checking file " + obj.getName());
       if (this.ch.get(obj.getName()).equals(node.getAddress())) {
-        System.out.println("Joining node is master for " + obj.getName());
+        logger.fine("Joining node is master for " + obj.getName());
         // Check if i was master before
         if (oldCh.get(obj.getName()).equals(this.systemChannel.getAddress())) {
           if (node.hasFile(obj.getName())) {
@@ -193,20 +191,21 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     for (Address nodeAddress : this.ch.getPreviousNodes(obj.getName(), REPLICA_COUNT)) {
       logger.fine("Replicating file: " + obj.getName() + " to " + nodeAddress);
       NodeDescriptor node = this.createNodeDescriptor(nodeAddress);
-      if (node.hasFile(obj.getName())) {
+      if (obj.getData() != null && node.hasFile(obj.getName())) {
 
         if (!node.getCRC(obj.getName()).equals(obj.getCRC())) {
           node.replace(obj);
         }
-      } else {
+      } else if (obj.getData() != null) {
         node.store(obj);
+      } else if (obj.getData() == null) {
+        node.delete(obj.getName());
       }
     }
   }
 
+  // JGroups related implementation
 
-  //JGroups related implementation
-  
   @Override
   public synchronized void receive(Message message) {
     if (message.getSrc() == this.systemChannel.getAddress()) {
@@ -283,47 +282,52 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     // probably can be left empty.
   }
 
-  //File List operations
-  
+  // File List operations
+
   @Override
   public boolean addFileName(String fileName) {
-    if(this.amIMaster(FILE_LIST_FILENAME)){
-      return this.dataStore.addFileName(fileName);
+    if (this.amIMaster(this.dataStore.getFileListName())) {
+      boolean result = this.dataStore.addFileName(fileName);
+      if (result)
+        this.replicateDataObject(this.dataStore.retrieve(this.dataStore.getFileListName()));
+      return result;
     } else {
-      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.addFileName(fileName);
     }
   }
 
   @Override
   public boolean contains(String fileName) {
-    if(this.amIMaster(FILE_LIST_FILENAME)){
+    if (this.amIMaster(this.dataStore.getFileListName())) {
       return this.dataStore.contains(fileName);
     } else {
-      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.contains(fileName);
     }
   }
 
   @Override
   public List<String> getFileNames() {
-    if(this.amIMaster(FILE_LIST_FILENAME)){
+    if (this.amIMaster(this.dataStore.getFileListName())) {
       return this.dataStore.getFileNames();
     } else {
-      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.getFileNames();
     }
   }
 
   @Override
   public boolean removeFileName(String fileName) {
-    if(this.amIMaster(FILE_LIST_FILENAME)){
-      return this.dataStore.removeFileName(fileName);
+    if (this.amIMaster(this.dataStore.getFileListName())) {
+      boolean result = this.dataStore.removeFileName(fileName);
+      if (result)
+        this.replicateDataObject(this.dataStore.retrieve(this.dataStore.getFileListName()));
+      return result;
     } else {
-      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.removeFileName(fileName);
     }
   }
-
 
 }
