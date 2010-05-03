@@ -1,12 +1,10 @@
-package tests.com.slard.filerepository;
+package com.slard.filerepository;
 
 import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import com.slard.filerepository.*;
 
 import java.io.File;
 import java.util.Arrays;

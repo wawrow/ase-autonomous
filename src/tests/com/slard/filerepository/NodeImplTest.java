@@ -1,4 +1,4 @@
-package tests.com.slard.filerepository;
+package com.slard.filerepository;
 
 import junit.framework.Assert;
 import org.junit.Test;
