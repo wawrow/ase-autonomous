@@ -10,10 +10,11 @@ import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class NodeImpl implements Node, MessageListener, MembershipListener {
+public class NodeImpl implements Node, MessageListener, MembershipListener, SystemFileList {
   private static final int CH_REPLICA_COUNT = 4;
   private static final int REPLICA_COUNT = 1;
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
+  private static final String FILE_LIST_FILENAME = "filelist.txt";
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String CHANNEL_NAME = "FileRepositoryCluster";
 
@@ -35,8 +36,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   }
 
   private NodeDescriptor createNodeDescriptor(Address address) {
-    NodeDescriptor node = new NodeDescriptorImpl(address, SystemComsClientImpl.getSystemComsClient(this.systemComs
-        .GetDispatcher(), address));
+    SystemComsClientImpl syscomscli = SystemComsClientImpl.getSystemComsClient(this.systemComs
+        .GetDispatcher(), address);    
+    NodeDescriptor node = new NodeDescriptorImpl(address, syscomscli, syscomscli);
     return node;
   }
   
@@ -274,6 +276,48 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   @Override
   public void block() {
     // probably can be left empty.
+  }
+
+  //File List operations
+  
+  @Override
+  public boolean addFileName(String fileName) {
+    if(this.amIMaster(FILE_LIST_FILENAME)){
+      return this.dataStore.addFileName(fileName);
+    } else {
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      return node.addFileName(fileName);
+    }
+  }
+
+  @Override
+  public boolean contains(String fileName) {
+    if(this.amIMaster(FILE_LIST_FILENAME)){
+      return this.dataStore.contains(fileName);
+    } else {
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      return node.contains(fileName);
+    }
+  }
+
+  @Override
+  public List<String> getFileNames() {
+    if(this.amIMaster(FILE_LIST_FILENAME)){
+      return this.dataStore.getFileNames();
+    } else {
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      return node.getFileNames();
+    }
+  }
+
+  @Override
+  public boolean removeFileName(String fileName) {
+    if(this.amIMaster(FILE_LIST_FILENAME)){
+      return this.dataStore.removeFileName(fileName);
+    } else {
+      NodeDescriptor node = this.createNodeDescriptor(this.ch.get(FILE_LIST_FILENAME));
+      return node.removeFileName(fileName);
+    }
   }
 
 

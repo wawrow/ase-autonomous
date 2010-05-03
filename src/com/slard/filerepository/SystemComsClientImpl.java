@@ -6,11 +6,12 @@ import org.jgroups.blocks.Request;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.RpcDispatcher;
 
+import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SystemComsClientImpl implements FileOperations {
+public class SystemComsClientImpl implements FileOperations, SystemFileList {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final int RPC_TIMEOUT = 3000;
 
@@ -68,7 +69,7 @@ public class SystemComsClientImpl implements FileOperations {
   }
 
   // Factory Method
-  public static FileOperations getSystemComsClient(RpcDispatcher dispatcher, Address target) {
+  public static SystemComsClientImpl getSystemComsClient(RpcDispatcher dispatcher, Address target) {
     return new SystemComsClientImpl(dispatcher, target);
   }
 
@@ -134,5 +135,62 @@ public class SystemComsClientImpl implements FileOperations {
       logger.log(Level.WARNING, "rpc failed", throwable);
     }
     return ret;
+  }
+
+  //SystemFileList
+  
+  @Override
+  public boolean addFileName(String fileName) {
+    MethodCall addFileNameCall = new MethodCall("addFileName", null, new Class[] { String.class });
+    addFileNameCall.setArgs(new String[] { fileName });
+    Boolean ret = null;
+    try {
+      ret = (Boolean) this.callWithMethod(addFileNameCall);
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "rpc failed", throwable);
+    }
+    return ret;
+  }
+
+  @Override
+  public boolean contains(String fileName) {
+    MethodCall containsCall = new MethodCall("contains", null, new Class[] { String.class });
+    containsCall.setArgs(new String[] { fileName });
+    Boolean ret = null;
+    try {
+      ret = (Boolean) this.callWithMethod(containsCall);
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "rpc failed", throwable);
+    }
+    return ret;
+
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public List<String> getFileNames() {
+    MethodCall getFileNamesCall = new MethodCall("getFileNames", null, new Class[] { String.class });
+    List<String> ret = null;
+    try {
+      ret = (List<String>) this.callWithMethod(getFileNamesCall);
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "rpc failed", throwable);
+    }
+    return ret;
+
+  }
+
+  @Override
+  public boolean removeFileName(String fileName) {
+    MethodCall removeFileNameCall = new MethodCall("removeFileName", null, new Class[] { String.class });
+    removeFileNameCall.setArgs(new String[] { fileName });
+    Boolean ret = null;
+    try {
+      ret = (Boolean) this.callWithMethod(removeFileNameCall);
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "rpc failed", throwable);
+    }
+    return ret;
+
   }
 }

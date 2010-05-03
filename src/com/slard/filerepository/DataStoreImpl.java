@@ -3,6 +3,7 @@ package com.slard.filerepository;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -189,6 +190,30 @@ public class DataStoreImpl implements DataStore {
   public Vector<String> list() {
     File directory = new File(storeLocation);
     return new Vector<String>(Arrays.asList(directory.list()));      
+  }
+
+  @Override
+  public boolean addFileName(String fileName) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean contains(String fileName) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public List<String> getFileNames() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean removeFileName(String fileName) {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }
