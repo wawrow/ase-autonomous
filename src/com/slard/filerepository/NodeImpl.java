@@ -188,13 +188,15 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     for (Address nodeAddress : this.ch.getPreviousNodes(obj.getName(), REPLICA_COUNT)) {
       logger.fine("Replicating file: " + obj.getName() + " to " + nodeAddress);
       NodeDescriptor node = this.createNodeDescriptor(nodeAddress);
-      if (node.hasFile(obj.getName())) {
+      if (obj.getData() != null && node.hasFile(obj.getName())) {
 
         if (!node.getCRC(obj.getName()).equals(obj.getCRC())) {
           node.replace(obj);
         }
-      } else {
+      } else if (obj.getData() != null) {
         node.store(obj);
+      } else if (obj.getData() == null) {
+        node.delete(obj.getName());
       }
     }
   }
@@ -282,7 +284,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   @Override
   public boolean addFileName(String fileName) {
     if (this.amIMaster(this.dataStore.getFileListName())) {
-      return this.dataStore.addFileName(fileName);
+      boolean result = this.dataStore.addFileName(fileName);
+      if (result)
+        this.replicateDataObject(this.dataStore.retrieve(this.dataStore.getFileListName()));
+      return result;
     } else {
       NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.addFileName(fileName);
@@ -312,7 +317,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   @Override
   public boolean removeFileName(String fileName) {
     if (this.amIMaster(this.dataStore.getFileListName())) {
-      return this.dataStore.removeFileName(fileName);
+      boolean result = this.dataStore.removeFileName(fileName);
+      if (result)
+        this.replicateDataObject(this.dataStore.retrieve(this.dataStore.getFileListName()));
+      return result;
     } else {
       NodeDescriptor node = this.createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
       return node.removeFileName(fileName);
