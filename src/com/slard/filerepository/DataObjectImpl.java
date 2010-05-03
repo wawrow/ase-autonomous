@@ -29,5 +29,4 @@ public class DataObjectImpl implements DataObject {
     crc.update(this.getData());
     return crc.getValue();
   }
-
 }

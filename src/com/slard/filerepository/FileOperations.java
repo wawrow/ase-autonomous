@@ -1,6 +1,6 @@
 package com.slard.filerepository;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 // Provides methods to call to other nodes in the system
 public interface FileOperations {
@@ -10,14 +10,14 @@ public interface FileOperations {
 
   //Retrieve a file from nodes storage
   DataObject retrieve(String name);
-  
+
   //Lists Files that this node has
-  Vector<String> list();
-  
+  ArrayList<String> list();
+
   boolean hasFile(String name);
-  
+
   Long getCRC(String fileName);
-  
+
   boolean replace(DataObject dataObject);
 
   boolean delete(String name);

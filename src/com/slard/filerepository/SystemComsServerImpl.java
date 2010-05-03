@@ -5,8 +5,8 @@ import org.jgroups.MembershipListener;
 import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 public class SystemComsServerImpl implements FileOperations, SystemFileList {
@@ -18,7 +18,7 @@ public class SystemComsServerImpl implements FileOperations, SystemFileList {
   private SystemFileList fileList;
 
   public SystemComsServerImpl(Channel channel, DataStore store, MessageListener messages, MembershipListener members, Node node,
-      SystemFileList fileList) {
+                              SystemFileList fileList) {
 
     this.store = store;
     this.dispatcher = new RpcDispatcher(channel, messages, members, this);
@@ -74,9 +74,9 @@ public class SystemComsServerImpl implements FileOperations, SystemFileList {
   }
 
   @Override
-  public synchronized Vector<String> list() {
+  public synchronized ArrayList<String> list() {
     this.logger.info("Requested list.");
-    Vector<String> result = new Vector<String>();
+    ArrayList<String> result = new ArrayList<String>();
     for (DataObject dataObj : store.getAllDataObjects()) {
       result.add(dataObj.getName());
     }

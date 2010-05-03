@@ -2,11 +2,7 @@ package com.slard.filerepository;
 
 import org.jgroups.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,6 +51,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     for (Address addr : this.commonChannel.getView().getMembers()) {
       this.ch.add(addr);
     }
+
     this.initializeDataStore();
 
     this.replicaGuardTimer = new Timer();

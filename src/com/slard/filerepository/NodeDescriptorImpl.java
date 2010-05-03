@@ -1,9 +1,9 @@
 package com.slard.filerepository;
 
-import java.util.List;
-import java.util.Vector;
-
 import org.jgroups.Address;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class NodeDescriptorImpl implements NodeDescriptor {
 
@@ -43,7 +43,7 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   }
 
   @Override
-  public Vector<String> list() {
+  public ArrayList<String> list() {
     return this.systemComs.list();
   }
 
