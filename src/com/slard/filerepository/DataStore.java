@@ -9,6 +9,8 @@ public interface DataStore extends FileOperations, SystemFileList {
   String getStoreLocation();
   
   // Fetches all Objects
-  public ArrayList<DataObject> getAllDataObjects();
+  ArrayList<DataObject> getAllDataObjects();
 
+  // File List Name
+  String getFileListName(); 
 }

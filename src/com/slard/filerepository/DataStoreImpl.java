@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 public class DataStoreImpl implements DataStore {
   private String storeLocation;
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private static final String FILE_LIST_FILENAME = "filelist.txt";
+  private SystemFileList fileList = null;
 
   public DataStoreImpl(Properties options) {
     this.storeLocation = options.getProperty("datastore.dir", System.getProperty("user.dir", "."));
@@ -51,10 +53,11 @@ public class DataStoreImpl implements DataStore {
   @Override
   public ArrayList<DataObject> getAllDataObjects() {
     ArrayList<DataObject> list = new ArrayList<DataObject>();
+    System.out.println(storeLocation);
     File directory = new File(storeLocation);
     for (String file : directory.list()) {
       DataObject obj = retrieve(file);
-      if (obj == null)
+      if (obj != null)
         list.add(obj);
     }
     return list;
@@ -86,7 +89,7 @@ public class DataStoreImpl implements DataStore {
    * @throws FileNotFoundException
    */
   @Override
-  public boolean delete(String name){
+  public boolean delete(String name) {
     this.logger.info("Deleting data object: " + name);
     File file = new File(storeLocation, name);
     return file.delete();
@@ -128,17 +131,18 @@ public class DataStoreImpl implements DataStore {
    * @throws Exception
    */
   @Override
-  public boolean replace(DataObject dataObject){
+  public boolean replace(DataObject dataObject) {
     File file = new File(storeLocation, dataObject.getName());
     if (!file.exists()) {
-      //throw new FileNotFoundException(dataObject.getName() + " not found");
+      // throw new FileNotFoundException(dataObject.getName() + " not found");
       return false;
     }
 
     // Rename to something temporary until we know the add worked
     String tempFileName = dataObject.getName() + ".tmp";
     if (!file.renameTo(new File(storeLocation, tempFileName))) {
-      //throw new Exception("Could not rename " + dataObject.getName() + " to " + tempFileName);
+      // throw new Exception("Could not rename " + dataObject.getName() + " to "
+      // + tempFileName);
       return false;
     }
     try {
@@ -146,7 +150,7 @@ public class DataStoreImpl implements DataStore {
     } catch (Exception e) {
       // The add failed so rename the temporary file back to the original
       file.renameTo(new File(dataObject.getName()));
-      //throw e;
+      // throw e;
       return false;
     }
     delete(tempFileName);
@@ -189,31 +193,40 @@ public class DataStoreImpl implements DataStore {
   @Override
   public Vector<String> list() {
     File directory = new File(storeLocation);
-    return new Vector<String>(Arrays.asList(directory.list()));      
+    return new Vector<String>(Arrays.asList(directory.list()));
+  }
+
+  private SystemFileList getSystemFileList() {
+    if (this.fileList == null) {
+      // TODO This probably is too thigh coupling
+      this.fileList = new FileListDataObjectImpl(this);
+    }
+    return fileList;
   }
 
   @Override
   public boolean addFileName(String fileName) {
-    // TODO Auto-generated method stub
-    return false;
+    return this.getSystemFileList().addFileName(fileName);
   }
 
   @Override
   public boolean contains(String fileName) {
-    // TODO Auto-generated method stub
-    return false;
+    return this.getSystemFileList().contains(fileName);
   }
 
   @Override
   public List<String> getFileNames() {
-    // TODO Auto-generated method stub
-    return null;
+    return this.getSystemFileList().getFileNames();
   }
 
   @Override
   public boolean removeFileName(String fileName) {
-    // TODO Auto-generated method stub
-    return false;
+    return this.getSystemFileList().removeFileName(fileName);
+  }
+
+  @Override
+  public String getFileListName() {
+    return FILE_LIST_FILENAME;
   }
 
 }
