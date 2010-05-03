@@ -10,7 +10,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SystemComsClientImpl implements SystemComs {
+public class SystemComsClientImpl implements FileOperations {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final int RPC_TIMEOUT = 3000;
 
@@ -68,7 +68,7 @@ public class SystemComsClientImpl implements SystemComs {
   }
 
   // Factory Method
-  public static SystemComs getSystemComsClient(RpcDispatcher dispatcher, Address target) {
+  public static FileOperations getSystemComsClient(RpcDispatcher dispatcher, Address target) {
     return new SystemComsClientImpl(dispatcher, target);
   }
 
@@ -119,6 +119,19 @@ public class SystemComsClientImpl implements SystemComs {
     try {
       ret = (Boolean) this.callWithMethod(replaceDataObjectCall);
     } catch (Exception ex) {
+    }
+    return ret;
+  }
+
+  @Override
+  public boolean delete(String name) {
+    MethodCall deleteCall = new MethodCall("delete", null, new Class[] { String.class });
+    deleteCall.setArgs(new String[] { name });
+    Boolean ret = null;
+    try {
+      ret = (Boolean) this.callWithMethod(deleteCall);
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "rpc failed", throwable);
     }
     return ret;
   }
