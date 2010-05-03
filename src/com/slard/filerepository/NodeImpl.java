@@ -11,19 +11,20 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   private static final int REPLICA_COUNT = 1;
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private static final String CHANNEL_NAME = "FileRepositoryCluster";
+  private static final String SYSTEM_CHANNEL_NAME = "FileRepositoryCluster";
+  private static final String USER_CHANNEL_NAME = "FileRepositoryClusterClient";
 
-  SystemComsServerImpl systemComs = null;
+  SystemCommsServerImpl systemComms = null;
+  UserCommsServerImpl userComms = null;
   private DataStore dataStore;
-  private ConsistentHashTableImpl<Address> ch;
+  public ConsistentHashTableImpl<Address> ch;
   Properties options;
   byte[] state;
-  private Channel commonChannel;
+  private Channel systemChannel;
+  private Channel userChannel;
   private SystemFileList fileList;
-
   private Timer replicaGuardTimer;
 
-  // Constructor
   public NodeImpl(DataStore dataStore, Properties options) {
     this.logger.setLevel(Level.ALL);
     this.dataStore = dataStore;
@@ -32,28 +33,32 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     this.fileList = this;
   }
 
-  private NodeDescriptor createNodeDescriptor(Address address) {
-    SystemComsClientImpl syscomscli = SystemComsClientImpl.getSystemComsClient(this.systemComs.GetDispatcher(), address);
-    NodeDescriptor node = new NodeDescriptorImpl(address, syscomscli, syscomscli);
+  public NodeDescriptor createNodeDescriptor(Address address) {
+    SystemCommsClientImpl systemCommsClient = SystemCommsClientImpl.getSystemComsClient(this.systemComms
+        .GetDispatcher(), address);    
+    NodeDescriptor node = new NodeDescriptorImpl(address, systemCommsClient, systemCommsClient);
     return node;
   }
 
   public void start() throws ChannelException {
-    // this.commonChannel = new JChannel("mping.xml");
-    this.commonChannel = new JChannel();
-    commonChannel.connect(CHANNEL_NAME);
-
-    systemComs = new SystemComsServerImpl(commonChannel, dataStore, this, this, this, this);
-
+    // Channel for system communications (within the cluster)
+    this.systemChannel = new JChannel();
+    systemChannel.connect(SYSTEM_CHANNEL_NAME);
+    systemComms = new SystemCommsServerImpl(systemChannel, dataStore, this, this, this);
+        
     logger.fine("channel connected and system coms server ready");
-    logger.finer("My Address: " + commonChannel.getAddress().toString());
-
-    for (Address addr : this.commonChannel.getView().getMembers()) {
+    logger.finer("My Address: " + systemChannel.getAddress().toString());
+    for(Address addr: this.systemChannel.getView().getMembers()){
       this.ch.add(addr);
     }
-
     this.initializeDataStore();
 
+    // Channel from user communications (from outside the cluster)
+    System.setProperty("jgroups.udp.mcast_port", "45589");
+    this.userChannel = new JChannel();
+    userChannel.connect(USER_CHANNEL_NAME);
+    userComms = new UserCommsServerImpl(userChannel, dataStore, null, null, this);
+    
     this.replicaGuardTimer = new Timer();
     replicaGuardTimer.schedule(new TimerTask() {
       @Override
@@ -61,12 +66,13 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
         replicaGuard();
       }
     }, 15000, 30000);
-
   }
 
   public void stop() {
-    systemComs.stop();
-    commonChannel.close();
+    systemComms.stop();
+    systemChannel.close();
+    userComms.stop();
+    userChannel.close();
   }
 
   public void replicaGuard() {
@@ -84,7 +90,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
       List<Address> oldAddr = this.ch.getAllValues();
       if (oldAddr.size() > 1) {
 
-        oldAddr.remove(this.commonChannel.getAddress());
+        oldAddr.remove(this.systemChannel.getAddress());
         ConsistentHashTable<Address> oldCh = new ConsistentHashTableImpl<Address>(CH_REPLICA_COUNT, oldAddr);
 
         if (this.amIMaster(obj.getName())) {
@@ -113,9 +119,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
     }
 
     // If i'm not the first in cluster - sent the message that I'm ready to go
-    if (this.commonChannel.getView().size() > 1) {
+    if (this.systemChannel.getView().size() > 1) {
       try {
-        this.commonChannel.send(new Message(null, null, JOINED_AND_INITIALIZED));
+        this.systemChannel.send(new Message(null, null, JOINED_AND_INITIALIZED));
       } catch (Exception ex) {
         logger.warning(ex.toString());
         // TODO make me crash!!!
@@ -130,7 +136,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
       if (this.ch.get(obj.getName()).equals(node.getAddress())) {
         logger.fine("Joining node is master for " + obj.getName());
         // Check if i was master before
-        if (oldCh.get(obj.getName()).equals(this.commonChannel.getAddress())) {
+        if (oldCh.get(obj.getName()).equals(this.systemChannel.getAddress())) {
           if (node.hasFile(obj.getName())) {
             if (!node.getCRC(obj.getName()).equals(obj.getCRC())) {
               node.replace(obj);
@@ -139,7 +145,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
             node.store(obj);
           }
         }
-        if (!this.ch.getPreviousNodes(obj.getName(), REPLICA_COUNT).contains(this.commonChannel.getAddress())) {
+        if (!this.ch.getPreviousNodes(obj.getName(), REPLICA_COUNT).contains(this.systemChannel.getAddress())) {
           // If I'm not replica - delete that file
           try {
             this.dataStore.delete(obj.getName());
@@ -176,7 +182,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
 
   @Override
   public boolean amIMaster(String fileName) {
-    return this.ch.get(fileName).equals(this.commonChannel.getAddress());
+    return this.ch.get(fileName).equals(this.systemChannel.getAddress());
   }
 
   @Override
@@ -202,7 +208,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
 
   @Override
   public synchronized void receive(Message message) {
-    if (message.getSrc() == this.commonChannel.getAddress()) {
+    if (message.getSrc() == this.systemChannel.getAddress()) {
       return;
     }
     if (message.getObject().toString().equalsIgnoreCase(JOINED_AND_INITIALIZED)) {

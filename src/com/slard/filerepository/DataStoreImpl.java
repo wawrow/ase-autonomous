@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 public class DataStoreImpl implements DataStore {
   private String storeLocation;
+  private final FileSystemHelper fileSystemHelper = new FileSystemHelper();  
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String FILE_LIST_FILENAME = "filelist.txt";
   private SystemFileList fileList = null;
@@ -69,7 +70,8 @@ public class DataStoreImpl implements DataStore {
   @Override
   public DataObjectImpl retrieve(String name) {
     try {
-      return new DataObjectImpl(name, readFile(name));
+      File file = new File(storeLocation, name);
+      return new DataObjectImpl(name, fileSystemHelper.readFile(file));
     } catch (IOException ex) {
       logger.warning("Exception while retrieving the file: " + ex.toString());
       return null;
@@ -104,11 +106,11 @@ public class DataStoreImpl implements DataStore {
     this.logger.info("About to store data object: " + dataObject.getName());
     File file = new File(storeLocation, dataObject.getName());
     if (file.exists()) {
-      logger.warning("Attept to store file that already exist: " + dataObject.getName());
+      logger.warning("Attempt to store file that already exists: " + dataObject.getName());
       return false;
     }
     try {
-      writeFile(file, dataObject.getData());
+      fileSystemHelper.writeFile(file, dataObject.getData());
     } catch (IOException ex) {
       logger.warning("Exception while storing the file: " + dataObject.getName() + " : " + ex.toString());
       return false;
@@ -147,34 +149,6 @@ public class DataStoreImpl implements DataStore {
     }
     delete(tempFileName);
     return true;
-  }
-
-  private byte[] readFile(String fileName) throws IOException {
-    File file = new File(storeLocation, fileName);
-    byte[] fileContents = new byte[(int) file.length()];
-    FileInputStream fis = new FileInputStream(file);
-    try {
-      BufferedInputStream bis = new BufferedInputStream(fis);
-      try {
-        bis.read(fileContents, 0, fileContents.length);
-        return fileContents;
-      } finally {
-        bis.close();
-      }
-    } finally {
-      fis.close();
-    }
-  }
-
-  private void writeFile(File file, byte[] fileContents) throws IOException {
-    FileOutputStream fos = new FileOutputStream(file);
-    BufferedOutputStream bos = new BufferedOutputStream(fos);
-    try {
-      bos.write(fileContents);
-    } finally {
-      bos.flush();
-      bos.close();
-    }
   }
 
   @Override
