@@ -5,6 +5,7 @@ import org.jgroups.MembershipListener;
 import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
 
+import java.util.ArrayList;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -68,9 +69,9 @@ public class SystemCommsServerImpl implements FileOperations {
   }
 
   @Override
-  public synchronized Vector<String> list() {
+  public synchronized ArrayList<String> list() {
     this.logger.info("Requested list.");
-    Vector<String> result = new Vector<String>();
+    ArrayList<String> result = new ArrayList<String>();
     for (DataObject dataObj : store.getAllDataObjects()) {
       result.add(dataObj.getName());
     }

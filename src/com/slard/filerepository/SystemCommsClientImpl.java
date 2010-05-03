@@ -6,6 +6,7 @@ import org.jgroups.blocks.Request;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.RpcDispatcher;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -101,11 +102,11 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
 
   @SuppressWarnings("unchecked")
   @Override
-  public Vector<String> list() {
+  public ArrayList<String> list() {
     MethodCall listCall = new MethodCall("list", null, new Class[] { String.class });
-    Vector<String> ret = null;
+    ArrayList<String> ret = null;
     try {
-        ret = (Vector<String>) this.callWithMethod(listCall);      
+        ret = (ArrayList<String>) this.callWithMethod(listCall);      
     } catch (Throwable throwable) {
       logger.log(Level.WARNING, "rpc failed", throwable);
     }
