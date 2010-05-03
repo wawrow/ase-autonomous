@@ -101,7 +101,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
             master.store(obj);
           }
           try {
-            this.dataStore.deleteDataObject(obj.getName());
+            this.dataStore.delete(obj.getName());
           } catch (Exception ex) {
             logger.warning(ex.toString());
             // TODO Implement some better error handling
@@ -143,7 +143,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
         if (!this.ch.getPreviousNodes(obj.getName(), REPLICA_COUNT).contains(this.commonChannel.getAddress())) {
           // If I'm not replica - delete that file
           try {
-            this.dataStore.deleteDataObject(obj.getName());
+            this.dataStore.delete(obj.getName());
           } catch (Exception ex) {
             // TODO better exception handing
           }

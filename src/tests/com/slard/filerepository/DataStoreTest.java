@@ -43,13 +43,13 @@ public class DataStoreTest {
     Mockito.when(mockedDataObject.getName()).thenReturn(name);
 
     try {      
-      this.dataStore.storeDataObject(mockedDataObject);
+      this.dataStore.store(mockedDataObject);
     } catch(Exception e) {
       Assert.fail(e.getMessage());
     }
     
     try {      
-      this.dataStore.storeDataObject(mockedDataObject);
+      this.dataStore.store(mockedDataObject);
       Assert.fail("Erroneously succeeded in adding the same file twice");
     } catch(Exception e) {
     }
@@ -62,13 +62,9 @@ public class DataStoreTest {
     Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
     Mockito.when(mockedDataObject.getName()).thenReturn(name);
 
-    try {
-      this.dataStore.storeDataObject(mockedDataObject);
-      this.dataStore.replaceDataObject(mockedDataObject);      
-    } catch(Exception e) {
-      e.printStackTrace();
-      Assert.fail(e.getMessage());
-    }    
+      this.dataStore.store(mockedDataObject);
+      Assert.assertTrue(this.dataStore.replace(mockedDataObject));      
+      //Assert.fail(e.getMessage());
   }
 
   @Test
@@ -79,8 +75,8 @@ public class DataStoreTest {
       Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
       Mockito.when(mockedDataObject.getName()).thenReturn(name);
       
-      this.dataStore.storeDataObject(mockedDataObject);
-      DataObject dataObject = this.dataStore.getDataObject(name);    
+      this.dataStore.store(mockedDataObject);
+      DataObject dataObject = this.dataStore.retrieve(name);    
       Assert.assertNotNull(dataObject);
       Assert.assertTrue(Arrays.equals(dataObject.getData(), TESTDATA));
     } catch(Exception e) {
@@ -96,9 +92,9 @@ public class DataStoreTest {
       Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
       Mockito.when(mockedDataObject.getName()).thenReturn(name);
       
-      this.dataStore.storeDataObject(mockedDataObject);
-      this.dataStore.deleteDataObject(name);    
-      Assert.assertFalse(this.dataStore.contains(name));
+      this.dataStore.store(mockedDataObject);
+      this.dataStore.delete(name);    
+      Assert.assertFalse(this.dataStore.hasFile(name));
     } catch(Exception e) {
       Assert.fail(e.getMessage());
     }
@@ -112,7 +108,7 @@ public class DataStoreTest {
     Mockito.when(mockedDataObject.getName()).thenReturn(name);
 
     try {
-      this.dataStore.storeDataObject(mockedDataObject);
+      this.dataStore.store(mockedDataObject);
       Assert.assertFalse(this.dataStore.getAllDataObjects().isEmpty());
     } catch(Exception e) {
       Assert.fail(e.getMessage());
@@ -127,8 +123,8 @@ public class DataStoreTest {
     Mockito.when(mockedDataObject.getName()).thenReturn(name);
 
     try {
-      this.dataStore.storeDataObject(mockedDataObject);
-      Assert.assertTrue(this.dataStore.contains(name));
+      this.dataStore.store(mockedDataObject);
+      Assert.assertTrue(this.dataStore.hasFile(name));
     } catch(Exception e) {
       Assert.fail(e.getMessage());
     }

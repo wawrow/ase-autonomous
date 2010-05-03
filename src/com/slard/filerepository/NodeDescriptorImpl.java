@@ -7,14 +7,14 @@ import org.jgroups.Address;
 public class NodeDescriptorImpl implements NodeDescriptor {
 
   private Address address;
-  private SystemComs systemComs;
+  private FileOperations systemComs;
 
   @Override
   public Address getAddress() {
     return this.address;
   }
 
-  public NodeDescriptorImpl(Address address, SystemComs systemComsClient) {
+  public NodeDescriptorImpl(Address address, FileOperations systemComsClient) {
     this.address = address;
     this.systemComs = systemComsClient;
   }
@@ -47,5 +47,10 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   @Override
   public boolean replace(DataObject dataObject) {
     return this.systemComs.replace(dataObject);
+  }
+
+  @Override
+  public boolean delete(String name) {
+    return this.systemComs.delete(name);
   }
 }
