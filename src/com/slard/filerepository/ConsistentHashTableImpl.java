@@ -1,21 +1,20 @@
 package com.slard.filerepository;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
 
   private final int numberOfReplicas;
   private final SortedMap<Long, T> circle = new TreeMap<Long, T>();
-  private MessageDigest md5;
+  private HashProvider hashProvider;
 
   public ConsistentHashTableImpl(int numberOfReplicas, Iterable<T> nodes) {
+    this(numberOfReplicas, nodes, new MD5HashProvider());
+  }
+  
+  public ConsistentHashTableImpl(int numberOfReplicas, Iterable<T> nodes, HashProvider hashProvider) {
     this.numberOfReplicas = numberOfReplicas;
-    try {
-      this.md5 = MessageDigest.getInstance("MD5");
-    } catch (NoSuchAlgorithmException ex) {
-    }
+    this.hashProvider = hashProvider;
     if (nodes != null) {
       for (T node : nodes) {
         add(node);
@@ -23,27 +22,8 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
     }
   }
 
-  private long bytesToLong(byte[] in) {
-    long ret = 0;
-    for (int i = 0; i < 8; i++) {
-      ret <<= 8;
-      ret ^= (long) in[i] & 0xFF;
-    }
-    return ret;
-  }
-
-  private Long hash(String key) {
-    byte[] ret;
-    synchronized (md5) {
-      md5.reset();
-      md5.update(key.getBytes());
-      ret = md5.digest();
-    }
-    return bytesToLong(ret);
-  }
-
   private long getHash(String key) {
-    long hash = hash(key);
+    long hash = this.hashProvider.hash(key);
     if (!circle.containsKey(hash)) {
       SortedMap<Long, T> tailMap = circle.tailMap(hash);
       hash = tailMap.isEmpty() ? circle.firstKey() : tailMap.firstKey();
@@ -52,7 +32,7 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
   }
 
   private long hashForNode(T node, int i) {
-    return hash(i + node.toString());
+    return this.hashProvider.hash(i + node.toString());
   }
 
   /*
@@ -103,16 +83,16 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
   public List<T> getPreviousNodes(String key, int count) {
     List<T> result = new ArrayList<T>();
     long startingPoint = getHash(key);
-    SortedMap<Long, T> headMap = circle.headMap(startingPoint);
-    long currHash = headMap.isEmpty() ? circle.lastKey() : headMap.lastKey();
+    SortedMap<Long, T> tailMap = circle.tailMap(startingPoint + 1);
+    long currHash = tailMap.isEmpty() ? circle.firstKey() : tailMap.firstKey();
     T startingNode = get(key);
     while (result.size() < count && currHash != startingPoint) {
       T curNode = circle.get(currHash);
       if (!curNode.equals(startingNode) && !result.contains(curNode)) {  // count small so ok.
         result.add(circle.get(currHash));
       }
-      headMap = circle.headMap(currHash);
-      currHash = headMap.isEmpty() ? circle.lastKey() : headMap.lastKey();
+      tailMap = circle.tailMap(currHash + 1);
+      currHash = tailMap.isEmpty() ? circle.firstKey() : tailMap.firstKey();
     }
     return result;
   }
