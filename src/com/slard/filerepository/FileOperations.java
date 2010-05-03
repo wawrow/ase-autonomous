@@ -3,7 +3,7 @@ package com.slard.filerepository;
 import java.util.Vector;
 
 // Provides methods to call to other nodes in the system
-public interface SystemComs {
+public interface FileOperations {
 
   //Stores a file in nodes data storage
   Boolean store(DataObject dataObject);
@@ -19,5 +19,7 @@ public interface SystemComs {
   Long getCRC(String fileName);
   
   boolean replace(DataObject dataObject);
-  
+
+  boolean delete(String name);
+
 }
