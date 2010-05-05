@@ -46,6 +46,17 @@ public class UserCommsClientImpl implements UserOperations {
   }
 
   @Override
+  public Boolean isServer() {
+    MethodCall storeCall = new MethodCall("isServer", null, new Class[] {});
+    Boolean ret = false;
+    try {
+      ret = (Boolean) this.callWithMethod(storeCall);
+    } catch (Exception ex) {
+    }
+    return ret;
+  }
+
+  @Override
   public Boolean store(DataObject dataObject) {
     MethodCall storeCall = new MethodCall("store", null, new Class[] { DataObject.class });
     storeCall.setArgs(new DataObject[] { dataObject });

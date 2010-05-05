@@ -2,12 +2,57 @@ package com.slard.filerepository;
 
 import java.io.Console;
 import java.io.File;
+import java.io.PrintStream;
+import java.util.ArrayList;
+
+import org.jgroups.Address;
 
 public enum FileRepositoryClientCommand {
   QUIT(new Action() { 
     @Override 
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) {  
       System.exit(0); 
+    } 
+  }), 
+
+  CLUSTER(new Action() { 
+    @Override 
+    public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
+      ArrayList<Address> clients = new ArrayList<Address>();
+      ArrayList<Address> servers = new ArrayList<Address>();
+      fileRepositoryClient.listNodes(clients, servers);
+
+      c.printf("%d file repository client nodes%n", clients.size());
+      for (Address address: clients) {
+        c.printf("  %s%n", address.toString());
+      }
+      c.printf("%d file repository server nodes%n", servers.size());
+      for (Address address: servers) {
+        c.printf("  %s%n", address.toString());
+      }      
+    } 
+  }), 
+
+  CAT(new Action() { 
+    @Override 
+    public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
+      if (args == null || args[0] == null || args.length != 1) {
+        throw new Exception("Please specify a single file name to retrieve");
+      }
+      
+      // Ask any cluster node for the file
+      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
+      DataObject dataObject = userCommsClient.retrieve(args[0]);
+      
+      // Write the retrieved file to console
+      if (dataObject == null) {
+        c.printf("Retrieve of %s failed%n", args[0]);        
+      } else {
+        // TODO: Understand encoding issue or else ditch the cat command completely
+        //c.printf("%s%n", dataObject.getData().toString());
+        PrintStream out = new PrintStream(System.out, true, "UTF-8");
+        out.println(dataObject.getData());        
+      }
     } 
   }), 
 
