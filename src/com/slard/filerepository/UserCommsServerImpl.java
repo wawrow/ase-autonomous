@@ -31,6 +31,11 @@ public class UserCommsServerImpl implements UserOperations {
   }
 
   @Override
+  public synchronized Boolean isServer() {
+    return true;
+  }
+
+  @Override
   public synchronized Boolean store(DataObject dataObject) {
     this.logger.info("Requested to store: " + dataObject.getName());
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(dataObject.getName()));

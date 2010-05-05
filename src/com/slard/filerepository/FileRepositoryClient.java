@@ -2,6 +2,7 @@ package com.slard.filerepository;
 
 import java.io.*;
 import java.util.Scanner;
+import java.util.ArrayList;
 
 import org.jgroups.Address;
 import org.jgroups.JChannel;
@@ -15,6 +16,7 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
   private JChannel userChannel;
   private static final String USER_CHANNEL_NAME = "FileRepositoryClusterClient";
   private static final String PROMPT = "> ";
+  UserCommsDummyServerImpl userCommsServer = null;
   
   public static void main(String[] args) {
     new FileRepositoryClient().start();
@@ -30,10 +32,11 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
       // If we're the first then no good - no cluster
       View initialView = userChannel.getView();
       if (initialView.size() == 1) {
-        System.out.println("Failed to connect to file repository, no nodes are alive");
-        userChannel.close();
-        return;
+        System.out.println("Warning, no file repository nodes detected");
       }
+      
+      // Create a dummy user communications server so we can identify ourselves as a client only
+      userCommsServer = new UserCommsDummyServerImpl(userChannel, null, null);
       
       // Start the console interaction
       Console console = System.console(); 
@@ -70,17 +73,36 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
     }
   }
 
-  public UserCommsClientImpl createUserCommsClient() {
-    // Look for the first member that isn't us
+  public void listNodes(ArrayList<Address> clients, ArrayList<Address> servers) throws Exception {
+    View view = userChannel.getView();
+    for(Address address: view.getMembers()){
+      if(address.equals(userChannel.getAddress())) {
+        clients.add(address);           
+      } else {
+        UserCommsClientImpl userCommsClient = UserCommsClientImpl.getUserCommsClient(
+            new RpcDispatcher(userChannel, this, this, this), address);
+        if (userCommsClient.isServer()) {
+          servers.add(address);        
+        } else {
+          clients.add(address);
+        }
+      }
+    }
+  }
+
+  public UserCommsClientImpl createUserCommsClient() throws Exception {
+    // Look for the first member that isn't us and isn't another client
     View view = userChannel.getView();
     for(Address address: view.getMembers()){
       if(!address.equals(userChannel.getAddress())) {
         UserCommsClientImpl userCommsClient = UserCommsClientImpl.getUserCommsClient(
-            new RpcDispatcher(userChannel, this, this, this), address);    
-        return userCommsClient;        
+            new RpcDispatcher(userChannel, this, this, this), address);
+        if (userCommsClient.isServer()) {
+          return userCommsClient;        
+        }
       }
     }
-    return null;
+    throw new Exception("No repository nodes were found to fulfill request");
   }
 
   @Override
