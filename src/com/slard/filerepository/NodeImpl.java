@@ -1,7 +1,6 @@
 package com.slard.filerepository;
 
 import org.jgroups.*;
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,7 +11,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String SYSTEM_CHANNEL_NAME = "FileRepositoryCluster";
-  private static final String USER_CHANNEL_NAME = "FileRepositoryClusterClient";
+  public static final String USER_CHANNEL_NAME = "FileRepositoryClusterClient";
 
   SystemCommsServerImpl systemComms = null;
   UserCommsServerImpl userComms = null;
@@ -118,7 +117,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener, Syst
       }
     }
 
-    // If i'm not the first in cluster - sent the message that I'm ready to go
+    // If I'm not the first in cluster - sent the message that I'm ready to go
     if (this.systemChannel.getView().size() > 1) {
       try {
         this.systemChannel.send(new Message(null, null, JOINED_AND_INITIALIZED));

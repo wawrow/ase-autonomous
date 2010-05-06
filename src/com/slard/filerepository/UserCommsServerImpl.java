@@ -12,22 +12,24 @@ public class UserCommsServerImpl implements UserOperations {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private DataStore store = null;
-  private RpcDispatcher dispatcher = null;
+  private RpcDispatcher rpcDispatcher = null;
   private NodeImpl node = null;
+  private Channel channel = null;
 
   public UserCommsServerImpl(Channel channel, DataStore store, MessageListener messages, MembershipListener members, NodeImpl node) {
 
+    this.channel = channel;
     this.store = store;
-    this.dispatcher = new RpcDispatcher(channel, messages, members, this);
+    this.rpcDispatcher = new RpcDispatcher(channel, messages, members, this);
     this.node = node;
   }
 
   public RpcDispatcher GetDispatcher() {
-    return this.dispatcher;
+    return this.rpcDispatcher;
   }
 
   public void stop() {
-    dispatcher.stop();
+    rpcDispatcher.stop();
   }
 
   @Override
@@ -35,6 +37,14 @@ public class UserCommsServerImpl implements UserOperations {
     return true;
   }
 
+  public synchronized Address hasFile(String name) {
+    this.logger.info("Requested has file: " + name);
+    if (store.hasFile(name)) {
+      return channel.getAddress();
+    }
+    return null;
+  }
+  
   @Override
   public synchronized Boolean store(DataObject dataObject) {
     this.logger.info("Requested to store: " + dataObject.getName());

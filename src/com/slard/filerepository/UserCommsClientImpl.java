@@ -1,6 +1,8 @@
 package com.slard.filerepository;
 
 import org.jgroups.Address;
+import org.jgroups.blocks.RspFilter;
+import org.jgroups.util.RspList;
 import org.jgroups.blocks.MethodCall;
 import org.jgroups.blocks.Request;
 import org.jgroups.blocks.RequestOptions;
@@ -16,6 +18,20 @@ public class UserCommsClientImpl implements UserOperations {
   private Address target;
   private RpcDispatcher dispatcher = null;
 
+  static public class FileResponseFilter implements RspFilter {
+    @Override
+    public boolean isAcceptable(Object response, Address source) {
+      if (response != null) {
+        return true;
+      }
+      return false;
+    }
+    @Override
+    public boolean needMoreResponses() {
+      return true;
+    }
+  }
+  
   private UserCommsClientImpl(RpcDispatcher dispatcher, Address target) {
     this.dispatcher = dispatcher;
     this.target = target;
@@ -24,6 +40,19 @@ public class UserCommsClientImpl implements UserOperations {
   // Factory Method
   public static UserCommsClientImpl getUserCommsClient(RpcDispatcher dispatcher, Address target) {
     return new UserCommsClientImpl(dispatcher, target);
+  }
+
+  public static Object getQuickestFileLocation(RpcDispatcher dispatcher, String name) {
+    MethodCall methodCall = new MethodCall("hasFile", null, new Class[] { String.class });
+    methodCall.setArgs(new String[] { name });
+    try {
+      // Broadcast file name to all members and take the first non-null response
+      RspList responseList = dispatcher.callRemoteMethods(null, methodCall,  
+          new RequestOptions(Request.GET_FIRST, RPC_TIMEOUT, false, new UserCommsClientImpl.FileResponseFilter()));
+      return responseList.getFirst();
+    } catch (Throwable throwable) {
+      return null;
+    }
   }
 
   private synchronized Object callWithMethod(MethodCall method) {
@@ -55,7 +84,7 @@ public class UserCommsClientImpl implements UserOperations {
     }
     return ret;
   }
-
+  
   @Override
   public Boolean store(DataObject dataObject) {
     MethodCall storeCall = new MethodCall("store", null, new Class[] { DataObject.class });

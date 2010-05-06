@@ -163,7 +163,6 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
       logger.log(Level.WARNING, "rpc failed", throwable);
     }
     return ret;
-
   }
 
   @SuppressWarnings("unchecked")
@@ -177,7 +176,6 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
       logger.log(Level.WARNING, "rpc failed", throwable);
     }
     return ret;
-
   }
 
   @Override

@@ -11,10 +11,10 @@ import org.jgroups.MessageListener;
 import org.jgroups.View;
 import org.jgroups.Message;
 import org.jgroups.blocks.RpcDispatcher;
+import org.jgroups.blocks.RequestHandler;
 
-public class FileRepositoryClient implements MessageListener, MembershipListener {
+public class FileRepositoryClient implements MessageListener, MembershipListener, RequestHandler {
   private JChannel userChannel;
-  private static final String USER_CHANNEL_NAME = "FileRepositoryClusterClient";
   private static final String PROMPT = "> ";
   UserCommsDummyServerImpl userCommsServer = null;
   
@@ -27,7 +27,7 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
       System.out.println("File Repository Client Starting");
       System.setProperty("jgroups.udp.mcast_port", "45589");
       userChannel = new JChannel();
-      userChannel.connect(USER_CHANNEL_NAME);
+      userChannel.connect(NodeImpl.USER_CHANNEL_NAME);
       
       // If we're the first then no good - no cluster
       View initialView = userChannel.getView();
@@ -90,8 +90,18 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
     }
   }
 
+  // Ask everyone about a file and return the address of the first to respond
+  public Address getQuickestFileLocation(String fileName) {
+    return (Address)UserCommsClientImpl.getQuickestFileLocation(new RpcDispatcher(userChannel, null, null, userCommsServer), fileName);
+  }
+  
+  // Create a user communications client to the specified address
+  public UserCommsClientImpl createUserCommsClient(Address address) throws Exception {
+    return UserCommsClientImpl.getUserCommsClient(new RpcDispatcher(userChannel, this, this, this), address);        
+  }
+
+  // Create a user communications client to the first server we encounter
   public UserCommsClientImpl createUserCommsClient() throws Exception {
-    // Look for the first member that isn't us and isn't another client
     View view = userChannel.getView();
     for(Address address: view.getMembers()){
       if(!address.equals(userChannel.getAddress())) {
@@ -128,5 +138,10 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
   
   @Override
   public void block() {
+  }
+
+  @Override
+  public Object handle(Message message) {
+    return null;
   }
 }

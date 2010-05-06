@@ -38,6 +38,9 @@
 		<copy file="${dist}/lib/FileRepository.jar" todir="${dist}/lib/test1"/>
 		<copy file="${dist}/lib/FileRepository.jar" todir="${dist}/lib/test2"/>
 		<copy file="${dist}/lib/FileRepository.jar" todir="${dist}/lib/test3"/>
+    <copy file="${dist}/lib/FileRepository.jar" todir="${dist}/lib/test4"/>
+    <copy file="${dist}/lib/FileRepository.jar" todir="${dist}/lib/test5"/>
+    <copy file="${dist}/lib/FileRepository.jar" todir="${dist}/lib/test6"/>
 	</target>
 
 	<target name="clean" description="clean up">
