@@ -24,16 +24,9 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     this.target = target;
   }
 
-  @Override
-  public Boolean store(DataObject dataObject) {
-    MethodCall storeCall = new MethodCall("store", null, new Class[] { DataObject.class });
-    storeCall.setArgs(new DataObject[] { dataObject });
-    Boolean ret = false;
-    try {
-      ret = (Boolean) this.callWithMethod(storeCall);
-    } catch (Exception ex) {
-    }
-    return ret;
+  // Factory Method
+  public static SystemCommsClientImpl getSystemComsClient(RpcDispatcher dispatcher, Address target) {
+    return new SystemCommsClientImpl(dispatcher, target);
   }
 
   private synchronized Object callWithMethod(MethodCall method) {
@@ -56,6 +49,19 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
   }
 
   @Override
+  public Boolean store(DataObject dataObject) {
+    MethodCall storeCall = new MethodCall("store", null, new Class[] { DataObject.class });
+    storeCall.setArgs(new DataObject[] { dataObject });
+    Boolean ret = false;
+    try {
+      ret = (Boolean) this.callWithMethod(storeCall);
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "store rpc failed", throwable);
+    }
+    return ret;
+  }
+
+  @Override
   public DataObject retrieve(String name) {
     MethodCall retrieveCall = new MethodCall("retrieve", null, new Class[] { String.class });
     retrieveCall.setArgs(new String[] { name });
@@ -63,14 +69,9 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
       ret = (DataObject) this.callWithMethod(retrieveCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "retrieve rpc failed", throwable);
     }
     return ret;
-  }
-
-  // Factory Method
-  public static SystemCommsClientImpl getSystemComsClient(RpcDispatcher dispatcher, Address target) {
-    return new SystemCommsClientImpl(dispatcher, target);
   }
 
   @Override
@@ -81,7 +82,7 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
       ret = (Long) this.callWithMethod(getCRCCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "getCRC rpc failed", throwable);
     }
     return ret;
   }
@@ -94,7 +95,7 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
       ret = (Boolean) this.callWithMethod(hasFileCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "hasFile rpc failed", throwable);
     }
     return ret;
   }
@@ -107,7 +108,7 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
         ret = (ArrayList<String>) this.callWithMethod(listCall);      
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "list rpc failed", throwable);
     }
     return ret;
   }
@@ -119,7 +120,8 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     Boolean ret = false;
     try {
       ret = (Boolean) this.callWithMethod(replaceDataObjectCall);
-    } catch (Exception ex) {
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "replace rpc failed", throwable);
     }
     return ret;
   }
@@ -132,12 +134,12 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
       ret = (Boolean) this.callWithMethod(deleteCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "delete rpc failed", throwable);
     }
     return ret;
   }
 
-  //SystemFileList
+  // SystemFileList
   
   @Override
   public boolean addFileName(String fileName) {
@@ -147,7 +149,7 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
       ret = (Boolean) this.callWithMethod(addFileNameCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "addFileName rpc failed", throwable);
     }
     return ret;
   }
@@ -160,7 +162,7 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
       ret = (Boolean) this.callWithMethod(containsCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "contains rpc failed", throwable);
     }
     return ret;
   }
@@ -173,7 +175,7 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
       ret = (List<String>) this.callWithMethod(getFileNamesCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "getFileNames rpc failed", throwable);
     }
     return ret;
   }
@@ -186,9 +188,8 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
       ret = (Boolean) this.callWithMethod(removeFileNameCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "removeFileName rpc failed", throwable);
     }
     return ret;
-
   }
 }
