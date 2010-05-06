@@ -63,8 +63,9 @@ public enum FileRepositoryClientCommand {
         throw new Exception("Please specify a single file name to retrieve");
       }
       
-      // Ask any cluster node for the file
-      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
+      // Broadcast request for anyone with the file, then ask the first to respond for the file
+      Address address = fileRepositoryClient.getQuickestFileLocation(args[0]);
+      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient(address);
       DataObject dataObject = userCommsClient.retrieve(args[0]);
       
       // Write the retrieved file to the local file system

@@ -35,11 +35,6 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
     return this.hashProvider.hash(i + node.toString());
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.slard.filerepository.NewBetterCHT#add(T)
-   */
   @Override
   public void add(T node) {
     for (int i = 0; i < numberOfReplicas; i++) {
@@ -47,11 +42,6 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.slard.filerepository.NewBetterCHT#remove(T)
-   */
   @Override
   public void remove(T node) {
     for (int i = 0; i < numberOfReplicas; i++) {
@@ -59,11 +49,6 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see com.slard.filerepository.NewBetterCHT#get(java.lang.String)
-   */
   @Override
   public T get(String key) {
     if (circle.isEmpty()) {
@@ -72,13 +57,6 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
     return circle.get(getHash(key));
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * com.slard.filerepository.NewBetterCHT#getPreviousNodes(java.lang.String,
-   * int)
-   */
   @Override
   public List<T> getPreviousNodes(String key, int count) {
     List<T> result = new ArrayList<T>();
