@@ -90,6 +90,11 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
     }
   }
 
+  // Ask everyone are they the master for the named file
+  public Address getMaster(String fileName) {
+    return (Address)UserCommsClientImpl.getMaster(new RpcDispatcher(userChannel, null, null, userCommsServer), fileName);
+  }
+
   // Ask everyone about a file and return the address of the first to respond
   public Address getQuickestFileLocation(String fileName) {
     return (Address)UserCommsClientImpl.getQuickestFileLocation(new RpcDispatcher(userChannel, null, null, userCommsServer), fileName);

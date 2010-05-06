@@ -121,23 +121,23 @@ public enum FileRepositoryClientCommand {
         throw new Exception("Please specify a single file name to delete");
       }
 
-      // Ask any node who the master for this file is
-      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
-      Address address = userCommsClient.whoIsMaster(args[0]);      
+      // Ask all nodes who the master for this file is
+      Address address = fileRepositoryClient.getMaster(args[0]);
       if (address == null)
         throw new Exception("No repository node could be found to service request");
       c.printf("Directing request to node %s%n", address.toString());
       
       // Send the delete command to the returned master address
-      userCommsClient = fileRepositoryClient.createUserCommsClient(address);
-      if (userCommsClient.delete(args[0]) == false) {
+      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient(address);
+      if (userCommsClient == null) 
+        throw new Exception("No repository node could be found to service request");
+      if (userCommsClient.delete(args[0]) == false)
         throw new Exception("Delete of " + args[0] + " failed");
-      }
     } 
   }), 
 
   REPLACE(new Action() { 
-    @Override 
+    @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
       if (args == null || args[0] == null || args.length != 1) {
         throw new Exception("Please specify a single file name to replace");
@@ -148,14 +148,13 @@ public enum FileRepositoryClientCommand {
       DataObjectImpl dataObject = new DataObjectImpl(args[0], fileSystemHelper.readFile(file));
       
       // Ask any node who the master for this file is
-      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
-      Address address = userCommsClient.whoIsMaster(args[0]);
+      Address address = fileRepositoryClient.getMaster(args[0]);
       if (address == null)
         throw new Exception("No repository node could be found to service request");
       c.printf("Directing request to node %s%n", address.toString());
       
       // Send the replace command to the returned master address
-      userCommsClient = fileRepositoryClient.createUserCommsClient(address);
+      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient(address);
       if (userCommsClient == null) 
         throw new Exception("No repository node could be found to service request");
       if (userCommsClient.replace(dataObject) == false)
@@ -175,14 +174,13 @@ public enum FileRepositoryClientCommand {
       DataObjectImpl dataObject = new DataObjectImpl(args[0], fileSystemHelper.readFile(file));
 
       // Ask any node who the master for this file is
-      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
-      Address address = userCommsClient.whoIsMaster(args[0]);
+      Address address = fileRepositoryClient.getMaster(args[0]);
       if (address == null)
         throw new Exception("No repository node could be found to service request");
       c.printf("Directing request to node %s%n", address.toString());
       
       // Send the file to the returned master address
-      userCommsClient = fileRepositoryClient.createUserCommsClient(address);
+      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient(address);
       if (userCommsClient == null) 
         throw new Exception("No repository node could be found to service request");      
       if (userCommsClient.store(dataObject) == false) {

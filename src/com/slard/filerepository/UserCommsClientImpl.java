@@ -21,8 +21,8 @@ public class UserCommsClientImpl implements UserOperations {
   private Address target;
   private RpcDispatcher dispatcher = null;
 
-  // Used when broadcasting for who has a given file name
-  static public class FileResponseFilter implements RspFilter {
+  // Used when broadcasting for who has a given file name or if a node is a master
+  static public class NullResponseFilter implements RspFilter {
     @Override
     public boolean isAcceptable(Object response, Address source) {
       if (response != null) {
@@ -46,13 +46,26 @@ public class UserCommsClientImpl implements UserOperations {
     return new UserCommsClientImpl(dispatcher, target);
   }
 
-  // Broadcast file name to all members and take the first non-null response
+  // Broadcast isMaster(fileName) to all members and take the first non-null response
+  public static Object getMaster(RpcDispatcher dispatcher, String name) {
+    MethodCall methodCall = new MethodCall("isMaster", null, new Class[] { String.class });
+    methodCall.setArgs(new String[] { name });
+    try {
+      RspList responseList = dispatcher.callRemoteMethods(null, methodCall,  
+          new RequestOptions(Request.GET_FIRST, RPC_TIMEOUT, false, new UserCommsClientImpl.NullResponseFilter()));
+      return responseList.getFirst();
+    } catch (Throwable throwable) {
+      return null;
+    }
+  }
+
+  // Broadcast hasFile(fileName) to all members and take the first non-null response
   public static Object getQuickestFileLocation(RpcDispatcher dispatcher, String name) {
     MethodCall methodCall = new MethodCall("hasFile", null, new Class[] { String.class });
     methodCall.setArgs(new String[] { name });
     try {
       RspList responseList = dispatcher.callRemoteMethods(null, methodCall,  
-          new RequestOptions(Request.GET_FIRST, RPC_TIMEOUT, false, new UserCommsClientImpl.FileResponseFilter()));
+          new RequestOptions(Request.GET_FIRST, RPC_TIMEOUT, false, new UserCommsClientImpl.NullResponseFilter()));
       return responseList.getFirst();
     } catch (Throwable throwable) {
       return null;
@@ -76,19 +89,6 @@ public class UserCommsClientImpl implements UserOperations {
       }
     }
     return result;
-  }
-
-  @Override
-  public Address whoIsMaster(String name) {
-    MethodCall whoIsMasterCall = new MethodCall("whoIsMaster", null, new Class[] { String.class });
-    whoIsMasterCall.setArgs(new String[] { name });
-    Address ret = null;
-    try {
-      ret = (Address) this.callWithMethod(whoIsMasterCall);
-    } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "whoIsMasterCall rpc failed", throwable);
-    }
-    return ret;
   }
 
   @Override
