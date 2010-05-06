@@ -94,7 +94,6 @@ public class UserCommsServerImpl implements UserOperations {
 
   @Override
   public synchronized boolean delete(String name) {
-    // The client should have directed this at the master, but we double check
     this.logger.info("A client has requested to delete: " + name);
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(name));
     nodeDescriptor.delete(name);
