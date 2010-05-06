@@ -120,15 +120,9 @@ public enum FileRepositoryClientCommand {
       if (args == null || args[0] == null || args.length != 1) {
         throw new Exception("Please specify a single file name to delete");
       }
-
-      // Ask all nodes who the master for this file is
-      Address address = fileRepositoryClient.getMaster(args[0]);
-      if (address == null)
-        throw new Exception("No repository node could be found to service request");
-      c.printf("Directing request to node %s%n", address.toString());
       
-      // Send the delete command to the returned master address
-      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient(address);
+      // Send the delete command to any node - if we miss the master, no big deal, just one more hop
+      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
       if (userCommsClient == null) 
         throw new Exception("No repository node could be found to service request");
       if (userCommsClient.delete(args[0]) == false)
