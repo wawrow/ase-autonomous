@@ -2,6 +2,7 @@ package com.slard.filerepository;
 
 import org.jgroups.ChannelException;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.logging.*;
 
@@ -20,7 +21,7 @@ public class FileRepository {
 
     String curDir = System.getProperty("user.dir");
     Properties options = new Properties();
-    options.put("datastore.dir", curDir + "\\store");
+    options.put("datastore.dir", curDir + File.pathSeparator + "store");
     DataStore store = new DataStoreImpl(options);
 
     Node node = new NodeImpl(store, options);
