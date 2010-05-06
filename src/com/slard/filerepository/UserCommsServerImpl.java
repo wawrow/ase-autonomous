@@ -37,8 +37,13 @@ public class UserCommsServerImpl implements UserOperations {
     return true;
   }
 
+  public synchronized Address whoIsMaster(String name) {
+    this.logger.info("A client has asked for master of: " + name);
+    return node.ch.get(name);
+  }
+
   public synchronized Address hasFile(String name) {
-    this.logger.info("Requested has file: " + name);
+    this.logger.info("A client has enquired about: " + name);
     if (store.hasFile(name)) {
       return channel.getAddress();
     }
@@ -47,14 +52,14 @@ public class UserCommsServerImpl implements UserOperations {
   
   @Override
   public synchronized Boolean store(DataObject dataObject) {
-    this.logger.info("Requested to store: " + dataObject.getName());
+    this.logger.info("A client has requested to store: " + dataObject.getName());
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(dataObject.getName()));
     return nodeDescriptor.store(dataObject);
   }
 
   @Override
   public synchronized DataObject retrieve(String name) {
-    this.logger.info("Requested to retrieve: " + name);
+    this.logger.info("A client has requested to retrieve: " + name);
     
     // Try to get it from our own store first
     DataObject dataObject = store.retrieve(name);
@@ -68,14 +73,14 @@ public class UserCommsServerImpl implements UserOperations {
 
   @Override
   public synchronized boolean replace(DataObject dataObject) {
-    this.logger.info("Requested to replaceDataObject: " + dataObject.getName());
+    this.logger.info("A client has requested to replace: " + dataObject.getName());
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(dataObject.getName()));
     return nodeDescriptor.replace(dataObject);
   }
 
   @Override
   public synchronized boolean delete(String name) {
-    this.logger.info("Requested delete: " + name);
+    this.logger.info("A client has requested to delete: " + name);
     
     // Send a delete to the master first
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(name));

@@ -29,6 +29,11 @@ public class UserCommsDummyServerImpl implements UserOperations {
     dispatcher.stop();
   }
 
+  @Override
+  public synchronized Address whoIsMaster(String name) {
+    return null;
+  }
+
   public synchronized Address hasFile(String name) {
     return null;
   }

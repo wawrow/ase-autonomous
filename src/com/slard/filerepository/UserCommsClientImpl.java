@@ -42,11 +42,11 @@ public class UserCommsClientImpl implements UserOperations {
     return new UserCommsClientImpl(dispatcher, target);
   }
 
+  // Broadcast file name to all members and take the first non-null response
   public static Object getQuickestFileLocation(RpcDispatcher dispatcher, String name) {
     MethodCall methodCall = new MethodCall("hasFile", null, new Class[] { String.class });
     methodCall.setArgs(new String[] { name });
     try {
-      // Broadcast file name to all members and take the first non-null response
       RspList responseList = dispatcher.callRemoteMethods(null, methodCall,  
           new RequestOptions(Request.GET_FIRST, RPC_TIMEOUT, false, new UserCommsClientImpl.FileResponseFilter()));
       return responseList.getFirst();
@@ -75,12 +75,26 @@ public class UserCommsClientImpl implements UserOperations {
   }
 
   @Override
+  public Address whoIsMaster(String name) {
+    MethodCall whoIsMasterCall = new MethodCall("hasFile", null, new Class[] { String.class });
+    whoIsMasterCall.setArgs(new String[] { name });
+    Address ret = null;
+    try {
+      ret = (Address) this.callWithMethod(whoIsMasterCall);
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "whoIsMasterCall rpc failed", throwable);
+    }
+    return ret;
+  }
+
+  @Override
   public Boolean isServer() {
     MethodCall storeCall = new MethodCall("isServer", null, new Class[] {});
     Boolean ret = false;
     try {
       ret = (Boolean) this.callWithMethod(storeCall);
-    } catch (Exception ex) {
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "isServer rpc failed", throwable);
     }
     return ret;
   }
@@ -92,7 +106,8 @@ public class UserCommsClientImpl implements UserOperations {
     Boolean ret = false;
     try {
       ret = (Boolean) this.callWithMethod(storeCall);
-    } catch (Exception ex) {
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "store rpc failed", throwable);
     }
     return ret;
   }
@@ -105,7 +120,7 @@ public class UserCommsClientImpl implements UserOperations {
     try {
       ret = (DataObject) this.callWithMethod(retrieveCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "retrieve rpc failed", throwable);
     }
     return ret;
   }
@@ -117,7 +132,8 @@ public class UserCommsClientImpl implements UserOperations {
     Boolean ret = false;
     try {
       ret = (Boolean) this.callWithMethod(replaceDataObjectCall);
-    } catch (Exception ex) {
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "replace rpc failed", throwable);
     }
     return ret;
   }
@@ -130,7 +146,7 @@ public class UserCommsClientImpl implements UserOperations {
     try {
       ret = (Boolean) this.callWithMethod(deleteCall);
     } catch (Throwable throwable) {
-      logger.log(Level.WARNING, "rpc failed", throwable);
+      logger.log(Level.WARNING, "delete rpc failed", throwable);
     }
     return ret;
   }
