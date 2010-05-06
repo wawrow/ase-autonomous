@@ -20,4 +20,6 @@ public interface Node {
   void replicateDataObject(DataObject obj);
 
   boolean amIMaster(String fileName);
+  
+  NodeDescriptor createNodeDescriptor(String fileName);
 }

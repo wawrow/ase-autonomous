@@ -16,7 +16,6 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
   private static final int RPC_TIMEOUT = 3000;
 
   private Address target;
-
   private RpcDispatcher dispatcher = null;
 
   private SystemCommsClientImpl(RpcDispatcher dispatcher, Address target) {
@@ -38,9 +37,9 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     try {
       result = dispatcher.callRemoteMethod(this.target, method, new RequestOptions(Request.GET_FIRST, RPC_TIMEOUT));
     } catch (Throwable throwable) {
-      if (attempt > 3)
-        logger.log(Level.WARNING, "rpc failed", throwable);
-      else {  
+      if (attempt > 3) {
+        logger.log(Level.WARNING, "rpc failed for method " + method.getName() + " to address " + target.toString(), throwable);
+      } else {  
         // retry
         return this.callWithMethod(method, attempt + 1);
       }
@@ -170,7 +169,7 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
   @SuppressWarnings("unchecked")
   @Override
   public List<String> getFileNames() {
-    MethodCall getFileNamesCall = new MethodCall("getFileNames", null, new Class[] { String.class });
+    MethodCall getFileNamesCall = new MethodCall("getFileNames", null, new Class[] {});
     List<String> ret = null;
     try {
       ret = (List<String>) this.callWithMethod(getFileNamesCall);

@@ -6,6 +6,7 @@ import org.jgroups.MembershipListener;
 import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 /*
@@ -41,6 +42,11 @@ public class UserCommsDummyServerImpl implements UserOperations {
   @Override
   public synchronized Boolean isServer() {    
     return false;
+  }
+
+  @Override
+  public List<String> getFileNames() {
+    return null;
   }
 
   @Override
