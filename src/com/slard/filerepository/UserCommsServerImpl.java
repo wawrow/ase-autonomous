@@ -37,16 +37,20 @@ public class UserCommsServerImpl implements UserOperations {
     return true;
   }
 
-  // Clients may as who the master is before directing their requests
-  public synchronized Address whoIsMaster(String name) {
-    this.logger.info("A client has asked for master of: " + name);
-    return node.ch.get(name);
+  // Clients may ask about whether this node is the master of a file
+  public synchronized Address isMaster(String name) {
+    this.logger.info("A client has enquired if we are the master of: " + name);
+    if (node.amIMaster(name))
+      return channel.getAddress();
+    return null;
   }
 
   // Clients may ask about file ownership before directing their requests
   public synchronized Address hasFile(String name) {
-    this.logger.info("A client has enquired about: " + name);
+    this.logger.info("A client has enquired if we have file: " + name);
     if (store.hasFile(name)) {
+      Address address = channel.getAddress();
+      System.out.println("Returning " + address.toString() + " type=" + ((Object)address).getClass().getName().toString());      
       return channel.getAddress();
     }
     return null;

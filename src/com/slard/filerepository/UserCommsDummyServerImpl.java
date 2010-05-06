@@ -30,8 +30,7 @@ public class UserCommsDummyServerImpl implements UserOperations {
     dispatcher.stop();
   }
 
-  @Override
-  public synchronized Address whoIsMaster(String name) {
+  public synchronized Address isMaster(String name) {
     return null;
   }
 
