@@ -6,6 +6,7 @@ import org.jgroups.MembershipListener;
 import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 public class UserCommsServerImpl implements UserOperations {
@@ -17,7 +18,6 @@ public class UserCommsServerImpl implements UserOperations {
   private Channel channel = null;
 
   public UserCommsServerImpl(Channel channel, DataStore store, MessageListener messages, MembershipListener members, NodeImpl node) {
-
     this.channel = channel;
     this.store = store;
     this.rpcDispatcher = new RpcDispatcher(channel, messages, members, this);
@@ -37,11 +37,13 @@ public class UserCommsServerImpl implements UserOperations {
     return true;
   }
 
+  // Clients may as who the master is before directing their requests
   public synchronized Address whoIsMaster(String name) {
     this.logger.info("A client has asked for master of: " + name);
     return node.ch.get(name);
   }
 
+  // Clients may ask about file ownership before directing their requests
   public synchronized Address hasFile(String name) {
     this.logger.info("A client has enquired about: " + name);
     if (store.hasFile(name)) {
@@ -49,9 +51,17 @@ public class UserCommsServerImpl implements UserOperations {
     }
     return null;
   }
-  
+
+  @Override
+  public List<String> getFileNames() {
+    this.logger.info("A client has requested the list of files");
+    NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(store.getFileListName()));
+    return nodeDescriptor.getFileNames();
+  }
+
   @Override
   public synchronized Boolean store(DataObject dataObject) {
+    // The client should have directed this at the master, but we double check    
     this.logger.info("A client has requested to store: " + dataObject.getName());
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(dataObject.getName()));
     return nodeDescriptor.store(dataObject);
@@ -59,20 +69,20 @@ public class UserCommsServerImpl implements UserOperations {
 
   @Override
   public synchronized DataObject retrieve(String name) {
+    // Try from our own store first - should work because clients target the master 
     this.logger.info("A client has requested to retrieve: " + name);
-    
-    // Try to get it from our own store first
     DataObject dataObject = store.retrieve(name);
     if (dataObject != null)
       return dataObject;
     
-    // Ask the master otherwise
+    // Otherwise we can ask the current master
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(name));
     return nodeDescriptor.retrieve(name);
   }
 
   @Override
   public synchronized boolean replace(DataObject dataObject) {
+    // The client should have directed this at the master, but we double check    
     this.logger.info("A client has requested to replace: " + dataObject.getName());
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(dataObject.getName()));
     return nodeDescriptor.replace(dataObject);
@@ -80,13 +90,12 @@ public class UserCommsServerImpl implements UserOperations {
 
   @Override
   public synchronized boolean delete(String name) {
+    // The client should have directed this at the master, but we double check
     this.logger.info("A client has requested to delete: " + name);
-    
-    // Send a delete to the master first
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(name));
     nodeDescriptor.delete(name);
     
-    // Now delete from all the replicas
+    // Now delete from all the replicas also
     for (Address nodeAddress : node.ch.getPreviousNodes(name, NodeImpl.REPLICA_COUNT)) {
       nodeDescriptor = node.createNodeDescriptor(nodeAddress);
       nodeDescriptor.delete(name);

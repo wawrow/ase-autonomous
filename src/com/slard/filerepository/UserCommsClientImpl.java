@@ -1,5 +1,6 @@
 package com.slard.filerepository;
 
+
 import org.jgroups.Address;
 import org.jgroups.blocks.RspFilter;
 import org.jgroups.util.RspList;
@@ -8,6 +9,8 @@ import org.jgroups.blocks.Request;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.RpcDispatcher;
 
+import java.util.List;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +21,7 @@ public class UserCommsClientImpl implements UserOperations {
   private Address target;
   private RpcDispatcher dispatcher = null;
 
+  // Used when broadcasting for who has a given file name
   static public class FileResponseFilter implements RspFilter {
     @Override
     public boolean isAcceptable(Object response, Address source) {
@@ -76,7 +80,7 @@ public class UserCommsClientImpl implements UserOperations {
 
   @Override
   public Address whoIsMaster(String name) {
-    MethodCall whoIsMasterCall = new MethodCall("hasFile", null, new Class[] { String.class });
+    MethodCall whoIsMasterCall = new MethodCall("whoIsMaster", null, new Class[] { String.class });
     whoIsMasterCall.setArgs(new String[] { name });
     Address ret = null;
     try {
@@ -99,6 +103,19 @@ public class UserCommsClientImpl implements UserOperations {
     return ret;
   }
   
+  @SuppressWarnings("unchecked")
+  @Override
+  public List<String> getFileNames() {
+    MethodCall storeCall = new MethodCall("getFileNames", null, new Class[] {});
+    ArrayList<String> ret = null;
+    try {
+      ret = (ArrayList<String>) this.callWithMethod(storeCall);
+    } catch (Throwable throwable) {
+      logger.log(Level.WARNING, "getFileNames rpc failed", throwable);
+    }
+    return ret;
+  }
+
   @Override
   public Boolean store(DataObject dataObject) {
     MethodCall storeCall = new MethodCall("store", null, new Class[] { DataObject.class });
