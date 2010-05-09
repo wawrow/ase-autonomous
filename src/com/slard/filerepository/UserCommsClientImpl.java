@@ -72,7 +72,7 @@ public class UserCommsClientImpl implements UserOperations {
     }
   }
 
-  private synchronized Object callWithMethod(MethodCall method) {
+  private Object callWithMethod(MethodCall method) {
     return this.callWithMethod(method, 0);
   }
 
