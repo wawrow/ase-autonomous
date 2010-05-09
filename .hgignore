@@ -3,4 +3,6 @@ bin/*
 dist/*
 build/*
 .idea/workspace.xml
+.idea/libraries/Guice.xml
 banana
+out/*
