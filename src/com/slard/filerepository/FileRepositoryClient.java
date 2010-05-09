@@ -1,7 +1,8 @@
 package com.slard.filerepository;
 
-import org.jgroups.*;
-import org.jgroups.blocks.RequestHandler;
+import org.jgroups.Address;
+import org.jgroups.JChannel;
+import org.jgroups.View;
 import org.jgroups.blocks.RpcDispatcher;
 
 import java.io.Console;
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.*;
 
-public class FileRepositoryClient implements MessageListener, MembershipListener, RequestHandler {
+public class FileRepositoryClient {
   private JChannel userChannel;
   private static final String PROMPT = "> ";
   UserCommsDummyServerImpl userCommsServer = null;
@@ -25,17 +26,23 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
       fileHandler.setFormatter(new Formatter() {
         public String format(LogRecord log) {
           String className = log.getSourceClassName();
-          return new StringBuilder(log.getLevel().getLocalizedName())
+          StringBuilder sbuf = new StringBuilder();
+          sbuf.append(log.getLevel().getLocalizedName())
               .append("\t[").append(log.getThreadID())
               .append("] ").append(className.substring(className.lastIndexOf('.') + 1))
               .append(".").append(log.getSourceMethodName())
-              .append("\t").append(log.getMessage())
-              .append("\n")
-              .toString();
+              .append("\t").append(log.getMessage());
+          if (log.getThrown() != null) {
+            sbuf.append(log.getThrown().toString());
+            for (StackTraceElement elem : log.getThrown().getStackTrace()) {
+              sbuf.append("\n\t ").append(elem.toString());
+            }
+          }
+          return sbuf.append("\n").toString();
         }
       });
 
-      fileHandler.setLevel(Level.INFO);
+      fileHandler.setLevel(Level.FINEST);
       logManager.getLogger("").addHandler(fileHandler);
     } catch (IOException e) {
       e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -101,7 +108,7 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
         clients.add(address);
       } else {
         UserCommsClientImpl userCommsClient = UserCommsClientImpl.getUserCommsClient(
-            new RpcDispatcher(userChannel, this, this, this), address);
+            new RpcDispatcher(userChannel, null, null, userCommsServer), address);
         if (userCommsClient.isServer()) {
           servers.add(address);
         } else {
@@ -123,7 +130,7 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
 
   // Create a user communications client to the specified address
   public UserCommsClientImpl createUserCommsClient(Address address) throws Exception {
-    return UserCommsClientImpl.getUserCommsClient(new RpcDispatcher(userChannel, this, this, this), address);
+    return UserCommsClientImpl.getUserCommsClient(new RpcDispatcher(userChannel, null, null, userCommsServer), address);
   }
 
   // Create a user communications client to the first server we encounter
@@ -132,42 +139,12 @@ public class FileRepositoryClient implements MessageListener, MembershipListener
     for (Address address : view.getMembers()) {
       if (!address.equals(userChannel.getAddress())) {
         UserCommsClientImpl userCommsClient = UserCommsClientImpl.getUserCommsClient(
-            new RpcDispatcher(userChannel, this, this, this), address);
+            new RpcDispatcher(userChannel, null, null, userCommsServer), address);
         if (userCommsClient.isServer()) {
           return userCommsClient;
         }
       }
     }
     throw new Exception("No repository nodes were found to fulfill request");
-  }
-
-  @Override
-  public void viewAccepted(View newView) {
-  }
-
-  @Override
-  public void receive(Message message) {
-  }
-
-  @Override
-  public byte[] getState() {
-    return null;
-  }
-
-  @Override
-  public void setState(byte[] bytes) {
-  }
-
-  @Override
-  public void suspect(Address address) {
-  }
-
-  @Override
-  public void block() {
-  }
-
-  @Override
-  public Object handle(Message message) {
-    return null;
   }
 }

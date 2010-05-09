@@ -8,6 +8,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public enum FileRepositoryClientCommand {
   HELP(new Action() {
@@ -17,7 +18,7 @@ public enum FileRepositoryClientCommand {
       c.printf("   help                 Output this help text%n");
       c.printf("   quit                 exit the client%n");
       c.printf("   cluster              displays the current cluster membership%n");
-      c.printf("   list                 lists all files in the repository%n");
+      c.printf("   list <regex>         lists all files in the repository, optionally matching regex%n");
       c.printf("   cat <file name>      dumps the named file's contents on the console%n");
       c.printf("   store <file name>    dumps the named file's contents on the console%n");
       c.printf("   replace <file name>  replaces the named file in the repository with the version in the local directory%n");
@@ -61,8 +62,15 @@ public enum FileRepositoryClientCommand {
       if (files == null)
         throw new Exception("No files found in repository");
       Collections.sort(files);
+      String regex = ".*";
+      if (args != null && args.length > 0 && args[0] != null) {
+        regex = args[0];
+      }
+      Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
       for (String name : files) {
-        c.printf("%s%n", name);
+        if (pattern.matcher(name).matches()) {
+          c.printf("%s%n", name);
+        }
       }
     }
   }),
