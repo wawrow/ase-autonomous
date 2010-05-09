@@ -6,6 +6,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.slard.filerepository.*;
+
 import java.util.List;
 
 public class NewCHTTests {
