@@ -2,15 +2,30 @@ package com.slard.filerepository;
 
 import java.util.ArrayList;
 
-// Provides internal node interface into Data Store operations
+/**
+ * The Interface DataStore.
+ * Provides internal node interface into Data Store operations.
+ */
 public interface DataStore extends FileOperations, SystemFileList {
 
-  // Gets the object store location
+  /**
+   * Gets the object store location
+   *
+   * @return the store location
+   */
   String getStoreLocation();
   
-  // Fetches all Objects
+  /**
+   * Fetches all Objects in this DataStore.
+   *
+   * @return the all data objects
+   */
   ArrayList<DataObject> getAllDataObjects();
 
-  // File List Name
+  /**
+   * Gets the list of file names inside the data store.
+   *
+   * @return the file list name
+   */
   String getFileListName(); 
 }
