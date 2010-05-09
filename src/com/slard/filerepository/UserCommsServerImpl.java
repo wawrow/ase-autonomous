@@ -33,12 +33,12 @@ public class UserCommsServerImpl implements UserOperations {
   }
 
   @Override
-  public synchronized Boolean isServer() {
+  public Boolean isServer() {
     return true;
   }
 
   // Clients may ask about whether this node is the master of a file
-  public synchronized Address isMaster(String name) {
+  public Address isMaster(String name) {
     this.logger.info("A client has enquired if we are the master of: " + name);
     if (node.amIMaster(name))
       return channel.getAddress();
@@ -46,7 +46,7 @@ public class UserCommsServerImpl implements UserOperations {
   }
 
   // Clients may ask about file ownership before directing their requests
-  public synchronized Address hasFile(String name) {
+  public Address hasFile(String name) {
     this.logger.info("A client has enquired if we have file: " + name);
     if (store.hasFile(name)) {
       Address address = channel.getAddress();
@@ -64,7 +64,7 @@ public class UserCommsServerImpl implements UserOperations {
   }
 
   @Override
-  public synchronized Boolean store(DataObject dataObject) {
+  public Boolean store(DataObject dataObject) {
     // The client should have directed this at the master, but we double check    
     this.logger.info("A client has requested to store: " + dataObject.getName());
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(dataObject.getName()));
@@ -72,7 +72,7 @@ public class UserCommsServerImpl implements UserOperations {
   }
 
   @Override
-  public synchronized DataObject retrieve(String name) {
+  public DataObject retrieve(String name) {
     // Try from our own store first - should work because clients target the master 
     this.logger.info("A client has requested to retrieve: " + name);
     DataObject dataObject = store.retrieve(name);
@@ -85,7 +85,7 @@ public class UserCommsServerImpl implements UserOperations {
   }
 
   @Override
-  public synchronized boolean replace(DataObject dataObject) {
+  public boolean replace(DataObject dataObject) {
     // The client should have directed this at the master, but we double check    
     this.logger.info("A client has requested to replace: " + dataObject.getName());
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(dataObject.getName()));
@@ -93,7 +93,7 @@ public class UserCommsServerImpl implements UserOperations {
   }
 
   @Override
-  public synchronized boolean delete(String name) {
+  public boolean delete(String name) {
     this.logger.info("A client has requested to delete: " + name);
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(name));
     nodeDescriptor.delete(name);

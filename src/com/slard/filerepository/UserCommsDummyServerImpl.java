@@ -30,16 +30,16 @@ public class UserCommsDummyServerImpl implements UserOperations {
     dispatcher.stop();
   }
 
-  public synchronized Address isMaster(String name) {
+  public Address isMaster(String name) {
     return null;
   }
 
-  public synchronized Address hasFile(String name) {
+  public Address hasFile(String name) {
     return null;
   }
 
   @Override
-  public synchronized Boolean isServer() {    
+  public Boolean isServer() {    
     return false;
   }
 
@@ -49,22 +49,22 @@ public class UserCommsDummyServerImpl implements UserOperations {
   }
 
   @Override
-  public synchronized Boolean store(DataObject dataObject) {
+  public Boolean store(DataObject dataObject) {
     return false;
   }
 
   @Override
-  public synchronized DataObject retrieve(String name) {
+  public DataObject retrieve(String name) {
     return null;
   }
 
   @Override
-  public synchronized boolean replace(DataObject dataObject) {
+  public boolean replace(DataObject dataObject) {
     return false;
   }
 
   @Override
-  public synchronized boolean delete(String name) {
+  public boolean delete(String name) {
     return false;
   }
 }

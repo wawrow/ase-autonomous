@@ -28,7 +28,7 @@ public class SystemCommsClientImpl implements FileOperations, SystemFileList {
     return new SystemCommsClientImpl(dispatcher, target);
   }
 
-  private synchronized Object callWithMethod(MethodCall method) {
+  private Object callWithMethod(MethodCall method) {
     return this.callWithMethod(method, 0);
   }
 
