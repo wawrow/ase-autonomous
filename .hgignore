@@ -1,0 +1,6 @@
+syntax:glob
+bin/*
+dist/*
+build/*
+.idea/workspace.xml
+banana
