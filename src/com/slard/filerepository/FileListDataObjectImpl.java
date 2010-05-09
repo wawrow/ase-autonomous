@@ -7,12 +7,28 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * The Class FileListDataObject Implementation.
+ */
 public class FileListDataObjectImpl implements SystemFileList {
+  
+  /** The file list names collection. */
   private Set<String> fileList;
+  
+  /** The file name of the file that holds a filelist. */
   private String fileName;
+  
+  /** The data object that represents the filelist file. */
   private DataObject dataObject;
+  
+  /** The data store. */
   private DataStore store;
 
+  /**
+   * Instantiates a new file list data object implementation.
+   *
+   * @param store the store
+   */
   public FileListDataObjectImpl(DataStore store) {
     this.store = store;
     this.fileList = new HashSet<String>();
@@ -24,6 +40,9 @@ public class FileListDataObjectImpl implements SystemFileList {
     }
   }
 
+  /**
+   * Reloads the filelist data.
+   */
   @SuppressWarnings("unchecked")
   private void reload() {
     try {
@@ -34,6 +53,11 @@ public class FileListDataObjectImpl implements SystemFileList {
     }
   }
 
+  /**
+   * Saves current fileList set into the file.
+   *
+   * @return true, if successful
+   */
   private boolean save() {
     try {
       //this.dataObject = new DataObjectImpl(fileName, serialize(this.fileList));
@@ -49,22 +73,26 @@ public class FileListDataObjectImpl implements SystemFileList {
     }
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean addFileName(String fileName) {
     fileList.add(fileName);
     return this.save();
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean contains(String fileName) {
     return fileList.contains(fileName);
   }
 
+  /** {@inheritDoc} */
   @Override
   public List<String> getFileNames() {
     return new ArrayList<String>(fileList);
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean removeFileName(String fileName) {
     fileList.remove(fileName);

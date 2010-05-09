@@ -6,24 +6,63 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class Node Implementation.
+ */
 public class NodeImpl implements Node, MessageListener, MembershipListener {
+  
+  /** The Constant CH_REPLICA_COUNT - Replica count of how many places on the Consistent Hash table would one node take. */
   private static final int CH_REPLICA_COUNT = 4;
+  
+  /** The Constant REPLICA_COUNT - Replica count of files in the system */
   public static final int REPLICA_COUNT = 1;
+  
+  /** The Constant JOINED_AND_INITIALIZED - Message title of message that's being sent after node has joined and initialized it's internals */
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
+  
+  /** The logger. */
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+  
+  /** The Constant SYSTEM_CHANNEL_NAME - Name of the channel used in system communications. */
   private static final String SYSTEM_CHANNEL_NAME = "FileRepositoryCluster";
+  
+  /** The Constant USER_CHANNEL_NAME - Name of the channel used in communicating with end users. */
   public static final String USER_CHANNEL_NAME = "FileRepositoryClusterClient";
 
+  /** The system communications implementation. */
   SystemCommsServerImpl systemComms = null;
+  
+  /** The user commumications implementation. */
   UserCommsServerImpl userComms = null;
+  
+  /** The data store. */
   private DataStore dataStore;
+  
+  /** The Consistent Hash Table. */
   public ConsistentHashTableImpl<Address> ch;
+  
+  /** The options. */
   Properties options;
+  
+  /** The state. */
   byte[] state;
+  
+  /** The system channel. */
   private Channel systemChannel;
+  
+  /** The user channel. */
   private Channel userChannel;
+  
+  /** The replica guard timer. */
   private Timer replicaGuardTimer;
 
+  /**
+   * Instantiates a new node implementation.
+   *
+   * @param dataStore the data store
+   * @param options the options
+   */
   public NodeImpl(DataStore dataStore, Properties options) {
     this.logger.setLevel(Level.ALL);
     this.dataStore = dataStore;
@@ -31,12 +70,17 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     this.options = options;
   }
 
-  // Return a node descriptor for master of the specified file name
+  /** {@inheritDoc} */
   public NodeDescriptor createNodeDescriptor(String fileName) {
     return createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
   }
 
-  // Return a node descriptor for the specified address
+  /**
+   * Creates and return a node descriptor for the specified address.
+   *
+   * @param address the address
+   * @return the node descriptor
+   */
   public NodeDescriptor createNodeDescriptor(Address address) {
     SystemCommsClientImpl systemCommsClient = SystemCommsClientImpl.getSystemComsClient(this.systemComms
         .GetDispatcher(), address);
@@ -44,6 +88,12 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     return node;
   }
 
+  /** {@inheritDoc} 
+   *  Connects to the system
+   *  Initializes Data Store
+   *  Creates Client communications channel
+   *  Schedules replica guard runs. 
+   */
   public void start() throws ChannelException {
     // Channel for system communications (within the cluster)
     this.systemChannel = new JChannel();
@@ -72,6 +122,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }, 15000, 30000);
   }
 
+  /**
+   * Stops the node.
+   */
   public void stop() {
     systemComms.stop();
     systemChannel.close();
@@ -79,6 +132,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     userChannel.close();
   }
 
+  /** {@inheritDoc} */
   public void replicaGuard() {
     logger.info("replicaGuard tick.");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
@@ -91,6 +145,11 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
+  /** {@inheritDoc}
+   * Moves the files around the system initially to it's masters
+   * also replicates the files this node will be master for
+   * Finally sends out joinAndInitalized message  
+   */
   @Override
   public void initializeDataStore() {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
@@ -136,6 +195,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
+  /** {@inheritDoc}
+   * Checks whether there are any changes in the system that would make me or new node master of the files
+   * if so - manages that. 
+   */
   @Override
   public void nodeJoined(NodeDescriptor node, ConsistentHashTable<Address> oldCh) {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
@@ -170,6 +233,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
+  /** {@inheritDoc}
+   *  Check whether I will become a master of any files that leaving node left behind
+   *  if so - takes ownership an manages replicas.  
+   */
   @Override
   public void nodeLeft(Address nodeAddress, ConsistentHashTable<Address> oldCh) {
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
@@ -187,18 +254,26 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
+  /** {@inheritDoc} */
   @Override
   public boolean amIMaster(String fileName) {
     return this.ch.get(fileName).equals(this.systemChannel.getAddress());
   }
 
+  /**
+   * Am i replica.
+   *
+   * @param filename the filename
+   * @return true, if successful
+   */
   private boolean amIReplica(String filename) {
     return ch.getPreviousNodes(filename, REPLICA_COUNT).contains(systemChannel.getAddress());
   }
 
+  /** {@inheritDoc} */
   @Override
   public void replicateDataObject(DataObject obj) {
-    logger.fine("Replicating file: " + obj.getName() + " ch " + this.ch.getAllValues().size());
+    logger.fine("Replicating file: " + obj.getName());
     for (Address nodeAddress : this.ch.getPreviousNodes(obj.getName(), REPLICA_COUNT)) {
       logger.fine("Replicating file: " + obj.getName() + " to " + nodeAddress);
       NodeDescriptor node = this.createNodeDescriptor(nodeAddress);
@@ -215,11 +290,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  public List<String> getFileNames() {
-    return systemComms.getFileNames();
-  }
-
-  // JGroups related implementation
+  /** {@inheritDoc} 
+   *  Manages messages sent to the system particulary JoinedAndInitialized messages 
+   *  of nodes joining the system. Fires the nodeJoined once this message is received.
+   */
   @Override
   public synchronized void receive(Message message) {
     if (message.getSrc() == this.systemChannel.getAddress()) {
@@ -233,11 +307,13 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
+  /** {@inheritDoc} */
   @Override
   public byte[] getState() {
     return state;
   }
 
+  /** {@inheritDoc} */
   @Override
   public void setState(byte[] bytes) {
     // Not totally sure what messages we can receive, probably broadcast of
@@ -246,8 +322,12 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     state = bytes;
   }
 
-  // Joined/Left the network - synchronized causes less problems and solves lots
-  // issues i find
+  /** {@inheritDoc}
+   * Joined/Left the network - synchronized causes less problems and solves lots
+   * Fires relevant events when node leaves the system - when node joins it waits for 
+   * joinedAndInitialized message - to avoid mess and allow node to sort out it's internal
+   * state first. 
+   */
   @Override
   public synchronized void viewAccepted(View view) {
     logger.fine("ViewAccepted");
@@ -278,7 +358,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  // Suspect Left the network
+  /** {@inheritDoc} 
+   * Suspect that node has left the network
+   * fires appropriate nodeLeft event.
+   */
   @Override
   public void suspect(Address address) {
     logger.info("Suspecting node: " + address.toString());
@@ -289,6 +372,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
+  /** {@inheritDoc} */ 
   @Override
   public void block() {
     // probably can be left empty.
