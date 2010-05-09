@@ -2,9 +2,10 @@ package com.slard.filerepository;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
 
 public class MD5HashProvider implements HashProvider {
-
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private MessageDigest md5;
 
   public MD5HashProvider() {
@@ -16,13 +17,13 @@ public class MD5HashProvider implements HashProvider {
 
   @Override
   public Long hash(String key) {
-    byte[] ret;
+    byte[] hash;
     synchronized (md5) {
       md5.reset();
       md5.update(key.getBytes());
-      ret = md5.digest();
+      hash = md5.digest();
     }
-    return bytesToLong(ret);
+    return bytesToLong(hash);
   }
 
   private long bytesToLong(byte[] in) {

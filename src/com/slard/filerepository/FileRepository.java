@@ -12,7 +12,20 @@ public class FileRepository {
   public static void main(String[] args) {
     logManager.reset();
     Handler console = new ConsoleHandler();
-    console.setFormatter(new SimpleFormatter());
+    console.setFormatter(new Formatter() {
+      public String format(LogRecord log) {
+        String className = log.getSourceClassName();
+        return new StringBuilder(log.getLevel().getLocalizedName())
+            .append("\t[").append(log.getThreadID())
+            .append("] ").append(className.substring(className.lastIndexOf('.') + 1))
+            .append(".").append(log.getSourceMethodName())
+            .append("\t").append(log.getMessage())
+            .append("\n")
+            .toString();
+      }
+    });
+
+    //SimpleFormatter());
     console.setLevel(Level.FINEST);
     logManager.getLogger("").addHandler(console);
 

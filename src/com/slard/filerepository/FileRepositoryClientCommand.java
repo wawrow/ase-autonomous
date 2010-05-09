@@ -1,16 +1,17 @@
 package com.slard.filerepository;
 
-import java.io.Console;
-import java.io.File;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jgroups.Address;
 
+import java.io.BufferedOutputStream;
+import java.io.Console;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public enum FileRepositoryClientCommand {
-  HELP(new Action() { 
-    @Override 
+  HELP(new Action() {
+    @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
       c.printf("File Repository Client v1.0%n%n");
       c.printf("   help                 Output this help text%n");
@@ -23,50 +24,51 @@ public enum FileRepositoryClientCommand {
       c.printf("   retrieve <file name> retrieves the named file from the repository into the local directory%n");
       c.printf("   delete <file name>   deletes the named file from the repository%n%n");
     }
-  }), 
+  }),
 
-  QUIT(new Action() { 
-    @Override 
-    public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) {  
-      System.exit(0); 
-    } 
-  }), 
+  QUIT(new Action() {
+    @Override
+    public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) {
+      System.exit(0);
+    }
+  }),
 
-  CLUSTER(new Action() { 
-    @Override 
+  CLUSTER(new Action() {
+    @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
       ArrayList<Address> clients = new ArrayList<Address>();
       ArrayList<Address> servers = new ArrayList<Address>();
       fileRepositoryClient.listNodes(clients, servers);
 
       c.printf("%d client nodes%n", clients.size());
-      for (Address address: clients) {
+      for (Address address : clients) {
         c.printf("   %s%n", address.toString());
       }
       c.printf("%d server nodes%n", servers.size());
-      for (Address address: servers) {
+      for (Address address : servers) {
         c.printf("   %s%n", address.toString());
-      }      
-    } 
-  }), 
+      }
+    }
+  }),
 
-  LIST(new Action() { 
-    @Override 
+  LIST(new Action() {
+    @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
 
       // Ask any node for the list
       UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
-      List<String> files = userCommsClient.getFileNames();      
+      List<String> files = userCommsClient.getFileNames();
       if (files == null)
         throw new Exception("No files found in repository");
+      Collections.sort(files);
       for (String name : files) {
-        c.printf("%s%n", name);        
+        c.printf("%s%n", name);
       }
-    } 
-  }), 
+    }
+  }),
 
-  CAT(new Action() { 
-    @Override 
+  CAT(new Action() {
+    @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
       if (args == null || args[0] == null || args.length != 1) {
         throw new Exception("Please specify a single file name to retrieve");
@@ -79,24 +81,24 @@ public enum FileRepositoryClientCommand {
       c.printf("Retrieving from node %s%n", address.toString());
       UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient(address);
       DataObject dataObject = userCommsClient.retrieve(args[0]);
-      
+
       // Write the retrieved file to console
-      if (dataObject == null)
-        throw new Exception("Retrieve of " + args[0] + " failed ");    
-      // TODO: Understand encoding issue or else ditch the cat command completely
-      //c.printf("%s%n", dataObject.getData().toString());
-      PrintStream out = new PrintStream(System.out, true, "UTF-8");
-      out.println(dataObject.getData());        
-    } 
-  }), 
+      if (dataObject == null) {
+        throw new Exception("Retrieve of " + args[0] + " failed ");
+      }
+      BufferedOutputStream bos = new BufferedOutputStream(System.out);
+      bos.write(dataObject.getData());
+      bos.flush();
+    }
+  }),
 
-  RETRIEVE(new Action() { 
-    @Override 
+  RETRIEVE(new Action() {
+    @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
       if (args == null || args[0] == null || args.length != 1) {
         throw new Exception("Please specify a single file name to retrieve");
       }
-      
+
       // Broadcast request for anyone with the file, then ask the first to respond for the file
       Address address = fileRepositoryClient.getQuickestFileLocation(args[0]);
       if (address == null)
@@ -104,33 +106,33 @@ public enum FileRepositoryClientCommand {
       c.printf("Retrieving from node %s%n", address.toString());
       UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient(address);
       DataObject dataObject = userCommsClient.retrieve(args[0]);
-      
+
       // Write the retrieved file to the local file system
       if (dataObject == null)
         throw new Exception("Retrieve of " + args[0] + " failed ");
       FileSystemHelper fileSystemHelper = new FileSystemHelper();
       File file = new File(dataObject.getName());
       fileSystemHelper.writeFile(file, dataObject.getData());
-    } 
-  }), 
+    }
+  }),
 
-  DELETE(new Action() { 
-    @Override 
+  DELETE(new Action() {
+    @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
       if (args == null || args[0] == null || args.length != 1) {
         throw new Exception("Please specify a single file name to delete");
       }
-      
+
       // Send the delete command to any node - if we miss the master, no big deal, just one more hop
       UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
-      if (userCommsClient == null) 
+      if (userCommsClient == null)
         throw new Exception("No repository node could be found to service request");
       if (userCommsClient.delete(args[0]) == false)
         throw new Exception("Delete of " + args[0] + " failed");
-    } 
-  }), 
+    }
+  }),
 
-  REPLACE(new Action() { 
+  REPLACE(new Action() {
     @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
       if (args == null || args[0] == null || args.length != 1) {
@@ -140,24 +142,24 @@ public enum FileRepositoryClientCommand {
       FileSystemHelper fileSystemHelper = new FileSystemHelper();
       File file = new File(args[0]);
       DataObjectImpl dataObject = new DataObjectImpl(args[0], fileSystemHelper.readFile(file));
-      
+
       // Ask any node who the master for this file is
       Address address = fileRepositoryClient.getMaster(args[0]);
       if (address == null)
         throw new Exception("No repository node could be found to service request");
       c.printf("Directing request to node %s%n", address.toString());
-      
+
       // Send the replace command to the returned master address
       UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient(address);
-      if (userCommsClient == null) 
+      if (userCommsClient == null)
         throw new Exception("No repository node could be found to service request");
       if (userCommsClient.replace(dataObject) == false)
         throw new Exception("Replace of " + args[0] + " failed");
-    } 
-  }), 
+    }
+  }),
 
-  STORE(new Action() { 
-    @Override 
+  STORE(new Action() {
+    @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception {
       if (args == null || args[0] == null || args.length != 1) {
         throw new Exception("Please specify a single file name to store");
@@ -172,36 +174,36 @@ public enum FileRepositoryClientCommand {
       if (address == null)
         throw new Exception("No repository node could be found to service request");
       c.printf("Directing request to node %s%n", address.toString());
-      
+
       // Send the file to the returned master address
       UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient(address);
-      if (userCommsClient == null) 
-        throw new Exception("No repository node could be found to service request");      
+      if (userCommsClient == null)
+        throw new Exception("No repository node could be found to service request");
       if (userCommsClient.store(dataObject) == false) {
         throw new Exception("Store of " + args[0] + " failed");
       }
-    } 
-  }); 
- 
-  private interface Action {  
-    public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception; 
-  } 
- 
-  public interface Listener { 
-    public void exception(Exception e); 
-  } 
- 
+    }
+  });
+
+  private interface Action {
+    public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception;
+  }
+
+  public interface Listener {
+    public void exception(Exception e);
+  }
+
   private Action action;
- 
-  private FileRepositoryClientCommand(Action a) {  
-    this.action = a; 
-  } 
- 
-  public void exec(final Console c, final String[] args, FileRepositoryClient fileRepositoryClient, final Listener l) {  
-    try {      
-      action.exec(c, args, fileRepositoryClient); 
+
+  private FileRepositoryClientCommand(Action a) {
+    this.action = a;
+  }
+
+  public void exec(final Console c, final String[] args, FileRepositoryClient fileRepositoryClient, final Listener l) {
+    try {
+      action.exec(c, args, fileRepositoryClient);
     } catch (Exception e) {
-      l.exception(e); 
-    } 
-  } 
+      l.exception(e);
+    }
+  }
 }

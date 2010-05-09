@@ -1,6 +1,7 @@
 package com.slard.filerepository;
 
 import org.jgroups.*;
+
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,7 +39,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   // Return a node descriptor for the specified address
   public NodeDescriptor createNodeDescriptor(Address address) {
     SystemCommsClientImpl systemCommsClient = SystemCommsClientImpl.getSystemComsClient(this.systemComms
-        .GetDispatcher(), address);   
+        .GetDispatcher(), address);
     NodeDescriptor node = new NodeDescriptorImpl(address, systemCommsClient, systemCommsClient);
     return node;
   }
@@ -48,10 +49,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     this.systemChannel = new JChannel();
     systemChannel.connect(SYSTEM_CHANNEL_NAME);
     systemComms = new SystemCommsServerImpl(systemChannel, dataStore, this, this, this);
-        
+
     logger.fine("channel connected and system coms server ready");
     logger.finer("My Address: " + systemChannel.getAddress().toString());
-    for(Address addr: this.systemChannel.getView().getMembers()){
+    for (Address addr : this.systemChannel.getView().getMembers()) {
       this.ch.add(addr);
     }
     this.initializeDataStore();
@@ -61,7 +62,7 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     this.userChannel = new JChannel();
     userChannel.connect(USER_CHANNEL_NAME);
     userComms = new UserCommsServerImpl(userChannel, dataStore, null, null, this);
-    
+
     this.replicaGuardTimer = new Timer();
     replicaGuardTimer.schedule(new TimerTask() {
       @Override
@@ -81,8 +82,11 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public void replicaGuard() {
     logger.info("replicaGuard tick.");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
-      if (this.amIMaster(obj.getName())) {
+      String fname = obj.getName();
+      if (this.amIMaster(fname)) {
         this.replicateDataObject(obj);
+      } else if (!amIReplica(fname)) {
+        dataStore.delete(fname);
       }
     }
   }
@@ -186,6 +190,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   @Override
   public boolean amIMaster(String fileName) {
     return this.ch.get(fileName).equals(this.systemChannel.getAddress());
+  }
+
+  private boolean amIReplica(String filename) {
+    return ch.getPreviousNodes(filename, REPLICA_COUNT).contains(systemChannel.getAddress());
   }
 
   @Override

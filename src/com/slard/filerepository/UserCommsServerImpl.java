@@ -50,7 +50,7 @@ public class UserCommsServerImpl implements UserOperations {
     this.logger.info("A client has enquired if we have file: " + name);
     if (store.hasFile(name)) {
       Address address = channel.getAddress();
-      System.out.println("Returning " + address.toString() + " type=" + ((Object)address).getClass().getName().toString());      
+      System.out.println("Returning " + address.toString() + " type=" + ((Object) address).getClass().getName().toString());
       return channel.getAddress();
     }
     return null;
@@ -60,7 +60,9 @@ public class UserCommsServerImpl implements UserOperations {
   public List<String> getFileNames() {
     this.logger.info("A client has requested the list of files");
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(store.getFileListName()));
-    return nodeDescriptor.getFileNames();
+    List<String> ret = nodeDescriptor.getFileNames();
+    logger.info("We have " + ret.size() + " filed.");
+    return ret;
   }
 
   @Override
@@ -78,7 +80,7 @@ public class UserCommsServerImpl implements UserOperations {
     DataObject dataObject = store.retrieve(name);
     if (dataObject != null)
       return dataObject;
-    
+
     // Otherwise we can ask the current master
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(name));
     return nodeDescriptor.retrieve(name);
@@ -97,7 +99,7 @@ public class UserCommsServerImpl implements UserOperations {
     this.logger.info("A client has requested to delete: " + name);
     NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(name));
     nodeDescriptor.delete(name);
-    
+
     // Now delete from all the replicas also
     for (Address nodeAddress : node.ch.getPreviousNodes(name, NodeImpl.REPLICA_COUNT)) {
       nodeDescriptor = node.createNodeDescriptor(nodeAddress);
