@@ -7,13 +7,31 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+/**
+ * The Class DataStore Implementation.
+ */
 public class DataStoreImpl implements DataStore {
+  
+  /** The store location path. */
   private String storeLocation;
+  
+  /** The file system helper. */
   private final FileSystemHelper fileSystemHelper = new FileSystemHelper();  
+  
+  /** The logger. */
   private final Logger logger = Logger.getLogger(this.getClass().getName());
+  
+  /** The Constant FILE_LIST_FILENAME - name of the file that holds a system wide file list. */
   private static final String FILE_LIST_FILENAME = "filelist.txt";
+  
+  /** The system file list helper - provides access to file list operations. */
   private SystemFileList fileList = null;
 
+  /**
+   * Instantiates a new data store implementation.
+   *
+   * @param options the options
+   */
   public DataStoreImpl(Properties options) {
     this.storeLocation = options.getProperty("datastore.dir", System.getProperty("user.dir", "."));
 
@@ -24,7 +42,7 @@ public class DataStoreImpl implements DataStore {
   }
 
   /**
-   * Gets the directory in which the DataStore stores its files
+   * Gets the directory in which the DataStore stores its files.
    *
    * @return String
    */
@@ -34,9 +52,10 @@ public class DataStoreImpl implements DataStore {
   }
 
   /**
-   * Checks if the named object is present in the object store
+   * Checks if the named object is present in the object store.
    *
    * @param name the data object name
+   * @return true, if successful
    */
   @Override
   public boolean hasFile(String name) {
@@ -45,9 +64,9 @@ public class DataStoreImpl implements DataStore {
   }
 
   /**
-   * Gets all the DataObjects in the object store
+   * Gets all the DataObjects in the object store.
    *
-   * @return ArrayList<DataObject>
+   * @return ArrayList
    */
   @Override
   public ArrayList<DataObject> getAllDataObjects() {
@@ -62,7 +81,7 @@ public class DataStoreImpl implements DataStore {
   }
 
   /**
-   * Gets the named object from the data store
+   * Gets the named object from the data store.
    *
    * @param name the data object name
    * @return DataObjectImpl
@@ -79,11 +98,10 @@ public class DataStoreImpl implements DataStore {
   }
 
   /**
-   * Deletes the named object from the object store
+   * Deletes the named object from the object store.
    *
    * @param name the data object name
-   * @throws IOException
-   * @throws FileNotFoundException
+   * @return true, if successful
    */
   @Override
   public boolean delete(String name) {
@@ -97,9 +115,8 @@ public class DataStoreImpl implements DataStore {
    * add operation will fail with a DataObjectExistsException
    *
    * @param dataObject the DataObject containing the object name and data to be added to
-   *                   the object store
-   * @throws DataObjectExistsException
-   * @throws IOException
+   * the object store
+   * @return the boolean
    */
   @Override
   public Boolean store(DataObject dataObject) {
@@ -123,7 +140,7 @@ public class DataStoreImpl implements DataStore {
    * exist then the operation fails with a FileNotFoundException
    *
    * @param dataObject the DataObject to be replaced
-   * @throws Exception
+   * @return true, if successful
    */
   @Override
   public boolean replace(DataObject dataObject) {
@@ -151,17 +168,28 @@ public class DataStoreImpl implements DataStore {
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Long getCRC(String fileName) {
     return this.retrieve(fileName).getCRC();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ArrayList<String> list() {
     File directory = new File(storeLocation);
     return new ArrayList<String>(Arrays.asList(directory.list()));
   }
 
+  /**
+   * Provides object for system file list updates.
+   *
+   * @return SystemFileList implementation that provides access to file list updates
+   */
   private SystemFileList getSystemFileList() {
     if (this.fileList == null) {
       // TODO This probably is too thigh coupling
@@ -170,26 +198,41 @@ public class DataStoreImpl implements DataStore {
     return fileList;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean addFileName(String fileName) {
     return this.getSystemFileList().addFileName(fileName);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean contains(String fileName) {
     return this.getSystemFileList().contains(fileName);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<String> getFileNames() {
     return this.getSystemFileList().getFileNames();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean removeFileName(String fileName) {
     return this.getSystemFileList().removeFileName(fileName);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getFileListName() {
     return FILE_LIST_FILENAME;
