@@ -5,8 +5,8 @@ import org.jgroups.Address;
 /**
  * The Interface NodeDescriptor.
  */
-public interface NodeDescriptor extends FileOperations, SystemFileList {
-  
+public interface NodeDescriptor extends FileOperations {
+
   /**
    * Gets the address of this node.
    *

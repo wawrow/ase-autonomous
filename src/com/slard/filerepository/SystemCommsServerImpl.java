@@ -6,23 +6,22 @@ import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
-public class SystemCommsServerImpl implements FileOperations, SystemFileList {
+public class SystemCommsServerImpl implements FileOperations {
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private DataStore store = null;
   private RpcDispatcher dispatcher = null;
   private Node node = null;
-  private SystemFileList fileList;
+  // private SystemFileList fileList;
 
   public SystemCommsServerImpl(Channel channel, DataStore store, MessageListener messages, MembershipListener members, Node node) {
 
     this.store = store;
     this.dispatcher = new RpcDispatcher(channel, messages, members, this);
     this.node = node;
-    this.fileList = this;
+    //  this.fileList = this;
   }
 
   public RpcDispatcher GetDispatcher() {
@@ -36,8 +35,8 @@ public class SystemCommsServerImpl implements FileOperations, SystemFileList {
       store.store(dataObject);
       // If I'm master make sure the thing gets replicated
       if (this.node.amIMaster(dataObject.getName())) {
-        if (!this.fileList.contains(dataObject.getName()))
-          this.fileList.addFileName(dataObject.getName());
+        //  if (!this.fileList.contains(dataObject.getName()))
+        //    this.fileList.addFileName(dataObject.getName());
         this.node.replicateDataObject(dataObject);
       }
     } catch (Exception ex) {
@@ -75,11 +74,12 @@ public class SystemCommsServerImpl implements FileOperations, SystemFileList {
   @Override
   public ArrayList<String> list() {
     this.logger.info("Requested list.");
-    ArrayList<String> result = new ArrayList<String>();
-    for (DataObject dataObj : store.getAllDataObjects()) {
-      result.add(dataObj.getName());
-    }
-    return result;
+    return store.list();
+//    ArrayList<String> result = new ArrayList<String>();
+//    for (DataObject dataObj : store.list()) {
+//      result.add(dataObj.getName());
+//    }
+//    return result;
   }
 
   @Override
@@ -98,61 +98,14 @@ public class SystemCommsServerImpl implements FileOperations, SystemFileList {
     this.logger.info("Requested delete: " + name);
     boolean result = store.delete(name);
     //Make sure it's off the list
-    if(this.node.amIMaster(name) && this.fileList.contains(name)){
-      this.fileList.removeFileName(name);
-    }
+    //if(this.node.amIMaster(name) && this.fileList.contains(name)){
+    //  this.fileList.removeFileName(name);
+    //}
     // If I'm master make sure the thing get's replicated
     if (result && this.node.amIMaster(name)) {
       DataObject deleteObj = new DataObjectImpl(name, null);
       this.node.replicateDataObject(deleteObj);
     }
     return result;
-  }
-
-  // File List operations
-  @Override
-  public boolean addFileName(String fileName) {
-    if (node.amIMaster(store.getFileListName())) {
-      boolean result = store.addFileName(fileName);
-      if (result)
-        node.replicateDataObject(store.retrieve(store.getFileListName()));
-      return result;
-    } else {
-      NodeDescriptor nodeDescriptor = node.createNodeDescriptor(store.getFileListName());
-      return nodeDescriptor.addFileName(fileName);
-    }
-  }
-
-  @Override
-  public boolean contains(String fileName) {
-    if (node.amIMaster(store.getFileListName())) {
-      return store.contains(fileName);
-    } else {
-      NodeDescriptor nodeDescriptor = node.createNodeDescriptor(store.getFileListName());
-      return nodeDescriptor.contains(fileName);
-    }
-  }
-
-  @Override
-  public List<String> getFileNames() {
-    if (node.amIMaster(store.getFileListName())) {
-      return store.getFileNames();
-    } else {
-      NodeDescriptor nodeDescriptor = node.createNodeDescriptor(store.getFileListName());
-      return nodeDescriptor.getFileNames();
-    }
-  }
-
-  @Override
-  public boolean removeFileName(String fileName) {
-    if (node.amIMaster(store.getFileListName())) {
-      boolean result = store.removeFileName(fileName);
-      if (result)
-        node.replicateDataObject(store.retrieve(store.getFileListName()));
-      return result;
-    } else {
-      NodeDescriptor nodeDescriptor = node.createNodeDescriptor(store.getFileListName());
-      return nodeDescriptor.removeFileName(fileName);
-    }
   }
 }

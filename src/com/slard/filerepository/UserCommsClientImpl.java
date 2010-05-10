@@ -5,10 +5,7 @@ import org.jgroups.Address;
 import org.jgroups.blocks.*;
 import org.jgroups.util.RspList;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -105,14 +102,19 @@ public class UserCommsClientImpl implements UserOperations {
   @SuppressWarnings("unchecked")
   @Override
   public List<String> getFileNames() {
-    MethodCall storeCall = new MethodCall("getFileNames", null, new Class[]{});
-    ArrayList<String> ret = null;
+    MethodCall getFileNamesCall = new MethodCall("getFileNames", null, new Class[]{});
+    Set<String> files = new HashSet<String>();
     try {
-      ret = (ArrayList<String>) this.callWithMethod(storeCall);
+      RspList responseList = dispatcher.callRemoteMethods(null, getFileNamesCall,
+          new RequestOptions(Request.GET_ALL, RPC_TIMEOUT, false,
+              new UserCommsClientImpl.NullResponseFilter()));
+      for (Object rsp : responseList.getResults()) {
+        files.addAll((Collection<String>) rsp);
+      }
     } catch (Throwable throwable) {
       logger.log(Level.WARNING, "getFileNames rpc failed", throwable);
     }
-    return ret;
+    return new ArrayList<String>(files);
   }
 
   @Override
@@ -175,7 +177,7 @@ public class UserCommsClientImpl implements UserOperations {
     Set<String> hosts = new HashSet<String>();
     try {
       RspList responseList = dispatcher.callRemoteMethods(null, methodCall,
-          new RequestOptions(Request.GET_FIRST, RPC_TIMEOUT, false, new UserCommsClientImpl.NullResponseFilter()));
+          new RequestOptions(Request.GET_ALL, RPC_TIMEOUT, false, new UserCommsClientImpl.NullResponseFilter()));
       for (Object rsp : responseList.getResults()) {
         DiskSpace space = (DiskSpace) rsp;
         if (!hosts.contains(space.hostname)) {

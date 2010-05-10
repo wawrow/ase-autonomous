@@ -39,6 +39,7 @@ public class FileRepository {
     catch (java.net.UnknownHostException uhe) {
     }
     DataStore store = new DataStoreImpl(options);
+    store.initialise();
 
     Node node = new NodeImpl(store, options);
     try {
