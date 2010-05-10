@@ -44,7 +44,7 @@ public class UserCommsDummyServerImpl implements UserOperations {
   }
 
   @Override
-  public List<String> getFileNames() {
+  public List<String> getFileNames(String regex) {
     return null;
   }
 

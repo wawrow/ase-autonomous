@@ -7,8 +7,10 @@ import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 public class UserCommsServerImpl implements UserOperations {
 
@@ -58,11 +60,18 @@ public class UserCommsServerImpl implements UserOperations {
   }
 
   @Override
-  public List<String> getFileNames() {
+  public List<String> getFileNames(String regex) {
     this.logger.info("A client has requested the list of files");
 //    NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(store.getFileListName()));
 //    List<String> ret = nodeDescriptor.list();
-    return store.list();
+    Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+    List<String> ret = new LinkedList<String>();
+    for (String name : store.list()) {
+      if (pattern.matcher(name).matches()) {
+        ret.add(name);
+      }
+    }
+    return ret;
   }
 
   @Override

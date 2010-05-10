@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public enum FileRepositoryClientCommand {
   HELP(new Action() {
@@ -74,19 +73,17 @@ public enum FileRepositoryClientCommand {
 
       // Ask any node for the list
       UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
-      List<String> files = userCommsClient.getFileNames();
-      if (files == null)
-        throw new Exception("No files found in repository");
-      Collections.sort(files);
+
       String regex = ".*";
       if (args != null && args.length > 0 && args[0] != null) {
         regex = args[0];
       }
-      Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-      for (String name : files) {
-        if (pattern.matcher(name).matches()) {
-          c.printf("%s%n", name);
-        }
+      List<String> files = userCommsClient.getFileNames(regex);
+      if (files == null)
+        throw new Exception("No files found in repository");
+      Collections.sort(files);
+      for (String file : files) {
+        c.printf("%s%n", file);
       }
     }
 
