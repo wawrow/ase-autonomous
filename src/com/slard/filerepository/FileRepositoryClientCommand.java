@@ -18,6 +18,7 @@ public enum FileRepositoryClientCommand {
       c.printf("   help                 Output this help text%n");
       c.printf("   quit                 exit the client%n");
       c.printf("   cluster              displays the current cluster membership%n");
+      c.printf("   capacity             returns the total capacity and free space of the repository%n");
       c.printf("   list <regex>         lists all files in the repository, optionally matching regex%n");
       c.printf("   cat <file name>      dumps the named file's contents on the console%n");
       c.printf("   store <file name>    dumps the named file's contents on the console%n");
@@ -25,12 +26,22 @@ public enum FileRepositoryClientCommand {
       c.printf("   retrieve <file name> retrieves the named file from the repository into the local directory%n");
       c.printf("   delete <file name>   deletes the named file from the repository%n%n");
     }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"f1", "commands"};
+    }
   }),
 
   QUIT(new Action() {
     @Override
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) {
       System.exit(0);
+    }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"exit"};
     }
   }),
 
@@ -49,6 +60,11 @@ public enum FileRepositoryClientCommand {
       for (Address address : servers) {
         c.printf("   %s%n", address.toString());
       }
+    }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"nodes", "members"};
     }
   }),
 
@@ -72,6 +88,11 @@ public enum FileRepositoryClientCommand {
           c.printf("%s%n", name);
         }
       }
+    }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"ls", "dir"};
     }
   }),
 
@@ -98,6 +119,11 @@ public enum FileRepositoryClientCommand {
       bos.write(dataObject.getData());
       bos.flush();
     }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"spool", "less"};
+    }
   }),
 
   RETRIEVE(new Action() {
@@ -122,6 +148,11 @@ public enum FileRepositoryClientCommand {
       File file = new File(dataObject.getName());
       fileSystemHelper.writeFile(file, dataObject.getData());
     }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"get", "pull"};
+    }
   }),
 
   DELETE(new Action() {
@@ -137,6 +168,11 @@ public enum FileRepositoryClientCommand {
         throw new Exception("No repository node could be found to service request");
       if (userCommsClient.delete(args[0]) == false)
         throw new Exception("Delete of " + args[0] + " failed");
+    }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"del", "rm"};
     }
   }),
 
@@ -163,6 +199,11 @@ public enum FileRepositoryClientCommand {
         throw new Exception("No repository node could be found to service request");
       if (userCommsClient.replace(dataObject) == false)
         throw new Exception("Replace of " + args[0] + " failed");
+    }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"repl", "overwrite"};
     }
   }),
 
@@ -191,10 +232,32 @@ public enum FileRepositoryClientCommand {
         throw new Exception("Store of " + args[0] + " failed");
       }
     }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"put", "push"};
+    }
+  }),
+
+  CAPACITY(new Action() {
+    @Override
+    public void exec(Console c, String[] args,
+                     FileRepositoryClient fileRepositoryClient) throws Exception {
+      UserCommsClientImpl userCommsClient = fileRepositoryClient.createUserCommsClient();
+      UserOperations.DiskSpace space = userCommsClient.getDiskSpace();
+      c.printf("%s%n", space.toString());
+    }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"df", "space"};
+    }
   });
 
   private interface Action {
     public void exec(Console c, String[] args, FileRepositoryClient fileRepositoryClient) throws Exception;
+
+    public String[] aliases();
   }
 
   public interface Listener {
@@ -213,5 +276,9 @@ public enum FileRepositoryClientCommand {
     } catch (Exception e) {
       l.exception(e);
     }
+  }
+
+  public String[] aliases() {
+    return action.aliases();
   }
 }

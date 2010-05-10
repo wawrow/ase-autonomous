@@ -86,6 +86,11 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
       if (this.amIMaster(fname)) {
         this.replicateDataObject(obj);
       } else if (!amIReplica(fname)) {
+        logger.fine("ensuring master has " + obj.getName());
+        NodeDescriptor node = this.createNodeDescriptor(ch.get(obj.getName()));
+        if (obj.getData() != null && !node.hasFile(obj.getName())) {
+          node.store(obj);
+        }
         dataStore.delete(fname);
       }
     }

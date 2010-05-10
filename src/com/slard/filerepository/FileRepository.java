@@ -32,6 +32,12 @@ public class FileRepository {
     String currentDirectory = System.getProperty("user.dir");
     Properties options = new Properties();
     options.put("datastore.dir", currentDirectory + File.separator + "store");
+    try {
+      java.net.InetAddress localMachine = java.net.InetAddress.getLocalHost();
+      options.put("datastore.hostname", localMachine.getHostName());
+    }
+    catch (java.net.UnknownHostException uhe) {
+    }
     DataStore store = new DataStoreImpl(options);
 
     Node node = new NodeImpl(store, options);

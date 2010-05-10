@@ -14,7 +14,7 @@ public interface DataStore extends FileOperations, SystemFileList {
    * @return the store location
    */
   String getStoreLocation();
-  
+
   /**
    * Fetches all Objects in this DataStore.
    *
@@ -27,5 +27,12 @@ public interface DataStore extends FileOperations, SystemFileList {
    *
    * @return the file list name
    */
-  String getFileListName(); 
+  String getFileListName();
+
+  /**
+   * Returns the hostname of the data store.
+   *
+   * @return the hostname
+   */
+  String getHostname();
 }
