@@ -8,13 +8,17 @@ import org.jgroups.blocks.RpcDispatcher;
 import java.io.Console;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.*;
 
 public class FileRepositoryClient {
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private JChannel userChannel;
   private static final String PROMPT = "> ";
   UserCommsDummyServerImpl userCommsServer = null;
+  private Map<String, FileRepositoryClientCommand> aliasMap = new HashMap<String, FileRepositoryClientCommand>();
 
   private static final LogManager logManager = LogManager.getLogManager();
 
@@ -33,7 +37,7 @@ public class FileRepositoryClient {
               .append(".").append(log.getSourceMethodName())
               .append("\t").append(log.getMessage());
           if (log.getThrown() != null) {
-            sbuf.append(log.getThrown().toString());
+            sbuf.append(" ").append(log.getThrown().toString());
             for (StackTraceElement elem : log.getThrown().getStackTrace()) {
               sbuf.append("\n\t ").append(elem.toString());
             }
@@ -45,12 +49,18 @@ public class FileRepositoryClient {
       fileHandler.setLevel(Level.FINEST);
       logManager.getLogger("").addHandler(fileHandler);
     } catch (IOException e) {
-      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace();
     }
     new FileRepositoryClient().start();
   }
 
   public void start() {
+    for (FileRepositoryClientCommand cmd : FileRepositoryClientCommand.values()) {
+      aliasMap.put(cmd.name(), cmd);
+      for (String alias : cmd.aliases()) {
+        aliasMap.put(alias.toUpperCase(), cmd);
+      }
+    }
     try {
       System.out.println("File Repository Client Starting");
       System.setProperty("jgroups.udp.mcast_port", "45589");
@@ -81,20 +91,28 @@ public class FileRepositoryClient {
   private void commandLoop(final Console console) {
     while (true) {
       String commandLine = console.readLine(PROMPT);
+      if (commandLine == null) {
+        break;
+      }
       Scanner scanner = new Scanner(commandLine);
       if (scanner.hasNext()) {
         final String commandName = scanner.next().toUpperCase();
         try {
-          final FileRepositoryClientCommand command = Enum.valueOf(FileRepositoryClientCommand.class, commandName);
+          final FileRepositoryClientCommand command = aliasMap.get(commandName);
+          if (command == null) {
+            throw new IllegalArgumentException("unknown command " + commandName);
+          }
           String param = scanner.hasNext() ? scanner.next() : null;
           command.exec(console, new String[]{param}, this, new FileRepositoryClientCommand.Listener() {
             @Override
             public void exception(Exception e) {
               console.printf("Command error [%1$s]: [%2$s]%n", command, e.getMessage());
+              logger.log(Level.WARNING, "exec threw exception", e);
             }
           });
         } catch (IllegalArgumentException e) {
           console.printf("Unknown command [%1$s]%n", commandName);
+          logger.log(Level.WARNING, "exec threw exception", e);
         }
       }
       scanner.close();

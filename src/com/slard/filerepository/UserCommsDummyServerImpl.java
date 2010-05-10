@@ -1,7 +1,7 @@
 package com.slard.filerepository;
 
-import org.jgroups.Channel;
 import org.jgroups.Address;
+import org.jgroups.Channel;
 import org.jgroups.MembershipListener;
 import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
@@ -39,7 +39,7 @@ public class UserCommsDummyServerImpl implements UserOperations {
   }
 
   @Override
-  public Boolean isServer() {    
+  public Boolean isServer() {
     return false;
   }
 
@@ -66,5 +66,10 @@ public class UserCommsDummyServerImpl implements UserOperations {
   @Override
   public boolean delete(String name) {
     return false;
+  }
+
+  @Override
+  public DiskSpace getDiskSpace() {
+    return null;
   }
 }
