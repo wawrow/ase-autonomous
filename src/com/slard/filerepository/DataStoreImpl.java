@@ -14,8 +14,7 @@ public class DataStoreImpl implements DataStore {
   
   /** The store location path. */
   private String storeLocation;
-  
-  /** The file system helper. */
+  private String hostname;
   private final FileSystemHelper fileSystemHelper = new FileSystemHelper();  
   
   /** The logger. */
@@ -39,6 +38,7 @@ public class DataStoreImpl implements DataStore {
     File directory = new File(storeLocation);
     directory.mkdirs();
     this.logger.info("Data store initialized in " + this.storeLocation);
+    this.hostname = options.getProperty("datastore.hostname", "localhost");
   }
 
   /**
@@ -236,6 +236,11 @@ public class DataStoreImpl implements DataStore {
   @Override
   public String getFileListName() {
     return FILE_LIST_FILENAME;
+  }
+
+  @Override
+  public String getHostname() {
+    return hostname;
   }
 
 }

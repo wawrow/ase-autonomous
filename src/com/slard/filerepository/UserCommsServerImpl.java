@@ -6,6 +6,7 @@ import org.jgroups.MembershipListener;
 import org.jgroups.MessageListener;
 import org.jgroups.blocks.RpcDispatcher;
 
+import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -106,5 +107,11 @@ public class UserCommsServerImpl implements UserOperations {
       nodeDescriptor.delete(name);
     }
     return true;
+  }
+
+  @Override
+  public DiskSpace getDiskSpace() {
+    return new DiskSpace(store.getHostname(), File.listRoots()[0].getUsableSpace(),
+        File.listRoots()[0].getTotalSpace());
   }
 }
