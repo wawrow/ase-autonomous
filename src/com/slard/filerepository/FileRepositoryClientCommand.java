@@ -213,10 +213,10 @@ public enum FileRepositoryClientCommand {
       // Read the new file from the local file system
       FileSystemHelper fileSystemHelper = new FileSystemHelper();
       File file = new File(args[0]);
-      DataObjectImpl dataObject = new DataObjectImpl(args[0], fileSystemHelper.readFile(file));
+      DataObjectImpl dataObject = new DataObjectImpl(file.getName(), fileSystemHelper.readFile(file));
 
       // Ask any node who the master for this file is
-      Address address = fileRepositoryClient.getMaster(args[0]);
+      Address address = fileRepositoryClient.getMaster(file.getName());
       if (address == null)
         throw new Exception("No repository node could be found to service request");
       c.printf("Directing request to node %s%n", address.toString());
