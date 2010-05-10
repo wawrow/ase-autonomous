@@ -1,6 +1,8 @@
 package com.slard.filerepository;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,18 +11,19 @@ import java.util.logging.Logger;
 
 public class DataStoreImpl implements DataStore {
   private String storeLocation;
-  private final FileSystemHelper fileSystemHelper = new FileSystemHelper();  
+  private String hostname;
+  private final FileSystemHelper fileSystemHelper = new FileSystemHelper();
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static final String FILE_LIST_FILENAME = "filelist.txt";
   private SystemFileList fileList = null;
 
   public DataStoreImpl(Properties options) {
     this.storeLocation = options.getProperty("datastore.dir", System.getProperty("user.dir", "."));
-
     // Make sure the directory exists...
     File directory = new File(storeLocation);
     directory.mkdirs();
     this.logger.info("Data store initialized in " + this.storeLocation);
+    this.hostname = options.getProperty("datastore.hostname", "localhost");
   }
 
   /**
@@ -193,6 +196,11 @@ public class DataStoreImpl implements DataStore {
   @Override
   public String getFileListName() {
     return FILE_LIST_FILENAME;
+  }
+
+  @Override
+  public String getHostname() {
+    return hostname;
   }
 
 }
