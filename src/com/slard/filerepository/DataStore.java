@@ -6,7 +6,7 @@ import java.util.ArrayList;
  * The Interface DataStore.
  * Provides internal node interface into Data Store operations.
  */
-public interface DataStore extends FileOperations, SystemFileList {
+public interface DataStore extends FileOperations {
 
   void initialise();
 

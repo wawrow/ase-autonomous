@@ -62,7 +62,7 @@ public class UserCommsServerImpl implements UserOperations {
     this.logger.info("A client has requested the list of files");
 //    NodeDescriptor nodeDescriptor = node.createNodeDescriptor(node.ch.get(store.getFileListName()));
 //    List<String> ret = nodeDescriptor.list();
-    return store.getFileNames();
+    return store.list();
   }
 
   @Override
