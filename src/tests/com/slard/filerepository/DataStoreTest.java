@@ -24,6 +24,7 @@ public class DataStoreTest {
     dataStoreLocation = currentDirectory + File.pathSeparator + TESTSTOREDIR;
     options.put("datastore.dir", dataStoreLocation);
     dataStore = new DataStoreImpl(options);
+    dataStore.initialise();
   }
 
   @Test
@@ -56,6 +57,7 @@ public class DataStoreTest {
     DataObject mockedDataObject = Mockito.mock(DataObject.class);
     Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
     Mockito.when(mockedDataObject.getName()).thenReturn(name);
+    Mockito.when(mockedDataObject.getCRC()).thenReturn(123L);
 
     this.dataStore.store(mockedDataObject);
     Assert.assertTrue(this.dataStore.replace(mockedDataObject));

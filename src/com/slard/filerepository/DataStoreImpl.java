@@ -2,7 +2,10 @@ package com.slard.filerepository;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
@@ -198,55 +201,6 @@ public class DataStoreImpl implements DataStore {
     return new ArrayList<String>(fileCache.keySet());
   }
 
-  /**
-   * Provides object for system file list updates.
-   *
-   * @return SystemFileList implementation that provides access to file list updates
-   */
-  private SystemFileList getSystemFileList() {
-    // if (this.fileList == null) {
-    // TODO This probably is too thigh coupling
-    //   this.fileList = new FileListDataObjectImpl(this);
-    // }
-    // return fileList;
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean addFileName(String fileName) {
-    return true;
-    //return this.getSystemFileList().addFileName(fileName);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean contains(String fileName) {
-    return true;
-    //return this.getSystemFileList().contains(fileName);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public List<String> getFileNames() {
-    return list();
-    //return this.getSystemFileList().getFileNames();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean removeFileName(String fileName) {
-    return true;
-    //return this.getSystemFileList().removeFileName(fileName);
-  }
 
   @Override
   public String getHostname() {
