@@ -8,6 +8,8 @@ import java.util.ArrayList;
  */
 public interface DataStore extends FileOperations, SystemFileList {
 
+  void initialise();
+
   /**
    * Gets the object store location
    *
@@ -21,13 +23,6 @@ public interface DataStore extends FileOperations, SystemFileList {
    * @return the all data objects
    */
   ArrayList<DataObject> getAllDataObjects();
-
-  /**
-   * Gets the list of file names inside the data store.
-   *
-   * @return the file list name
-   */
-  String getFileListName();
 
   /**
    * Returns the hostname of the data store.

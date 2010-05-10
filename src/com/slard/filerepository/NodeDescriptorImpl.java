@@ -3,24 +3,30 @@ package com.slard.filerepository;
 import org.jgroups.Address;
 
 import java.util.ArrayList;
-import java.util.List;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class NodeDescriptor Implementation.
  */
 public class NodeDescriptorImpl implements NodeDescriptor {
 
-  /** The address of the node described. */
+  /**
+   * The address of the node described.
+   */
   private Address address;
-  
-  /** The system communications interface to described node. */
-  private FileOperations systemComms;
-  
-  /** The system file list. */
-  private SystemFileList systemFileList;
 
-  /** {@inheritDoc} */
+  /**
+   * The system communications interface to described node.
+   */
+  private FileOperations systemComms;
+
+  /** The system file list. */
+  // private SystemFileList systemFileList;
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Address getAddress() {
     return this.address;
@@ -29,79 +35,67 @@ public class NodeDescriptorImpl implements NodeDescriptor {
   /**
    * Instantiates a new node descriptor implementation.
    *
-   * @param address the address
+   * @param address           the address
    * @param systemCommsClient the system communications client for communications with node described (created outside of the class for lesser coupling)
-   * @param systemFileList the system file list
    */
-  public NodeDescriptorImpl(Address address, FileOperations systemCommsClient, SystemFileList systemFileList) {
+  public NodeDescriptorImpl(Address address, FileOperations systemCommsClient) {
     this.address = address;
     this.systemComms = systemCommsClient;
-    this.systemFileList = systemFileList;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public DataObject retrieve(String name) {
     return this.systemComms.retrieve(name);
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Boolean store(DataObject dataObject) {
     return this.systemComms.store(dataObject);
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Long getCRC(String fileName) {
     return this.systemComms.getCRC(fileName);
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean hasFile(String name) {
     return this.systemComms.hasFile(name);
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ArrayList<String> list() {
     return this.systemComms.list();
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean replace(DataObject dataObject) {
     return this.systemComms.replace(dataObject);
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean delete(String name) {
     return this.systemComms.delete(name);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean addFileName(String fileName) {
-    return this.systemFileList.addFileName(fileName);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean contains(String fileName) {
-    return this.systemFileList.contains(fileName);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public List<String> getFileNames() {
-    return this.systemFileList.getFileNames();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean removeFileName(String fileName) {
-    return this.systemFileList.removeFileName(fileName);
   }
 }

@@ -1,30 +1,33 @@
 package com.slard.filerepository;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
  * The Class DataStore Implementation.
  */
 public class DataStoreImpl implements DataStore {
-  
-  /** The store location path. */
+
+  /**
+   * The store location path.
+   */
   private String storeLocation;
   private String hostname;
-  private final FileSystemHelper fileSystemHelper = new FileSystemHelper();  
-  
-  /** The logger. */
+  private final FileSystemHelper fileSystemHelper = new FileSystemHelper();
+
+  /**
+   * The logger.
+   */
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  
-  /** The Constant FILE_LIST_FILENAME - name of the file that holds a system wide file list. */
-  private static final String FILE_LIST_FILENAME = "filelist.txt";
-  
-  /** The system file list helper - provides access to file list operations. */
-  private SystemFileList fileList = null;
+
+  /**
+   * The system file list helper - provides access to file list operations.
+   */
+//  private SystemFileList fileList = null;
+
+  private Map<String, Long> fileCache = null;
 
   /**
    * Instantiates a new data store implementation.
@@ -39,6 +42,14 @@ public class DataStoreImpl implements DataStore {
     directory.mkdirs();
     this.logger.info("Data store initialized in " + this.storeLocation);
     this.hostname = options.getProperty("datastore.hostname", "localhost");
+  }
+
+  @Override
+  public void initialise() {
+    fileCache = new HashMap<String, Long>();
+    for (String fname : new File(storeLocation).list()) {
+      fileCache.put(fname, getCRC(fname));
+    }
   }
 
   /**
@@ -59,8 +70,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public boolean hasFile(String name) {
-    File file = new File(storeLocation, name);
-    return file.exists();
+    return fileCache.containsKey(name);
   }
 
   /**
@@ -74,8 +84,10 @@ public class DataStoreImpl implements DataStore {
     File directory = new File(storeLocation);
     for (String file : directory.list()) {
       DataObject obj = retrieve(file);
-      if (obj != null)
+      if (obj != null) {
         list.add(obj);
+        fileCache.put(obj.getName(), obj.getCRC());
+      }
     }
     return list;
   }
@@ -107,6 +119,7 @@ public class DataStoreImpl implements DataStore {
   public boolean delete(String name) {
     this.logger.info("Deleting data object: " + name);
     File file = new File(storeLocation, name);
+    fileCache.remove(name);
     return file.delete();
   }
 
@@ -115,7 +128,7 @@ public class DataStoreImpl implements DataStore {
    * add operation will fail with a DataObjectExistsException
    *
    * @param dataObject the DataObject containing the object name and data to be added to
-   * the object store
+   *                   the object store
    * @return the boolean
    */
   @Override
@@ -128,6 +141,7 @@ public class DataStoreImpl implements DataStore {
     }
     try {
       fileSystemHelper.writeFile(file, dataObject.getData());
+      fileCache.put(dataObject.getName(), dataObject.getCRC());
     } catch (IOException ex) {
       logger.warning("Exception while storing the file: " + dataObject.getName() + " : " + ex.toString());
       return false;
@@ -181,8 +195,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public ArrayList<String> list() {
-    File directory = new File(storeLocation);
-    return new ArrayList<String>(Arrays.asList(directory.list()));
+    return new ArrayList<String>(fileCache.keySet());
   }
 
   /**
@@ -191,11 +204,12 @@ public class DataStoreImpl implements DataStore {
    * @return SystemFileList implementation that provides access to file list updates
    */
   private SystemFileList getSystemFileList() {
-    if (this.fileList == null) {
-      // TODO This probably is too thigh coupling
-      this.fileList = new FileListDataObjectImpl(this);
-    }
-    return fileList;
+    // if (this.fileList == null) {
+    // TODO This probably is too thigh coupling
+    //   this.fileList = new FileListDataObjectImpl(this);
+    // }
+    // return fileList;
+    return null;
   }
 
   /**
@@ -203,7 +217,8 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public boolean addFileName(String fileName) {
-    return this.getSystemFileList().addFileName(fileName);
+    return true;
+    //return this.getSystemFileList().addFileName(fileName);
   }
 
   /**
@@ -211,7 +226,8 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public boolean contains(String fileName) {
-    return this.getSystemFileList().contains(fileName);
+    return true;
+    //return this.getSystemFileList().contains(fileName);
   }
 
   /**
@@ -219,7 +235,8 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public List<String> getFileNames() {
-    return this.getSystemFileList().getFileNames();
+    return list();
+    //return this.getSystemFileList().getFileNames();
   }
 
   /**
@@ -227,15 +244,8 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public boolean removeFileName(String fileName) {
-    return this.getSystemFileList().removeFileName(fileName);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getFileListName() {
-    return FILE_LIST_FILENAME;
+    return true;
+    //return this.getSystemFileList().removeFileName(fileName);
   }
 
   @Override

@@ -9,31 +9,37 @@ import java.util.*;
  */
 public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
 
-  /** The number of replicas. */
+  /**
+   * The number of replicas.
+   */
   private final int numberOfReplicas;
-  
-  /** The circle of all of the nodes. */
+
+  /**
+   * The circle of all of the nodes.
+   */
   private final SortedMap<Long, T> circle = new TreeMap<Long, T>();
-  
-  /** The hash provider implementation. */
+
+  /**
+   * The hash provider implementation.
+   */
   private HashProvider hashProvider;
 
   /**
    * Instantiates a new consistent hash table implementation.
    *
    * @param numberOfReplicas the number of replicas
-   * @param nodes initial nodes null for none
+   * @param nodes            initial nodes null for none
    */
   public ConsistentHashTableImpl(int numberOfReplicas, Iterable<T> nodes) {
     this(numberOfReplicas, nodes, new MD5HashProvider());
   }
-  
+
   /**
    * Instantiates a new consistent hash table implementation.
    *
    * @param numberOfReplicas the number of replicas
-   * @param nodes initial nodes null for none
-   * @param hashProvider the hash provider implementation
+   * @param nodes            initial nodes null for none
+   * @param hashProvider     the hash provider implementation
    */
   public ConsistentHashTableImpl(int numberOfReplicas, Iterable<T> nodes, HashProvider hashProvider) {
     this.numberOfReplicas = numberOfReplicas;
@@ -64,14 +70,16 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
    * calculates a hash for given node and replica number.
    *
    * @param node the node
-   * @param i the i
+   * @param i    the i
    * @return the long
    */
   private long hashForNode(T node, int i) {
     return this.hashProvider.hash(i + node.toString());
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void add(T node) {
     for (int i = 0; i < numberOfReplicas; i++) {
@@ -79,7 +87,9 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
     }
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void remove(T node) {
     for (int i = 0; i < numberOfReplicas; i++) {
@@ -87,7 +97,9 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
     }
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public T get(String key) {
     if (circle.isEmpty()) {
@@ -96,7 +108,9 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
     return circle.get(getHash(key));
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<T> getPreviousNodes(String key, int count) {
     List<T> result = new ArrayList<T>();
@@ -115,14 +129,18 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
     return result;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean contains(T node) {
     // Will check only first hash
     return circle.containsKey(hashForNode(node, 0));  // faster than scanning values
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public List<T> getAllValues() {
     return new ArrayList<T>(new HashSet<T>(circle.values()));  // quick dedup.

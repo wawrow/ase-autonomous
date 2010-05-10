@@ -5,15 +5,20 @@ import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class MD5HashProvider - implementation of HashProvider.
  */
 public class MD5HashProvider implements HashProvider {
-  
-  /** The logger. */
+
+  /**
+   * The logger.
+   */
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  
-  /** The md5 messagedigest. */
+
+  /**
+   * The md5 messagedigest.
+   */
   private MessageDigest md5;
 
   /**
@@ -26,7 +31,9 @@ public class MD5HashProvider implements HashProvider {
     }
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Long hash(String key) {
     byte[] hash;

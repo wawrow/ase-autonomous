@@ -7,61 +7,92 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class Node Implementation.
  */
 public class NodeImpl implements Node, MessageListener, MembershipListener {
-  
-  /** The Constant CH_REPLICA_COUNT - Replica count of how many places on the Consistent Hash table would one node take. */
+
+  /**
+   * The Constant CH_REPLICA_COUNT - Replica count of how many places on the Consistent Hash table would one node take.
+   */
   private static final int CH_REPLICA_COUNT = 4;
-  
-  /** The Constant REPLICA_COUNT - Replica count of files in the system */
+
+  /**
+   * The Constant REPLICA_COUNT - Replica count of files in the system
+   */
   public static final int REPLICA_COUNT = 1;
-  
-  /** The Constant JOINED_AND_INITIALIZED - Message title of message that's being sent after node has joined and initialized it's internals */
+
+  /**
+   * The Constant JOINED_AND_INITIALIZED - Message title of message that's being sent after node has joined and initialized it's internals
+   */
   private static final String JOINED_AND_INITIALIZED = "joinedAndInitialized";
-  
-  /** The logger. */
+
+  /**
+   * The logger.
+   */
   private final Logger logger = Logger.getLogger(this.getClass().getName());
-  
-  /** The Constant SYSTEM_CHANNEL_NAME - Name of the channel used in system communications. */
+
+  /**
+   * The Constant SYSTEM_CHANNEL_NAME - Name of the channel used in system communications.
+   */
   private static final String SYSTEM_CHANNEL_NAME = "FileRepositoryCluster";
-  
-  /** The Constant USER_CHANNEL_NAME - Name of the channel used in communicating with end users. */
+
+  /**
+   * The Constant USER_CHANNEL_NAME - Name of the channel used in communicating with end users.
+   */
   public static final String USER_CHANNEL_NAME = "FileRepositoryClusterClient";
 
-  /** The system communications implementation. */
+  /**
+   * The system communications implementation.
+   */
   SystemCommsServerImpl systemComms = null;
-  
-  /** The user commumications implementation. */
+
+  /**
+   * The user commumications implementation.
+   */
   UserCommsServerImpl userComms = null;
-  
-  /** The data store. */
+
+  /**
+   * The data store.
+   */
   private DataStore dataStore;
-  
-  /** The Consistent Hash Table. */
+
+  /**
+   * The Consistent Hash Table.
+   */
   public ConsistentHashTableImpl<Address> ch;
-  
-  /** The options. */
+
+  /**
+   * The options.
+   */
   Properties options;
-  
-  /** The state. */
+
+  /**
+   * The state.
+   */
   byte[] state;
-  
-  /** The system channel. */
+
+  /**
+   * The system channel.
+   */
   private Channel systemChannel;
-  
-  /** The user channel. */
+
+  /**
+   * The user channel.
+   */
   private Channel userChannel;
-  
-  /** The replica guard timer. */
+
+  /**
+   * The replica guard timer.
+   */
   private Timer replicaGuardTimer;
 
   /**
    * Instantiates a new node implementation.
    *
    * @param dataStore the data store
-   * @param options the options
+   * @param options   the options
    */
   public NodeImpl(DataStore dataStore, Properties options) {
     this.logger.setLevel(Level.ALL);
@@ -70,9 +101,11 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     this.options = options;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   public NodeDescriptor createNodeDescriptor(String fileName) {
-    return createNodeDescriptor(this.ch.get(this.dataStore.getFileListName()));
+    return createNodeDescriptor(ch.get(fileName));
   }
 
   /**
@@ -84,15 +117,16 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
   public NodeDescriptor createNodeDescriptor(Address address) {
     SystemCommsClientImpl systemCommsClient = SystemCommsClientImpl.getSystemComsClient(this.systemComms
         .GetDispatcher(), address);
-    NodeDescriptor node = new NodeDescriptorImpl(address, systemCommsClient, systemCommsClient);
+    NodeDescriptor node = new NodeDescriptorImpl(address, systemCommsClient);
     return node;
   }
 
-  /** {@inheritDoc} 
-   *  Connects to the system
-   *  Initializes Data Store
-   *  Creates Client communications channel
-   *  Schedules replica guard runs. 
+  /**
+   * {@inheritDoc}
+   * Connects to the system
+   * Initializes Data Store
+   * Creates Client communications channel
+   * Schedules replica guard runs.
    */
   public void start() throws ChannelException {
     // Channel for system communications (within the cluster)
@@ -132,7 +166,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     userChannel.close();
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   public void replicaGuard() {
     logger.info("replicaGuard tick.");
     for (DataObject obj : this.dataStore.getAllDataObjects()) {
@@ -150,10 +186,11 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  /** {@inheritDoc}
+  /**
+   * {@inheritDoc}
    * Moves the files around the system initially to it's masters
    * also replicates the files this node will be master for
-   * Finally sends out joinAndInitalized message  
+   * Finally sends out joinAndInitalized message
    */
   @Override
   public void initializeDataStore() {
@@ -184,9 +221,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
         }
       }
       // Now check the filelist (for the files I'm master)
-      if (this.amIMaster(obj.getName()) && !this.systemComms.contains(obj.getName())) {
-        this.systemComms.addFileName(obj.getName());
-      }
+      //if (this.amIMaster(obj.getName()) && !this.systemComms.contains(obj.getName())) {
+      //  this.systemComms.addFileName(obj.getName());
+      //}
     }
 
     // If I'm not the first in cluster - sent the message that I'm ready to go
@@ -200,9 +237,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  /** {@inheritDoc}
+  /**
+   * {@inheritDoc}
    * Checks whether there are any changes in the system that would make me or new node master of the files
-   * if so - manages that. 
+   * if so - manages that.
    */
   @Override
   public void nodeJoined(NodeDescriptor node, ConsistentHashTable<Address> oldCh) {
@@ -238,9 +276,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  /** {@inheritDoc}
-   *  Check whether I will become a master of any files that leaving node left behind
-   *  if so - takes ownership an manages replicas.  
+  /**
+   * {@inheritDoc}
+   * Check whether I will become a master of any files that leaving node left behind
+   * if so - takes ownership an manages replicas.
    */
   @Override
   public void nodeLeft(Address nodeAddress, ConsistentHashTable<Address> oldCh) {
@@ -259,7 +298,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean amIMaster(String fileName) {
     return this.ch.get(fileName).equals(this.systemChannel.getAddress());
@@ -275,7 +316,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     return ch.getPreviousNodes(filename, REPLICA_COUNT).contains(systemChannel.getAddress());
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void replicateDataObject(DataObject obj) {
     logger.fine("Replicating file: " + obj.getName());
@@ -295,9 +338,10 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  /** {@inheritDoc} 
-   *  Manages messages sent to the system particulary JoinedAndInitialized messages 
-   *  of nodes joining the system. Fires the nodeJoined once this message is received.
+  /**
+   * {@inheritDoc}
+   * Manages messages sent to the system particulary JoinedAndInitialized messages
+   * of nodes joining the system. Fires the nodeJoined once this message is received.
    */
   @Override
   public synchronized void receive(Message message) {
@@ -312,13 +356,17 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public byte[] getState() {
     return state;
   }
 
-  /** {@inheritDoc} */
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void setState(byte[] bytes) {
     // Not totally sure what messages we can receive, probably broadcast of
@@ -327,11 +375,12 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     state = bytes;
   }
 
-  /** {@inheritDoc}
+  /**
+   * {@inheritDoc}
    * Joined/Left the network - synchronized causes less problems and solves lots
-   * Fires relevant events when node leaves the system - when node joins it waits for 
+   * Fires relevant events when node leaves the system - when node joins it waits for
    * joinedAndInitialized message - to avoid mess and allow node to sort out it's internal
-   * state first. 
+   * state first.
    */
   @Override
   public synchronized void viewAccepted(View view) {
@@ -363,7 +412,8 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  /** {@inheritDoc} 
+  /**
+   * {@inheritDoc}
    * Suspect that node has left the network
    * fires appropriate nodeLeft event.
    */
@@ -377,7 +427,9 @@ public class NodeImpl implements Node, MessageListener, MembershipListener {
     }
   }
 
-  /** {@inheritDoc} */ 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void block() {
     // probably can be left empty.
