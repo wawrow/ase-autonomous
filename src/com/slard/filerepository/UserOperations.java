@@ -21,7 +21,7 @@ public interface UserOperations {
    *
    * @return the file names
    */
-  List<String> getFileNames();
+  List<String> getFileNames(String regex);
 
   /**
    * Store a data object.

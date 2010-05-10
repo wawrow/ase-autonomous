@@ -101,8 +101,9 @@ public class UserCommsClientImpl implements UserOperations {
 
   @SuppressWarnings("unchecked")
   @Override
-  public List<String> getFileNames() {
-    MethodCall getFileNamesCall = new MethodCall("getFileNames", null, new Class[]{});
+  public List<String> getFileNames(String regex) {
+    MethodCall getFileNamesCall = new MethodCall("getFileNames", null, new Class[]{String.class});
+    getFileNamesCall.setArgs(new String[]{regex});
     Set<String> files = new HashSet<String>();
     try {
       RspList responseList = dispatcher.callRemoteMethods(null, getFileNamesCall,
