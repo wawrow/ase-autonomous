@@ -2,10 +2,7 @@ package com.slard.filerepository;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -18,19 +15,14 @@ public class DataStoreImpl implements DataStore {
    */
   private String storeLocation;
   private String hostname;
-  private final FileSystemHelper fileSystemHelper = new FileSystemHelper();
+  private final FileSystemHelper fs;
 
   /**
    * The logger.
    */
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-  /**
-   * The system file list helper - provides access to file list operations.
-   */
-//  private SystemFileList fileList = null;
-
-  private Map<String, Long> fileCache = null;
+  private Map<String, FSDataObject> fileCache = null;  // really shiould be an LRU
 
   /**
    * Instantiates a new data store implementation.
@@ -43,15 +35,22 @@ public class DataStoreImpl implements DataStore {
     // Make sure the directory exists...
     File directory = new File(storeLocation);
     directory.mkdirs();
-    this.logger.info("Data store initialized in " + this.storeLocation);
+    this.logger.info("Data store initialized in " + storeLocation);
     this.hostname = options.getProperty("datastore.hostname", "localhost");
+    this.fs = new FileSystemHelper(directory);
   }
 
   @Override
   public void initialise() {
-    fileCache = new HashMap<String, Long>();
-    for (String fname : new File(storeLocation).list()) {
-      fileCache.put(fname, getCRC(fname));
+    fileCache = new HashMap<String, FSDataObject>();
+    for (String name : new File(storeLocation).list()) {
+      try {
+        FSDataObject file = new FSDataObject(new DataObjectImpl(name, fs.readFile(name)), fs);
+        file.flush(false);  // we don't need the data, we can get it later.
+        fileCache.put(name, file);
+      } catch (IOException e) {
+        logger.warning("failed to read file " + name);
+      }
     }
   }
 
@@ -82,17 +81,19 @@ public class DataStoreImpl implements DataStore {
    * @return ArrayList
    */
   @Override
-  public ArrayList<DataObject> getAllDataObjects() {
-    ArrayList<DataObject> list = new ArrayList<DataObject>();
-    File directory = new File(storeLocation);
-    for (String file : directory.list()) {
-      DataObject obj = retrieve(file);
-      if (obj != null) {
-        list.add(obj);
-        fileCache.put(obj.getName(), obj.getCRC());
-      }
+  public Collection<DataObject> getAllDataObjects() {
+    return new HashSet<DataObject>(fileCache.values());
+  }
+
+  @Override
+  public Boolean fillObject(DataObject file) {
+    try {
+      ((FSDataObject) file).fill();
+    } catch (IOException e) {
+      logger.warning("unable to populate file " + file.getName());
+      return false;
     }
-    return list;
+    return true;
   }
 
   /**
@@ -102,10 +103,11 @@ public class DataStoreImpl implements DataStore {
    * @return DataObjectImpl
    */
   @Override
-  public DataObjectImpl retrieve(String name) {
+  public DataObject retrieve(String name) {
     try {
-      File file = new File(storeLocation, name);
-      return new DataObjectImpl(name, fileSystemHelper.readFile(file));
+      FSDataObject file = fileCache.get(name);
+      file.fill();
+      return file;
     } catch (IOException ex) {
       logger.warning("Exception while retrieving the file: " + ex.toString());
       return null;
@@ -120,33 +122,33 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public boolean delete(String name) {
-    this.logger.info("Deleting data object: " + name);
-    File file = new File(storeLocation, name);
+    logger.info("Deleting data object: " + name);
     fileCache.remove(name);
-    return file.delete();
+    return fs.delete(name);
   }
 
   /**
    * Adds an object to the object store. If the object already exists then the
    * add operation will fail with a DataObjectExistsException
    *
-   * @param dataObject the DataObject containing the object name and data to be added to
-   *                   the object store
+   * @param obj the DataObject containing the object name and data to be added to
+   *            the object store
    * @return the boolean
    */
   @Override
-  public Boolean store(DataObject dataObject) {
-    this.logger.info("About to store data object: " + dataObject.getName());
-    File file = new File(storeLocation, dataObject.getName());
-    if (file.exists()) {
-      logger.warning("Attempt to store file that already exists: " + dataObject.getName());
+  public Boolean store(DataObject obj) {
+    String name = obj.getName();
+    logger.info("About to store data object: " + name);
+    if (fs.exists(name)) {
+      logger.warning("Attempt to store file that already exists: " + name);
       return false;
     }
     try {
-      fileSystemHelper.writeFile(file, dataObject.getData());
-      fileCache.put(dataObject.getName(), dataObject.getCRC());
+      FSDataObject file = new FSDataObject(obj, fs);
+      file.flush(true);
+      fileCache.put(name, file);
     } catch (IOException ex) {
-      logger.warning("Exception while storing the file: " + dataObject.getName() + " : " + ex.toString());
+      logger.warning("Exception while storing the file: " + name + ": " + ex.toString());
       return false;
     }
     return true;
@@ -156,29 +158,23 @@ public class DataStoreImpl implements DataStore {
    * Replaces an object in the object store. If the object does not already
    * exist then the operation fails with a FileNotFoundException
    *
-   * @param dataObject the DataObject to be replaced
+   * @param file the DataObject to be replaced
    * @return true, if successful
    */
   @Override
-  public boolean replace(DataObject dataObject) {
-    File file = new File(storeLocation, dataObject.getName());
-    if (!file.exists()) {
-      //throw new FileNotFoundException(dataObject.getName() + " not found");
+  public boolean replace(DataObject file) {
+    String name = file.getName();
+    if (!fs.exists(name)) {
       return false;
     }
-
     // Rename to something temporary until we know the add worked
-    String tempFileName = dataObject.getName() + ".tmp";
-    if (!file.renameTo(new File(storeLocation, tempFileName))) {
+    String tempFileName = name + ".tmp";
+    if (!fs.rename(name, tempFileName)) {
       //throw new Exception("Could not rename " + dataObject.getName() + " to " + tempFileName);
       return false;
     }
-    try {
-      store(dataObject);
-    } catch (Exception e) {
-      // The add failed so rename the temporary file back to the original
-      file.renameTo(new File(dataObject.getName()));
-      //throw e;
+    if (!store(file)) {
+      fs.rename(tempFileName, name);
       return false;
     }
     delete(tempFileName);
@@ -190,14 +186,14 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public Long getCRC(String fileName) {
-    return this.retrieve(fileName).getCRC();
+    return fileCache.get(fileName).getCRC();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ArrayList<String> list() {
+  public List<String> list() {
     return new ArrayList<String>(fileCache.keySet());
   }
 

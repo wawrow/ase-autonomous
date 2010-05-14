@@ -25,7 +25,6 @@ public class FileRepository {
       }
     });
 
-    //SimpleFormatter());
     console.setLevel(Level.FINEST);
     logManager.getLogger("").addHandler(console);
 
@@ -46,6 +45,5 @@ public class FileRepository {
       node.start();
     } catch (ChannelException e) {
     }
-    //node.stop();
   }
 }

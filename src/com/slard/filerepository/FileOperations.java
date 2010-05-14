@@ -1,6 +1,6 @@
 package com.slard.filerepository;
 
-import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -30,7 +30,7 @@ public interface FileOperations {
    *
    * @return the array list
    */
-  ArrayList<String> list();
+  List<String> list();
 
   /**
    * Checks whether file exists.

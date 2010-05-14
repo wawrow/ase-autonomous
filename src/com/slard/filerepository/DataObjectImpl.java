@@ -1,5 +1,7 @@
 package com.slard.filerepository;
 
+import java.io.IOException;
+import java.util.logging.Logger;
 import java.util.zip.CRC32;
 
 /**
@@ -12,17 +14,21 @@ public class DataObjectImpl implements DataObject {
    */
   private static final long serialVersionUID = 2411701715160473042L;
 
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
+
   /**
    * The name.
    */
-  private String name;
+  private final String name;
 
   /**
    * The byte content.
    */
-  private byte[] content;
+  private byte[] content = null;
 
-  private Long checksum;
+  private Long checksum = null;
+
+  private int size = 0;
 
   /**
    * Instantiates a new data object implementation.
@@ -33,17 +39,41 @@ public class DataObjectImpl implements DataObject {
   public DataObjectImpl(String name, byte[] content) {
     this.name = name;
     this.content = content;
+    this.size = content.length;
+    this.checksum = getChecksum(content);
+  }
+
+  public DataObjectImpl(DataObject source) {
+    this.name = source.getName();
+    try {
+      this.content = source.getData();
+    } catch (IOException e) {
+      this.content = null;
+    }
+    this.size = source.getSize();
+    this.checksum = source.getCRC();
+  }
+
+  private static Long getChecksum(byte[] content) {
     CRC32 crc = new CRC32();
     crc.reset();
-    crc.update(this.getData());
-    checksum = crc.getValue();
+    crc.update(content);
+    return crc.getValue();
+  }
+
+  protected void setContent(byte[] bytes) {
+    content = bytes;
+    if (content != null) {
+      checksum = getChecksum(bytes);
+      size = bytes.length;
+    }
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public byte[] getData() {
+  public byte[] getData() throws IOException {
     return content;
   }
 
@@ -61,5 +91,10 @@ public class DataObjectImpl implements DataObject {
   @Override
   public Long getCRC() {
     return checksum;
+  }
+
+  @Override
+  public int getSize() {
+    return size;
   }
 }

@@ -17,7 +17,8 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
   /**
    * The circle of all of the nodes.
    */
-  private final SortedMap<Long, T> circle = new TreeMap<Long, T>();
+  private final SortedMap<Long, T> circle = Collections.synchronizedSortedMap(new TreeMap<Long, T>());
+  private Map<T, Long[]> members = Collections.synchronizedMap(new HashMap<T, Long[]>());
 
   /**
    * The hash provider implementation.
@@ -58,7 +59,7 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
    * @return the hash
    */
   private long getHash(String key) {
-    long hash = this.hashProvider.hash(key);
+    long hash = hashProvider.hash(key);
     if (!circle.containsKey(hash)) {
       SortedMap<Long, T> tailMap = circle.tailMap(hash);
       hash = tailMap.isEmpty() ? circle.firstKey() : tailMap.firstKey();
@@ -74,7 +75,7 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
    * @return the long
    */
   private long hashForNode(T node, int i) {
-    return this.hashProvider.hash(i + node.toString());
+    return hashProvider.hash(i + node.toString());
   }
 
   /**
@@ -82,8 +83,11 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
    */
   @Override
   public void add(T node) {
-    for (int i = 0; i < numberOfReplicas; i++) {
-      circle.put(hashForNode(node, i), node);
+    Long[] hashes = new Long[numberOfReplicas];
+    for (int i = 0; i < hashes.length; i++) {
+      hashes[i] = hashForNode(node, i);
+      circle.put(hashes[i], node);
+      members.put(node, hashes);
     }
   }
 
@@ -92,8 +96,12 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
    */
   @Override
   public void remove(T node) {
-    for (int i = 0; i < numberOfReplicas; i++) {
-      circle.remove(hashForNode(node, i));
+    Long[] hashes = members.remove(node);
+    if (hashes == null) {
+      return;
+    }
+    for (int i = 0; i < hashes.length; i++) {
+      circle.remove(hashes[i]);
     }
   }
 
@@ -113,11 +121,11 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
    */
   @Override
   public List<T> getPreviousNodes(String key, int count) {
-    List<T> result = new ArrayList<T>();
+    List<T> result = new LinkedList<T>();
     long startingPoint = getHash(key);
-    SortedMap<Long, T> tailMap = circle.tailMap(startingPoint + 1);
+    SortedMap<Long, T> tailMap = circle.tailMap(startingPoint);
     long currHash = tailMap.isEmpty() ? circle.firstKey() : tailMap.firstKey();
-    T startingNode = get(key);
+    T startingNode = circle.get(startingPoint);
     while (result.size() < count && currHash != startingPoint) {
       T curNode = circle.get(currHash);
       if (!curNode.equals(startingNode) && !result.contains(curNode)) {  // count small so ok.
@@ -135,15 +143,34 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
   @Override
   public boolean contains(T node) {
     // Will check only first hash
-    return circle.containsKey(hashForNode(node, 0));  // faster than scanning values
+    return members.containsKey(node);  // faster than scanning values
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public List<T> getAllValues() {
-    return new ArrayList<T>(new HashSet<T>(circle.values()));  // quick dedup.
+  public Set<T> getAllValues() {
+    return members.keySet();
+  }
+
+  @Override
+  public Changes<T> update(Set<T> currentMembers) {
+    final Set<T> added = new HashSet<T>(currentMembers);
+    final Set<T> removed = new HashSet<T>(members.keySet());
+
+    removed.removeAll(currentMembers);
+    added.removeAll(members.keySet());
+
+    return new Changes<T>() {
+      public Set<T> getAdded() {
+        return added;
+      }
+
+      public Set<T> getRemoved() {
+        return removed;
+      }
+    };
   }
 
 }

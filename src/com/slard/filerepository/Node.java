@@ -3,6 +3,8 @@ package com.slard.filerepository;
 import org.jgroups.Address;
 import org.jgroups.ChannelException;
 
+import java.util.Set;
+
 /**
  * The Interface Node.
  */
@@ -18,7 +20,7 @@ public interface Node {
   /**
    * Initialize data store.
    */
-  public abstract void initializeDataStore();
+  // public abstract void initializeDataStore();
 
   /**
    * Replica guard.
@@ -30,19 +32,19 @@ public interface Node {
    * Node joined.
    * Event fired when node joins the system.
    *
-   * @param node the node
+   * @param node  the node
    * @param oldCh Hash table state from before the node joins
    */
-  void nodeJoined(NodeDescriptor node, ConsistentHashTable<Address> oldCh);
+  void nodeJoined(Address address);
 
   /**
    * Node left.
    * Event fired when node leaves the system.
    *
    * @param nodeAddress the node address
-   * @param oldCh Hash table state from before the node joins
+   * @param oldCh       Hash table state from before the node joins
    */
-  void nodeLeft(Address nodeAddress, ConsistentHashTable<Address> oldCh);
+  void nodeLeft(Address nodeAddress);
 
   /**
    * Replicate data object.
@@ -58,12 +60,18 @@ public interface Node {
    * @return true, if i am master
    */
   boolean amIMaster(String fileName);
-  
-  /**
-   * Creates the node descriptor of node that is owner of given file.
-   *
-   * @param fileName the file name
-   * @return the node descriptor
-   */
-  NodeDescriptor createNodeDescriptor(String fileName);
+
+  void update(Set<Address> members);
+
+  void remove(Address address);
+
+  DataStore getDataStore();
+
+  SystemCommsClient getSystemComms();
+
+  Address getMaster(String name);
+
+  Set<Address> getReplicas(String name);
+
+  int getReplicaCount();
 }
