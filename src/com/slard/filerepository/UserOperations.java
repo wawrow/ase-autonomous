@@ -1,7 +1,5 @@
 package com.slard.filerepository;
 
-import java.io.Serializable;
-import java.text.NumberFormat;
 import java.util.List;
 
 /**
@@ -31,6 +29,8 @@ public interface UserOperations {
    */
   Boolean store(DataObject dataObject);
 
+  Boolean storeAll(DataObject dataObject);
+
   /**
    * Retrieve a data object.
    *
@@ -55,26 +55,13 @@ public interface UserOperations {
    */
   boolean delete(String name);
 
-  /**
-   * Class that will wrap up capacity state for a node.
-   */
-  class DiskSpace implements Serializable {
-    public final long free;
-    public final long total;
-    public final String hostname;
 
-    DiskSpace(String hostname, long free, long total) {
-      this.hostname = hostname;
-      this.free = free;
-      this.total = total;
-    }
+  interface Usage {
+    Long getDiskFree();
 
-    public String toString() {
-      return new StringBuilder(hostname)
-          .append(": ").append(NumberFormat.getNumberInstance().format(free / 1000000))
-          .append(" GB of ").append(NumberFormat.getNumberInstance().format(total / 1000000))
-          .append(" GB").toString();
-    }
+    Long getFileTotals();
+
+    String getHostname();
   }
 
   /**
@@ -82,6 +69,6 @@ public interface UserOperations {
    *
    * @return disk usage and hostname of node.
    */
-  DiskSpace getDiskSpace();
+  Usage getDiskSpace();
 }
 

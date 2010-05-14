@@ -132,6 +132,11 @@ public class UserCommsClientImpl implements UserOperations {
   }
 
   @Override
+  public Boolean storeAll(DataObject dataObject) {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
   public DataObject retrieve(String name) {
     MethodCall retrieveCall = new MethodCall("retrieve", null, new Class[]{String.class});
     retrieveCall.setArgs(new String[]{name});

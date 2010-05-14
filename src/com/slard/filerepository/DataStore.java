@@ -1,6 +1,6 @@
 package com.slard.filerepository;
 
-import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * The Interface DataStore.
@@ -22,7 +22,7 @@ public interface DataStore extends FileOperations {
    *
    * @return the all data objects
    */
-  ArrayList<DataObject> getAllDataObjects();
+  Collection<DataObject> getAllDataObjects();
 
   /**
    * Returns the hostname of the data store.
@@ -30,4 +30,6 @@ public interface DataStore extends FileOperations {
    * @return the hostname
    */
   String getHostname();
+
+  Boolean fillObject(DataObject file);
 }

@@ -1,14 +1,18 @@
 package com.slard.filerepository;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class FileSystemHelper {
-  
+  private final File storeLocation;
+
+  public FileSystemHelper(File storeLocation) {
+    this.storeLocation = storeLocation;
+  }
+
+  public byte[] readFile(String name) throws IOException {
+    return readFile(new File(storeLocation, name));
+  }
+
   public byte[] readFile(File file) throws IOException {
     byte[] fileContents = new byte[(int) file.length()];
     FileInputStream fis = new FileInputStream(file);
@@ -25,6 +29,11 @@ public class FileSystemHelper {
     }
   }
 
+
+  public void writeFile(String name, byte[] fileContents) throws IOException {
+    writeFile(new File(storeLocation, name), fileContents);
+  }
+
   public void writeFile(File file, byte[] fileContents) throws IOException {
     FileOutputStream fos = new FileOutputStream(file);
     BufferedOutputStream bos = new BufferedOutputStream(fos);
@@ -36,4 +45,17 @@ public class FileSystemHelper {
     }
   }
 
+  public boolean delete(String name) {
+    return new File(storeLocation, name).delete();
+  }
+
+  public boolean exists(String name) {
+    return new File(storeLocation, name).exists();
+  }
+
+  public boolean rename(String from, String to) {
+    File fromFile = new File(storeLocation, from);
+    File toFile = new File(storeLocation, to);
+    return fromFile.renameTo(toFile);
+  }
 }
