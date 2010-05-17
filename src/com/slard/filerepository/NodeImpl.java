@@ -3,10 +3,11 @@ package com.slard.filerepository;
 import org.jgroups.Address;
 import org.jgroups.Channel;
 import org.jgroups.ChannelException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 // TODO: Auto-generated Javadoc
 
@@ -27,19 +28,14 @@ public class NodeImpl implements Node {
   /**
    * logger.
    */
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-
-  /**
-   * The Constant USER_CHANNEL_NAME - Name of the channel used in communicating with end users.
-   */
-  public static final String USER_CHANNEL_NAME = "FileRepositoryClusterClient";
+  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
   /**
    * The system communications implementation.
    */
   private SystemCommsClient systemComms = null;
 
-  private UserOperations userComms = null;
+  private UserCommsInterface userComms = null;
 
   /**
    * The data store.
@@ -75,7 +71,6 @@ public class NodeImpl implements Node {
    * @param options   the options
    */
   public NodeImpl(DataStore dataStore, Properties options) {
-    this.logger.setLevel(Level.ALL);
     this.dataStore = dataStore;
     this.cht = new ConsistentHashTableImpl<Address>(CHT_TICK_COUNT, null);
     this.options = options;
@@ -91,12 +86,12 @@ public class NodeImpl implements Node {
   public void start() throws ChannelException {
     systemComms = new SystemComms(this);
     myAddress = systemComms.getAddress();
-
-    logger.fine("system channel connected and system coms server ready");
+    cht.add(myAddress);
+    logger.trace("system channel connected and system coms server ready");
     logger.info("My Address: " + myAddress.toString());
 
-
     userComms = new UserCommsServer(this);
+    logger.trace("User channel connected and user coms server ready");
 
     this.replicaGuardTimer = new Timer();
     replicaGuardTimer.schedule(new TimerTask() {
@@ -143,16 +138,21 @@ public class NodeImpl implements Node {
    * {@inheritDoc}
    */
   public void replicaGuard() {
-    logger.fine("replicaGuard tick.");
+    logger.trace("replicaGuard tick.");
+    update(new HashSet<Address>(systemComms.getChannel().getView().getMembers()));
     for (DataObject file : dataStore.getAllDataObjects()) {
       String name = file.getName();
       if (amIMaster(name)) {
         replicateDataObject(file);
       } else if (!amIReplica(name)) {
-        logger.fine("ensuring master has " + name);
+        logger.debug("ensuring master has " + name);
         Address master = cht.get(name);
-        if (file.getData() != null && !systemComms.hasFile(name, master)) {
-          systemComms.store(file, master);
+        try {
+          if (file.getData() != null && !systemComms.hasFile(name, master)) {
+            systemComms.store(file, master);
+          }
+        } catch (IOException e) {
+          logger.warn("couldn't get data for {} {}", name, e.toString());
         }
         dataStore.delete(name);
       }
@@ -187,16 +187,35 @@ public class NodeImpl implements Node {
     Set<Address> store = new HashSet<Address>(REPLICA_COUNT);
     final String name = obj.getName();
     for (Address replica : cht.getPreviousNodes(name, REPLICA_COUNT)) {
-      if (obj.getData() != null && systemComms.hasFile(name, replica)) {
-
-        if (!systemComms.getCRC(name, replica).equals(obj.getCRC())) {
+      logger.trace("Checking replica {}", replica.toString());
+      byte[] data;
+      try {
+        data = obj.getData();
+      } catch (IOException e) {
+        logger.warn("unable to get data for {} {}", name, e);
+        data = null;
+      }
+      if (data != null && systemComms.hasFile(name, replica)) {
+        Long crc = systemComms.getCRC(name, replica);
+        if (crc == null) {
+          logger.warn("failed to check crc of file {} on {}", name, replica.toString());
+          continue;
+        }
+        if (!crc.equals(obj.getCRC())) {
           logger.info("Replacing replica file " + name + " on " + replica.toString());
           replace.add(replica);
+        } else {
+          logger.trace("{} already has a matching copy of {}", replica.toString(), name);
         }
-      } else if (obj.getData() != null) {
-        logger.info("Replicating file " + name + " on " + replica.toString());
+      } else if (data != null) {
+        logger.info("Replicating file {} on {}", name, replica.toString());
         store.add(replica);
+      } else {
+        logger.error("file {} has no content.", name);
       }
+    }
+    if (replace.isEmpty() && store.isEmpty()) {
+      logger.trace("no need to replicate {}", name);
     }
     if (!replace.isEmpty()) {
       systemComms.replace(obj, replace);
@@ -213,6 +232,7 @@ public class NodeImpl implements Node {
    */
   @Override
   public void nodeJoined(Address address) {
+    cht.add(address);
     for (DataObject file : dataStore.getAllDataObjects()) {
       final String name = file.getName();
       // If the guy is master of any of my files
@@ -277,7 +297,7 @@ public class NodeImpl implements Node {
    */
   @Override
   public void update(Set<Address> members) {
-    logger.fine("ViewAccepted");
+    logger.trace("ViewAccepted");
 
     // find nodes that joined
     ConsistentHashTable.Changes<Address> changes = cht.update(members);

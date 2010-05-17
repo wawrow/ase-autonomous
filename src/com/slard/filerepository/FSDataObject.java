@@ -1,5 +1,8 @@
 package com.slard.filerepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 /**
@@ -10,7 +13,8 @@ import java.io.IOException;
  * To change this template use File | Settings | File Templates.
  */
 public class FSDataObject extends DataObjectImpl {
-  private FileSystemHelper fs;
+  transient private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+  transient private FileSystemHelper fs;
 
   public FSDataObject(DataObject file, FileSystemHelper fs) {
     super(file);
@@ -19,7 +23,9 @@ public class FSDataObject extends DataObjectImpl {
 
   @Override
   public byte[] getData() throws IOException {
-    fill();
+    if (super.getData() == null) {
+      fill();
+    }
     return super.getData();
   }
 
@@ -29,6 +35,7 @@ public class FSDataObject extends DataObjectImpl {
 
   public void flush(boolean write) throws IOException {
     if (write) {
+      logger.trace("writing file {} of length {}", getName(), super.getData().length);
       fs.writeFile(getName(), super.getData());
     }
     super.setContent(null);

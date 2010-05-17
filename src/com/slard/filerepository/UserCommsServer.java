@@ -5,34 +5,33 @@ import org.jgroups.Channel;
 import org.jgroups.ChannelException;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.RpcDispatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-public class UserCommsServer implements UserOperations {
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private static final String CHANNEL_NAME = "ClientCluster";
-  private RpcDispatcher dispatcher = null;
+public class UserCommsServer implements UserCommsInterface {
+  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
   private Node parent = null;
   private Address myAddress;
 
   public UserCommsServer(Node parent) {
     this.parent = parent;
-    System.setProperty("jgroups.udp.mcast_port", "45589");
+    System.setProperty("jgroups.udp.mcast_port", CLIENT_PORT);
     RpcDispatcher tmp;
     try {
-      Channel channel = new JChannel(CHANNEL_NAME);
+      Channel channel = new JChannel();
+      channel.connect(CHANNEL_NAME);
       myAddress = channel.getAddress();
-      tmp = new RpcDispatcher(channel, null, null, this);
+      new RpcDispatcher(channel, null, null, this);
     } catch (ChannelException e) {
-      tmp = null;
+      logger.warn("failed to connect userserver to channel {}", CHANNEL_NAME);
     }
-    dispatcher = tmp;
   }
 
   @Override
@@ -41,14 +40,22 @@ public class UserCommsServer implements UserOperations {
   }
 
   // Clients may ask about whether this node is the master of a file
+  @Override
   public Address isMaster(String name) {
-    logger.fine("Are we master of " + name);
-    return parent.getMaster(name);
+    logger.trace("Are we master of " + name);
+    Address master = parent.getMaster(name);
+    logger.debug("got the master as {}", master.toString());
+    if (master == parent.getSystemComms().getAddress()) {
+      logger.debug("returning my client address {}", myAddress.toString());
+      return myAddress;
+    }
+    return null;
   }
 
   // Clients may ask about file ownership before directing their requests
+  @Override
   public Address hasFile(String name) {
-    logger.fine("Do we have file " + name);
+    logger.trace("Do we have file " + name);
     if (parent.getDataStore().hasFile(name)) {
       return myAddress;
     }
@@ -57,7 +64,7 @@ public class UserCommsServer implements UserOperations {
 
   @Override
   public List<String> getFileNames(String regex) {
-    logger.fine("List files");
+    logger.trace("List files");
     Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
     List<String> ret = new LinkedList<String>();
     for (String name : parent.getDataStore().list()) {
@@ -70,15 +77,19 @@ public class UserCommsServer implements UserOperations {
 
   @Override
   public Boolean store(DataObject file) {
-    // The client should have directed this at the master, but we double check    
-    logger.fine("Client store " + file.getName());
-    return parent.getSystemComms().store(file, parent.getMaster(file.getName()));
+    // The client should have directed this at the master, but we double check
+    logger.trace("Client store " + file.getName());
+    Address master = parent.getMaster(file.getName());
+    if (master == null) {
+      logger.error("Storing to all");
+    }
+    return parent.getSystemComms().store(file, master);
   }
 
   @Override
   public Boolean storeAll(DataObject file) {
     // The client should have directed this at the master, but we double check
-    logger.fine("Client storeAll " + file.getName());
+    logger.trace("Client storeAll " + file.getName());
     parent.getSystemComms().store(file, parent.getMaster(file.getName()));
     parent.replicateDataObject(file);
     return true;
@@ -87,7 +98,7 @@ public class UserCommsServer implements UserOperations {
   @Override
   public DataObject retrieve(String name) {
     // Try from our own store first - should work because clients target the master 
-    logger.fine("Retrieve: " + name);
+    logger.trace("Retrieve: " + name);
     DataObject file = parent.getDataStore().retrieve(name);
     if (file != null)
       return file;
@@ -97,13 +108,13 @@ public class UserCommsServer implements UserOperations {
   @Override
   public boolean replace(DataObject file) {
     // The client should have directed this at the master, but we double check    
-    logger.fine("replace: " + file.getName());
+    logger.trace("replace: " + file.getName());
     return parent.getSystemComms().replace(file, parent.getMaster(file.getName()));
   }
 
   @Override
   public boolean delete(String name) {
-    this.logger.info("delete: " + name);
+    logger.trace("delete: " + name);
     Set<Address> copies = new HashSet<Address>();
     copies.add(parent.getMaster(name));
     copies.addAll(parent.getReplicas(name));
@@ -112,22 +123,13 @@ public class UserCommsServer implements UserOperations {
 
   @Override
   public Usage getDiskSpace() {
-    return new Usage() {
-      public String getHostname() {
-        return parent.getDataStore().getHostname();
-      }
+    String hostname = parent.getDataStore().getHostname();
+    Long free = File.listRoots()[0].getUsableSpace();
+    Long total = 0L;
+    for (DataObject file : parent.getDataStore().getAllDataObjects()) {
+      total += file.getSize();
+    }
 
-      public Long getDiskFree() {
-        return File.listRoots()[0].getUsableSpace();
-      }
-
-      public Long getFileTotals() {
-        long ret = 0;
-        for (DataObject file : parent.getDataStore().getAllDataObjects()) {
-          ret += file.getSize();
-        }
-        return ret;
-      }
-    };
+    return new Usage(hostname, free, total);
   }
 }

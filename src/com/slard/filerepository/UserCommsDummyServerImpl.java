@@ -1,39 +1,21 @@
 package com.slard.filerepository;
 
 import org.jgroups.Address;
-import org.jgroups.Channel;
-import org.jgroups.MembershipListener;
-import org.jgroups.MessageListener;
-import org.jgroups.blocks.RpcDispatcher;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 /*
  * Intended to be used by clients which don't provide any server functionality 
  * other than returning false from the isServer() method
  */
-public class UserCommsDummyServerImpl implements UserOperations {
+public class UserCommsDummyServerImpl implements UserCommsInterface {
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
-  private RpcDispatcher dispatcher = null;
-
-  public UserCommsDummyServerImpl(Channel channel, MessageListener messages, MembershipListener members) {
-    this.dispatcher = new RpcDispatcher(channel, messages, members, this);
-  }
-
-  public RpcDispatcher GetDispatcher() {
-    return this.dispatcher;
-  }
-
-  public void stop() {
-    dispatcher.stop();
-  }
-
+  @Override
   public Address isMaster(String name) {
     return null;
   }
 
+  @Override
   public Address hasFile(String name) {
     return null;
   }
@@ -54,6 +36,11 @@ public class UserCommsDummyServerImpl implements UserOperations {
   }
 
   @Override
+  public Boolean storeAll(DataObject file) {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
+
+  @Override
   public DataObject retrieve(String name) {
     return null;
   }
@@ -69,7 +56,7 @@ public class UserCommsDummyServerImpl implements UserOperations {
   }
 
   @Override
-  public DiskSpace getDiskSpace() {
+  public Usage getDiskSpace() {
     return null;
   }
 }

@@ -1,9 +1,16 @@
 package com.slard.filerepository;
 
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * The Class DataStore Implementation.
@@ -20,9 +27,9 @@ public class DataStoreImpl implements DataStore {
   /**
    * The logger.
    */
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
-  private Map<String, FSDataObject> fileCache = null;  // really shiould be an LRU
+  private Cache fileCache;
 
   /**
    * Instantiates a new data store implementation.
@@ -42,14 +49,26 @@ public class DataStoreImpl implements DataStore {
 
   @Override
   public void initialise() {
-    fileCache = new HashMap<String, FSDataObject>();
+    CacheManager.create();
+    CacheManager manager = CacheManager.getInstance();
+    this.fileCache = new Cache(
+        new CacheConfiguration("files", 10000)
+            .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
+            .overflowToDisk(false)
+            .eternal(false)
+            .timeToLiveSeconds(120)
+            .timeToIdleSeconds(60)
+            .diskPersistent(false)
+            .diskExpiryThreadIntervalSeconds(0));
+    manager.addCache(fileCache);
+    logger.debug("Filecache has status: {}, stats {}", fileCache.getStatus(), fileCache.getStatistics());
     for (String name : new File(storeLocation).list()) {
       try {
         FSDataObject file = new FSDataObject(new DataObjectImpl(name, fs.readFile(name)), fs);
         file.flush(false);  // we don't need the data, we can get it later.
-        fileCache.put(name, file);
+        fileCache.put(new Element(name, file));
       } catch (IOException e) {
-        logger.warning("failed to read file " + name);
+        logger.warn("failed to read file " + name);
       }
     }
   }
@@ -72,7 +91,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public boolean hasFile(String name) {
-    return fileCache.containsKey(name);
+    return fileCache.isKeyInCache(name);
   }
 
   /**
@@ -82,7 +101,19 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public Collection<DataObject> getAllDataObjects() {
-    return new HashSet<DataObject>(fileCache.values());
+    Set<DataObject> ret = new HashSet<DataObject>();
+    for (String name : new File(storeLocation).list()) {
+      try {
+        if (!ret.contains(name)) {
+          FSDataObject file = new FSDataObject(new DataObjectImpl(name, fs.readFile(name)), fs);
+          fileCache.put(new Element(name, file));
+          ret.add(file);
+        }
+      } catch (IOException e) {
+        logger.warn("failed to load file {}, {}", name, e);
+      }
+    }
+    return ret;
   }
 
   @Override
@@ -90,7 +121,7 @@ public class DataStoreImpl implements DataStore {
     try {
       ((FSDataObject) file).fill();
     } catch (IOException e) {
-      logger.warning("unable to populate file " + file.getName());
+      logger.warn("unable to populate file " + file.getName());
       return false;
     }
     return true;
@@ -105,11 +136,11 @@ public class DataStoreImpl implements DataStore {
   @Override
   public DataObject retrieve(String name) {
     try {
-      FSDataObject file = fileCache.get(name);
+      FSDataObject file = (FSDataObject) fileCache.get(name).getObjectValue();
       file.fill();
       return file;
     } catch (IOException ex) {
-      logger.warning("Exception while retrieving the file: " + ex.toString());
+      logger.warn("Exception while retrieving the file: {}", ex);
       return null;
     }
   }
@@ -122,7 +153,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public boolean delete(String name) {
-    logger.info("Deleting data object: " + name);
+    logger.info("Deleting data object: {}", name);
     fileCache.remove(name);
     return fs.delete(name);
   }
@@ -138,17 +169,18 @@ public class DataStoreImpl implements DataStore {
   @Override
   public Boolean store(DataObject obj) {
     String name = obj.getName();
-    logger.info("About to store data object: " + name);
+    logger.trace("About to store data object: " + name);
     if (fs.exists(name)) {
-      logger.warning("Attempt to store file that already exists: " + name);
+      logger.warn("Attempt to store file that already exists: " + name);
       return false;
     }
     try {
       FSDataObject file = new FSDataObject(obj, fs);
+      logger.trace("Storing the file: {}, {}", name, file.getData().length);
       file.flush(true);
-      fileCache.put(name, file);
+      fileCache.put(new Element(name, file));
     } catch (IOException ex) {
-      logger.warning("Exception while storing the file: " + name + ": " + ex.toString());
+      logger.warn("Exception while storing the file: {}, {}", name, ex);
       return false;
     }
     return true;
@@ -178,6 +210,7 @@ public class DataStoreImpl implements DataStore {
       return false;
     }
     delete(tempFileName);
+    fileCache.replace(new Element(name, file));
     return true;
   }
 
@@ -186,7 +219,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public Long getCRC(String fileName) {
-    return fileCache.get(fileName).getCRC();
+    return ((FSDataObject) fileCache.get(fileName).getValue()).getCRC();
   }
 
   /**
@@ -194,7 +227,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public List<String> list() {
-    return new ArrayList<String>(fileCache.keySet());
+    return new ArrayList<String>(fileCache.getKeys());
   }
 
 

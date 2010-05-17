@@ -1,6 +1,7 @@
 package com.slard.filerepository;
 
 import org.jgroups.Address;
+import org.jgroups.Channel;
 
 import java.util.Set;
 
@@ -33,4 +34,6 @@ public interface SystemCommsClient {
   DataObject retrieve(String name, Address address);
 
   Address getAddress();
+
+  Channel getChannel();
 }

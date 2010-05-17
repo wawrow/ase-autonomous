@@ -6,9 +6,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.slard.filerepository.*;
-
 import java.util.List;
+import java.util.Set;
 
 public class NewCHTTests {
 
@@ -48,36 +47,50 @@ public class NewCHTTests {
   }
 
   @Test
-  public void testForfNodeGet() throws Exception {
-    Assert.assertEquals(ch.get("2"), "file2");
-    Assert.assertEquals(ch.get("82"), "file3");
+  public void testLookupGivesExpectedResults() throws Exception {
+    Assert.assertEquals(ch.get("2"), "file1");
+    Assert.assertEquals(ch.get("82"), "file2");
     Assert.assertEquals(ch.get("90"), "file3");
-    Assert.assertEquals(ch.get("220"), "file1");
-    Assert.assertEquals(ch.get("93"), "file1");
-    Assert.assertEquals(ch.get("194"), "file4");
-    Assert.assertEquals(ch.get("175"), "file3");
+    Assert.assertEquals(ch.get("220"), "file4");
+    Assert.assertEquals(ch.get("93"), "file3");
+    Assert.assertEquals(ch.get("194"), "file3");
+    Assert.assertEquals(ch.get("175"), "file2");
   }
 
   @Test
-  public void testReplicasGetting() throws Exception {
+  public void testWeCanGetSomeReplicaNodes() throws Exception {
     List<String> result = ch.getPreviousNodes("93", 2);
-    Assert.assertEquals(result.size(), 2);
-    Assert.assertEquals("file4", result.get(0));
-    Assert.assertEquals("file2", result.get(1));
+    Assert.assertEquals(2, result.size());
+    Assert.assertEquals("file2", result.get(0));
+    Assert.assertEquals("file4", result.get(1));
   }
 
   @Test
-  public void testReplicasGetting2() throws Exception {
-    List<String> result = ch.getPreviousNodes("175", 10);
-    Assert.assertEquals(result.size(), 3);
-    Assert.assertEquals("file4", result.get(0));
+  public void testReplicaNodesRollAround() throws Exception {
+    List<String> result = ch.getPreviousNodes("45", 3);
+    Assert.assertEquals(3, result.size());
+    Assert.assertEquals("file2", result.get(0));
     Assert.assertEquals("file1", result.get(1));
-    Assert.assertEquals("file2", result.get(2));
+    Assert.assertEquals("file4", result.get(2));
   }
 
   @Test
-  public void testGetValues() throws Exception {
-    List<String> values = ch.getAllValues();
+  public void testCanGetReplicasOfLastNode() throws Exception {
+    List<String> result = ch.getPreviousNodes("220", 1);
+    Assert.assertEquals(1, result.size());
+    Assert.assertEquals("file3", result.get(0));
+  }
+
+  @Test
+  public void testCanGetReplicasOfFirstNode() throws Exception {
+    List<String> result = ch.getPreviousNodes("10", 1);
+    Assert.assertEquals(1, result.size());
+    Assert.assertEquals("file4", result.get(0));
+  }
+
+  @Test
+  public void testGetNumberOfPossibleValues() throws Exception {
+    Set<String> values = ch.getAllValues();
     Assert.assertEquals(values.size(), 4);
   }
 

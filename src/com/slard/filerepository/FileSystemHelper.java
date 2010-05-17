@@ -1,8 +1,12 @@
 package com.slard.filerepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 
 public class FileSystemHelper {
+  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
   private final File storeLocation;
 
   public FileSystemHelper(File storeLocation) {
@@ -35,6 +39,7 @@ public class FileSystemHelper {
   }
 
   public void writeFile(File file, byte[] fileContents) throws IOException {
+    logger.trace("writing file {} of length {}", file.getName(), fileContents.length);
     FileOutputStream fos = new FileOutputStream(file);
     BufferedOutputStream bos = new BufferedOutputStream(fos);
     try {
