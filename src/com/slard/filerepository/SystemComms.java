@@ -2,15 +2,11 @@ package com.slard.filerepository;
 
 import org.jgroups.*;
 import org.jgroups.blocks.GroupRequest;
-import org.jgroups.blocks.MethodCall;
-import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.RpcDispatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,14 +16,15 @@ import java.util.logging.Logger;
  * To change this template use File | Settings | File Templates.
  */
 public class SystemComms implements MessageListener, MembershipListener, SystemCommsClient {
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
   private static final String CHANNEL_NAME = "FileRepoCluster";
   private final RpcDispatcher dispatcher;
   private final Node parent;
   private byte[] state = new byte[0];
-  private int sendTimeout = 90;
+  private static final int RPC_TIMEOUT = 30000;
+  private CommsPrep commsPrep;
 
-  enum Calls {
+  enum Calls implements CommsPrep.Calls {
     STORE("store"),
     HAS_FILE("hasFile"),
     GET_CRC("getCRC"),
@@ -50,63 +47,52 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
     this.parent = parent;
     RpcDispatcher tmp;
     try {
-      Channel channel = new JChannel(CHANNEL_NAME);
+      Channel channel = new JChannel();
+      channel.connect(CHANNEL_NAME);
       tmp = new RpcDispatcher(channel, this, this, this);
     } catch (ChannelException e) {
+      logger.error("Failed to connect to channel and initialise dispatcher:", e);
       tmp = null;
     }
     dispatcher = tmp;
+    commsPrep = new CommsPrep(dispatcher, RPC_TIMEOUT);
   }
 
-  public void setSendTimeout(int timeout) {
-    sendTimeout = timeout;
+  public void setTimeout(int timeout) {
+    commsPrep.setTimeout(timeout);
   }
 
+  @Override
+  public Channel getChannel() {
+    return dispatcher.getChannel();
+  }
+
+  private List<Object> issueRpcs(CommsPrep.Calls toCall, Collection<Address> addresses, int gatherOption,
+                                 Object... obj) {
+    return commsPrep.issueRpcs(toCall, addresses, gatherOption, obj);
+  }
+
+  private Object issueRpc(CommsPrep.Calls toCall, Address address, int gatherOption, Object... obj) {
+    return commsPrep.issueRpc(toCall, address, gatherOption, obj);
+  }
+
+  private Object issueRpc(CommsPrep.Calls toCall, Address address, int gatherOptions) {
+    return commsPrep.issueRpc(toCall, address, gatherOptions);
+  }
 
   @Override
   public Address getAddress() {
     return dispatcher.getChannel().getAddress();
   }
-
-  private MethodCall getMethodCall(Calls call, Object... args) {
-    Class[] types = new Class[args.length];
-    for (int i = 0; i < args.length; i++) {
-      types[i] = args[i].getClass();
-    }
-    return new MethodCall(call.method(), args, types);
-  }
-
-  private Boolean issueBooleanRpcs(Calls toCall, Object obj, Set<Address> addresses) {
-    MethodCall call = getMethodCall(toCall, obj);
-    RequestOptions options = new RequestOptions(GroupRequest.GET_ALL, sendTimeout);
-    Boolean ret = true;
-    try {
-      for (Object rsp : dispatcher.callRemoteMethods(addresses, call, options).getResults()) {
-        ret &= (Boolean) rsp;
-      }
-    } catch (Throwable throwable) {
-      logger.log(Level.WARNING, toCall.method() + " rpc failed", throwable);
-    }
-    return ret;
-  }
-
-  private Object issueRpc(Calls toCall, Object obj, Address address) {
-    MethodCall call = getMethodCall(toCall, obj);
-    RequestOptions options = new RequestOptions(GroupRequest.GET_ALL, sendTimeout);
-    Object ret = false;
-    try {
-      ret = dispatcher.callRemoteMethod(address, call, options);
-    } catch (Throwable throwable) {
-      logger.log(Level.WARNING, toCall.method() + " rpc failed", throwable);
-    }
-    return ret;
-  }
-
   // Client side
 
   @Override
-  public Boolean store(DataObject dataObject, Set<Address> addresses) {
-    return issueBooleanRpcs(Calls.STORE, dataObject, addresses);
+  public Boolean store(DataObject file, Set<Address> addresses) {
+    Boolean ret = true;
+    for (Object cur : issueRpcs(Calls.STORE, addresses, GroupRequest.GET_ALL, file)) {
+      ret &= (Boolean) cur;
+    }
+    return ret;
   }
 
   @Override
@@ -123,7 +109,11 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public Boolean hasFile(String name, Set<Address> addresses) {
-    return issueBooleanRpcs(Calls.HAS_FILE, name, addresses);
+    Boolean ret = true;
+    for (Object cur : issueRpcs(Calls.HAS_FILE, addresses, GroupRequest.GET_ALL, name)) {
+      ret &= (Boolean) cur;
+    }
+    return ret;
   }
 
   @Override
@@ -140,7 +130,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public Long getCRC(String name, Address address) {
-    return (Long) issueRpc(Calls.GET_CRC, name, address);
+    return (Long) issueRpc(Calls.GET_CRC, address, GroupRequest.GET_FIRST, name);
   }
   // Server side
 
@@ -152,7 +142,11 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public Boolean replace(DataObject file, Set<Address> addresses) {
-    return issueBooleanRpcs(Calls.REPLACE, file, addresses);
+    Boolean ret = true;
+    for (Object cur : issueRpcs(Calls.REPLACE, addresses, GroupRequest.GET_ALL, file)) {
+      ret &= (Boolean) cur;
+    }
+    return ret;
   }
 
   @Override
@@ -169,7 +163,11 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public Boolean delete(String name, Set<Address> addresses) {
-    return issueBooleanRpcs(Calls.DELETE, name, addresses);
+    Boolean ret = true;
+    for (Object cur : issueRpcs(Calls.DELETE, addresses, GroupRequest.GET_ALL, name)) {
+      ret &= (Boolean) cur;
+    }
+    return ret;
   }
 
   @Override
@@ -186,7 +184,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public DataObject retrieve(String name, Address address) {
-    return (DataObject) issueRpc(Calls.RETRIEVE, name, address);
+    return (DataObject) issueRpc(Calls.RETRIEVE, address, GroupRequest.GET_FIRST, name);
   }
   //Server side
 
@@ -210,13 +208,13 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public void viewAccepted(View view) {
-    logger.info("View of size " + view.size() + " accepted");
+    logger.info("View of size {} accepted", view.size());
     parent.update(new HashSet<Address>(view.getMembers()));  // we delegate update actions to the node.
   }
 
   @Override
   public void suspect(Address address) {
-    logger.info("Warned about " + address);
+    logger.info("Warned about {}", address);
     parent.remove(address);  // parent takes care of calling anything that cares.
   }
 

@@ -1,7 +1,10 @@
 package com.slard.filerepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
 import java.util.zip.CRC32;
 
 /**
@@ -14,7 +17,7 @@ public class DataObjectImpl implements DataObject {
    */
   private static final long serialVersionUID = 2411701715160473042L;
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
   /**
    * The name.
@@ -37,7 +40,8 @@ public class DataObjectImpl implements DataObject {
    * @param content the content
    */
   public DataObjectImpl(String name, byte[] content) {
-    this.name = name;
+    File file = new File(name);
+    this.name = file.getName(); // can't deal with directories yet.
     this.content = content;
     this.size = content.length;
     this.checksum = getChecksum(content);

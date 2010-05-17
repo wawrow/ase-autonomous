@@ -1,5 +1,8 @@
 package com.slard.filerepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 
 /**
@@ -8,7 +11,7 @@ import java.util.*;
  * @param <T> the generic type
  */
 public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
-
+  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
   /**
    * The number of replicas.
    */
@@ -61,8 +64,8 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
   private long getHash(String key) {
     long hash = hashProvider.hash(key);
     if (!circle.containsKey(hash)) {
-      SortedMap<Long, T> tailMap = circle.tailMap(hash);
-      hash = tailMap.isEmpty() ? circle.firstKey() : tailMap.firstKey();
+      SortedMap<Long, T> headMap = circle.headMap(hash);
+      hash = headMap.isEmpty() ? circle.lastKey() : headMap.lastKey();
     }
     return hash;
   }
@@ -111,6 +114,7 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
   @Override
   public T get(String key) {
     if (circle.isEmpty()) {
+      logger.warn("cht circle is empty");
       return null;
     }
     return circle.get(getHash(key));
@@ -123,17 +127,18 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
   public List<T> getPreviousNodes(String key, int count) {
     List<T> result = new LinkedList<T>();
     long startingPoint = getHash(key);
-    SortedMap<Long, T> tailMap = circle.tailMap(startingPoint);
-    long currHash = tailMap.isEmpty() ? circle.firstKey() : tailMap.firstKey();
     T startingNode = circle.get(startingPoint);
-    while (result.size() < count && currHash != startingPoint) {
+    SortedMap<Long, T> headMap = circle.headMap(startingPoint);
+    Long currHash;
+    do {
+      currHash = headMap.isEmpty() ? circle.lastKey() : headMap.lastKey();
       T curNode = circle.get(currHash);
       if (!curNode.equals(startingNode) && !result.contains(curNode)) {  // count small so ok.
-        result.add(circle.get(currHash));
+        logger.trace("adding {} as a replica", curNode.toString());
+        result.add(curNode);
       }
-      tailMap = circle.tailMap(currHash + 1);
-      currHash = tailMap.isEmpty() ? circle.firstKey() : tailMap.firstKey();
-    }
+      headMap = circle.headMap(currHash);
+    } while (result.size() < count && currHash != startingPoint);
     return result;
   }
 

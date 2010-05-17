@@ -1,6 +1,10 @@
 package com.slard.filerepository;
 
-import java.util.List;
+import org.jgroups.Address;
+import org.jgroups.Channel;
+import org.jgroups.util.Tuple;
+
+import java.util.Collection;
 
 /**
  * The Interface UserOperations.
@@ -12,24 +16,24 @@ public interface UserOperations {
    *
    * @return the boolean
    */
-  Boolean isServer();
+  Boolean isServer(Address address);
 
   /**
    * Gets the file names.
    *
    * @return the file names
    */
-  List<String> getFileNames(String regex);
+  Collection<String> getFileNames(String regex);
 
   /**
    * Store a data object.
    *
-   * @param dataObject the data object
+   * @param file the data object
    * @return true, if successful
    */
-  Boolean store(DataObject dataObject);
+  Boolean store(DataObject file, Address address);
 
-  Boolean storeAll(DataObject dataObject);
+  Boolean storeAll(DataObject file, Address address);
 
   /**
    * Retrieve a data object.
@@ -37,15 +41,15 @@ public interface UserOperations {
    * @param name the name
    * @return the data object
    */
-  DataObject retrieve(String name);
+  DataObject retrieve(String name, Address address);
 
   /**
    * Replace a data object.
    *
-   * @param dataObject the data object
+   * @param file the data object
    * @return true, if successful
    */
-  boolean replace(DataObject dataObject);
+  boolean replace(DataObject file, Address address);
 
   /**
    * Deletes a file by name.
@@ -53,16 +57,19 @@ public interface UserOperations {
    * @param name the name
    * @return true, if successful
    */
-  boolean delete(String name);
+  boolean delete(String name, Address address);
 
+  // Broadcast isMaster(fileName) to all members and take the first non-null response
 
-  interface Usage {
-    Long getDiskFree();
+  Address getMaster(String name);
 
-    Long getFileTotals();
+  // Broadcast hasFile(fileName) to all members and take the first non-null response
 
-    String getHostname();
-  }
+  Address getQuickestFileLocation(String name);
+
+  Channel getChannel();
+
+  void setTimeout(int timeout);
 
   /**
    * Find the free and total disk space of a node (or the cluster).
@@ -70,5 +77,7 @@ public interface UserOperations {
    * @return disk usage and hostname of node.
    */
   Usage getDiskSpace();
+
+  Tuple<Collection<Address>, Collection<Address>> listNodes();
 }
 
