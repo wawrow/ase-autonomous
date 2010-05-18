@@ -33,11 +33,12 @@ public class FSDataObject extends DataObjectImpl {
     super.setContent(fs.readFile(getName()));
   }
 
-  public void flush(boolean write) throws IOException {
-    if (write) {
-      logger.trace("writing file {} of length {}", getName(), super.getData().length);
-      fs.writeFile(getName(), super.getData());
-    }
+  public void flush() throws IOException {
+    fs.writeFile(getName(), super.getData());
+    super.setContent(null);
+  }
+
+  public void scrub() {
     super.setContent(null);
   }
 }

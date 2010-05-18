@@ -243,6 +243,10 @@ public enum FileRepositoryClientCommand {
       File file = new File(args.get(0));
       DataObject dataObject = null;
       String target = (args.size() < 2) ? args.get(0) : args.get(1);
+      if (!file.canRead()) {
+        logger.warn("can't read file {}", file.getName());
+        return;
+      }
       try {
         dataObject = new DataObjectImpl(target, fs.readFile(file));
       } catch (IOException e) {
@@ -264,6 +268,47 @@ public enum FileRepositoryClientCommand {
     @Override
     public String[] aliases() {
       return new String[]{"put", "push"};
+    }
+  }),
+
+  STOREALL(new Action() {
+    @Override
+    public void exec(Console c, List<String> args, UserOperations userComms) {
+      if (args == null || args.get(0) == null || args.size() < 1) {
+        logger.warn("Please specify a single file name to retrieve");
+        return;
+
+      }
+      // Read the new file from the local file system
+      FileSystemHelper fs = new FileSystemHelper(new File("."));
+      File file = new File(args.get(0));
+      DataObject dataObject = null;
+      String target = (args.size() < 2) ? args.get(0) : args.get(1);
+      if (!file.canRead()) {
+        logger.warn("can't read file {}", file.getName());
+        return;
+      }
+      try {
+        dataObject = new DataObjectImpl(target, fs.readFile(file));
+      } catch (IOException e) {
+        logger.warn("unable to load file {}", args.get(0));
+      }
+
+      Address master = userComms.getMaster(target);
+      if (master == null) {
+        logger.error("No node is master for {}", target);
+      }
+      System.out.printf("Directing request to node %s%n", master.toString());
+
+      // Send the file to the returned master address
+      if (!userComms.storeAll(dataObject, master)) {
+        logger.warn("store of {} as {} failed.", args.get(0), target);
+      }
+    }
+
+    @Override
+    public String[] aliases() {
+      return new String[]{"safe", "sync"};
     }
   }),
 

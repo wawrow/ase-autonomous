@@ -7,36 +7,25 @@ import java.io.File;
 import java.util.Properties;
 
 public class FileRepository {
-//  private static final LogManager logManager = LogManager.getLogManager();
-
   public static void main(String[] args) {
     SLF4JBridgeHandler.install();
-//    logManager.reset();
-//    Handler console = new ConsoleHandler();
-//    console.setFormatter(new Formatter() {
-//      public String format(LogRecord log) {
-//        String className = log.getSourceClassName();
-//        return new StringBuilder(log.getLevel().getLocalizedName())
-//            .append("\t[").append(log.getThreadID())
-//            .append("] ").append(className.substring(className.lastIndexOf('.') + 1))
-//            .append(".").append(log.getSourceMethodName())
-//            .append("\t").append(log.getMessage())
-//            .append("\n")
-//            .toString();
-//      }
-//    });
-
-//    console.setLevel(Level.FINEST);
-//    logManager.getLogger("").addHandler(console);
 
     String currentDirectory = System.getProperty("user.dir");
     Properties options = new Properties();
-    options.put("datastore.dir", currentDirectory + File.separator + "store");
+    String dir = currentDirectory + File.separator + "store";
+    options.put("datastore.dir", dir);
+    String hostname;
     try {
-      java.net.InetAddress localMachine = java.net.InetAddress.getLocalHost();
-      options.put("datastore.hostname", localMachine.getHostName());
+      hostname = java.net.InetAddress.getLocalHost().getHostName();
+      options.put("datastore.hostname", hostname);
     }
     catch (java.net.UnknownHostException uhe) {
+      hostname = null;
+    }
+
+    if (dir != null && hostname != null) {
+      File tmp = new File(dir);
+      options.put(SystemCommsClient.SYSTEM_NAME_PROP, hostname + "-" + tmp.getParentFile().getName());
     }
     DataStore store = new DataStoreImpl(options);
     store.initialise();

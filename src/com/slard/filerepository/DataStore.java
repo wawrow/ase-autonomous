@@ -30,6 +30,4 @@ public interface DataStore extends FileOperations {
    * @return the hostname
    */
   String getHostname();
-
-  Boolean fillObject(DataObject file);
 }

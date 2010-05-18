@@ -57,7 +57,8 @@ public class FileRepositoryClient {
         try {
           final FileRepositoryClientCommand command = aliasMap.get(commandName);
           if (command == null) {
-            throw new IllegalArgumentException("unknown command " + commandName);
+            logger.warn("unknown command {}", commandName);
+            continue;
           }
           List<String> params = new LinkedList<String>();
           while (scanner.hasNext()) {

@@ -2,10 +2,12 @@ package com.slard.filerepository;
 
 import org.jgroups.*;
 import org.jgroups.blocks.GroupRequest;
+import org.jgroups.blocks.Request;
 import org.jgroups.blocks.RpcDispatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -23,6 +25,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
   private byte[] state = new byte[0];
   private static final int RPC_TIMEOUT = 30000;
   private CommsPrep commsPrep;
+
 
   enum Calls implements CommsPrep.Calls {
     STORE("store"),
@@ -43,13 +46,18 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
     }
   }
 
-  SystemComms(Node parent) {
+  SystemComms(Node parent, Properties options) {
     this.parent = parent;
     RpcDispatcher tmp;
     try {
-      Channel channel = new JChannel();
+      JChannel channel = new JChannel();
+      String channel_name = options.getProperty(SystemCommsClient.SYSTEM_NAME_PROP);
+      if (channel_name != null) {
+        channel.setName(channel_name);
+      }
       channel.connect(CHANNEL_NAME);
       tmp = new RpcDispatcher(channel, this, this, this);
+      parent.registerChannel(channel);
     } catch (ChannelException e) {
       logger.error("Failed to connect to channel and initialise dispatcher:", e);
       tmp = null;
@@ -88,8 +96,14 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public Boolean store(DataObject file, Set<Address> addresses) {
+    logger.debug("sending {} to {}", file.getName(), addresses.toString());
     Boolean ret = true;
-    for (Object cur : issueRpcs(Calls.STORE, addresses, GroupRequest.GET_ALL, file)) {
+    try {
+      file.getData();
+    } catch (IOException e) {
+      logger.warn("failed to load content for {}", file.getName());
+    }
+    for (Object cur : issueRpcs(Calls.STORE, addresses, Request.GET_ALL, file)) {
       ret &= (Boolean) cur;
     }
     return ret;
@@ -97,11 +111,15 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public Boolean store(DataObject dataObject, Address address) {
+    if (address == null) {
+      logger.warn("trying to send {} to a null address", dataObject.getName());
+    }
     return store(dataObject, new HashSet<Address>(Arrays.asList(address)));
   }
   // Server side
 
   public Boolean store(DataObject dataObject) {
+    logger.trace("asked to store {}", dataObject.getName());
     return parent.getDataStore().store(dataObject);
   }
 
@@ -143,6 +161,11 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
   @Override
   public Boolean replace(DataObject file, Set<Address> addresses) {
     Boolean ret = true;
+    try {
+      file.getData();
+    } catch (IOException e) {
+      logger.warn("failed to load content for {}", file.getName());
+    }
     for (Object cur : issueRpcs(Calls.REPLACE, addresses, GroupRequest.GET_ALL, file)) {
       ret &= (Boolean) cur;
     }
@@ -189,7 +212,13 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
   //Server side
 
   public DataObject retrieve(String name) {
-    return parent.getDataStore().retrieve(name);
+    DataObject ret = parent.getDataStore().retrieve(name);
+    try {
+      ret.getData();
+    } catch (IOException e) {
+      logger.warn("failed to load content for {}", ret.getName());
+    }
+    return ret;
   }
 
   @Override
