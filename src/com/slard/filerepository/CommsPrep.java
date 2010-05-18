@@ -60,7 +60,7 @@ public class CommsPrep {
 
   List<Object> issueRpcs(Calls toCall, Collection<Address> addresses, int gatherOption, Object... obj) {
     MethodCall call = getMethodCall(toCall, obj);
-    RequestOptions options = new RequestOptions(gatherOption, timeout, false,
+    RequestOptions options = new RequestOptions(gatherOption, timeout, true,
         new NullFilter((addresses != null) ? addresses.size() : dispatcher.getChannel().getView().size()));
     List<Object> ret = null;
     try {
@@ -73,7 +73,7 @@ public class CommsPrep {
 
   Object issueRpc(Calls toCall, Address address, int gatherOption, Object... obj) {
     MethodCall call = getMethodCall(toCall, obj);
-    RequestOptions options = new RequestOptions(gatherOption, timeout, false,
+    RequestOptions options = new RequestOptions(gatherOption, timeout, true,
         new NullFilter((address != null) ? 1 : dispatcher.getChannel().getView().size()));
     Object ret = null;
     try {

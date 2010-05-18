@@ -36,4 +36,6 @@ public interface SystemCommsClient {
   Address getAddress();
 
   Channel getChannel();
+
+  final String SYSTEM_NAME_PROP = "system.channel.name";
 }

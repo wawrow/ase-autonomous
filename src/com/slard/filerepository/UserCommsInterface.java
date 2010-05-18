@@ -12,8 +12,10 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public interface UserCommsInterface {
-  public static final String CHANNEL_NAME = "ClientCluster";
-  public static final String CLIENT_PORT = "45589";
+  static final String CHANNEL_NAME = "ClientCluster";
+  static final String CLIENT_PORT = "45589";
+  static final String CLIENT_COMMS_PROP = "client.channel.name";
+  static final String JGROUPS_PORT_PROP = "jgroups.udp.mcast_port";
 
   Boolean isServer();
 

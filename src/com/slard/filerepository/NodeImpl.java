@@ -3,10 +3,13 @@ package com.slard.filerepository;
 import org.jgroups.Address;
 import org.jgroups.Channel;
 import org.jgroups.ChannelException;
+import org.jgroups.JChannel;
+import org.jgroups.jmx.JmxConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.*;
 
 // TODO: Auto-generated Javadoc
@@ -18,12 +21,12 @@ public class NodeImpl implements Node {
   /**
    * How many places on the Consistent Hash table would one node take.
    */
-  private static final int CHT_TICK_COUNT = 4;
+  private static final int CHT_TICK_COUNT = 10;
 
   /**
    * Replica count of files in the system
    */
-  private static final int REPLICA_COUNT = 1;
+  private static final int REPLICA_COUNT = 2;
 
   /**
    * logger.
@@ -63,6 +66,7 @@ public class NodeImpl implements Node {
   private Timer replicaGuardTimer;
 
   private Address myAddress;
+  private String name;
 
   /**
    * Instantiates a new node implementation.
@@ -84,22 +88,33 @@ public class NodeImpl implements Node {
    * Schedules replica guard runs.
    */
   public void start() throws ChannelException {
-    systemComms = new SystemComms(this);
+    systemComms = new SystemComms(this, options);
     myAddress = systemComms.getAddress();
     cht.add(myAddress);
     logger.trace("system channel connected and system coms server ready");
     logger.info("My Address: " + myAddress.toString());
 
-    userComms = new UserCommsServer(this);
+    userComms = new UserCommsServer(this, options);
     logger.trace("User channel connected and user coms server ready");
 
-    this.replicaGuardTimer = new Timer();
+    replicaGuardTimer = new Timer();
     replicaGuardTimer.schedule(new TimerTask() {
       @Override
       public void run() {
         replicaGuard();
       }
     }, 15000, 30000);
+
+    update(new HashSet<Address>(systemComms.getChannel().getView().getMembers()));
+  }
+
+  public void registerChannel(JChannel channel) {
+    try {
+      JmxConfigurator.registerChannel(channel, ManagementFactory.getPlatformMBeanServer(),
+          "JGroups." + channel.getClusterName());
+    } catch (Exception e) {
+      logger.warn("unable to register channel {} with JMX", channel.getName());
+    }
   }
 
   /**
@@ -139,22 +154,26 @@ public class NodeImpl implements Node {
    */
   public void replicaGuard() {
     logger.trace("replicaGuard tick.");
-    update(new HashSet<Address>(systemComms.getChannel().getView().getMembers()));
+    //update(new HashSet<Address>(systemComms.getChannel().getView().getMembers()));
     for (DataObject file : dataStore.getAllDataObjects()) {
       String name = file.getName();
       if (amIMaster(name)) {
+        logger.trace("master for {}, replicating", name);
         replicateDataObject(file);
-      } else if (!amIReplica(name)) {
-        logger.debug("ensuring master has " + name);
+      } else {
         Address master = cht.get(name);
+        logger.debug("ensuring master {} has {}", master.toString(), name);
         try {
           if (file.getData() != null && !systemComms.hasFile(name, master)) {
+            logger.warn("need to send {} to master {}", name, master.toString());
             systemComms.store(file, master);
           }
         } catch (IOException e) {
           logger.warn("couldn't get data for {} {}", name, e.toString());
         }
-        dataStore.delete(name);
+        if (!amIReplica(name)) {
+          dataStore.delete(name);
+        }
       }
     }
   }
@@ -186,6 +205,7 @@ public class NodeImpl implements Node {
     Set<Address> replace = new HashSet<Address>(REPLICA_COUNT);
     Set<Address> store = new HashSet<Address>(REPLICA_COUNT);
     final String name = obj.getName();
+    logger.trace("previous nodes are {}", cht.getPreviousNodes(name, REPLICA_COUNT).toString());
     for (Address replica : cht.getPreviousNodes(name, REPLICA_COUNT)) {
       logger.trace("Checking replica {}", replica.toString());
       byte[] data;
@@ -232,33 +252,37 @@ public class NodeImpl implements Node {
    */
   @Override
   public void nodeJoined(Address address) {
+    if (address.equals(systemComms.getAddress())) {
+      return;  // no need to update me.
+    }
     cht.add(address);
     for (DataObject file : dataStore.getAllDataObjects()) {
       final String name = file.getName();
       // If the guy is master of any of my files
-      if (cht.get(file.getName()).equals(myAddress)) {
-        logger.info("Joining node " + address.toString() + " is master for " + name);
+      if (cht.get(name).equals(address)) {
+        logger.info("Joining node {} is master for {}", address.toString(), name);
         // Check if i was master before
         if (cht.get(name).equals(myAddress)) {
           if (systemComms.hasFile(name, address)) {
-            if (!systemComms.getCRC(name, address).equals(file.getCRC())) {
+            if (!(systemComms.getCRC(name, address).equals(file.getCRC()))) {
               systemComms.replace(file, address);
             }
           } else {
+            logger.warn("sending {} to {}", file.getName(), address.toString());
             systemComms.store(file, address);
           }
         }
-        if (!cht.getPreviousNodes(name, REPLICA_COUNT).contains(myAddress)) {
+        if (!(cht.getPreviousNodes(name, REPLICA_COUNT).equals(myAddress))) {
           // If I'm not replica - delete that file
           try {
             dataStore.delete(name);
           } catch (Exception ex) {
-            // TODO better exception handing
+            logger.warn("unable to delete file {}", name);
           }
         }
       } else if (amIMaster(name)) {
         // Check if he'll become a replica
-        if (cht.getPreviousNodes(name, REPLICA_COUNT).contains(address)) {
+        if (cht.getPreviousNodes(name, REPLICA_COUNT).equals(address)) {
           replicateDataObject(file);
         }
       }
@@ -272,6 +296,9 @@ public class NodeImpl implements Node {
    */
   @Override
   public void nodeLeft(Address nodeAddress) {
+    if (nodeAddress.equals(systemComms.getAddress())) {
+      return; // no need to remove me.
+    }
     for (DataObject file : dataStore.getAllDataObjects()) {
       final String name = file.getName();
       // Was he master for any of my files?
@@ -299,11 +326,14 @@ public class NodeImpl implements Node {
   public void update(Set<Address> members) {
     logger.trace("ViewAccepted");
 
+    members.add(systemComms.getAddress()); // make sure I'm in.
     // find nodes that joined
     ConsistentHashTable.Changes<Address> changes = cht.update(members);
+    logger.trace("got {} new nodes", changes.getAdded().size());
     for (Address address : changes.getAdded()) {
       nodeJoined(address);
     }
+    logger.trace("{} nodes left", changes.getRemoved().size());
     for (Address address : changes.getRemoved()) {
       nodeLeft(address);
     }
@@ -316,6 +346,9 @@ public class NodeImpl implements Node {
    */
   @Override
   public void remove(Address address) {
+    if (address.equals(systemComms.getAddress())) {
+      return; // no need to remove me.
+    }
     logger.info("Suspecting node: " + address.toString());
     if (cht.contains(address)) {
       cht.remove(address);

@@ -1,7 +1,6 @@
 package com.slard.filerepository;
 
 import org.jgroups.Address;
-import org.jgroups.Channel;
 import org.jgroups.ChannelException;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.RpcDispatcher;
@@ -9,10 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class UserCommsServer implements UserCommsInterface {
@@ -20,14 +16,19 @@ public class UserCommsServer implements UserCommsInterface {
   private Node parent = null;
   private Address myAddress;
 
-  public UserCommsServer(Node parent) {
+  public UserCommsServer(Node parent, Properties options) {
     this.parent = parent;
-    System.setProperty("jgroups.udp.mcast_port", CLIENT_PORT);
+    System.setProperty(JGROUPS_PORT_PROP, CLIENT_PORT);
     RpcDispatcher tmp;
     try {
-      Channel channel = new JChannel();
+      JChannel channel = new JChannel();
+      String channel_name = options.getProperty(CLIENT_COMMS_PROP);
+      if (channel_name != null) {
+        channel.setName(channel_name);
+      }
       channel.connect(CHANNEL_NAME);
       myAddress = channel.getAddress();
+      parent.registerChannel(channel);
       new RpcDispatcher(channel, null, null, this);
     } catch (ChannelException e) {
       logger.warn("failed to connect userserver to channel {}", CHANNEL_NAME);
@@ -45,7 +46,7 @@ public class UserCommsServer implements UserCommsInterface {
     logger.trace("Are we master of " + name);
     Address master = parent.getMaster(name);
     logger.debug("got the master as {}", master.toString());
-    if (master == parent.getSystemComms().getAddress()) {
+    if (master.equals(parent.getSystemComms().getAddress())) {
       logger.debug("returning my client address {}", myAddress.toString());
       return myAddress;
     }
@@ -78,12 +79,20 @@ public class UserCommsServer implements UserCommsInterface {
   @Override
   public Boolean store(DataObject file) {
     // The client should have directed this at the master, but we double check
-    logger.trace("Client store " + file.getName());
+    logger.warn("Client store " + file.getName());
     Address master = parent.getMaster(file.getName());
     if (master == null) {
       logger.error("Storing to all");
     }
-    return parent.getSystemComms().store(file, master);
+    Boolean ret;
+    if (parent.getSystemComms().getAddress().equals(master)) {
+      logger.warn("storing locally");
+      ret = parent.getDataStore().store(file);
+    } else {
+      logger.warn("sending to {}", master.toString());
+      ret = parent.getSystemComms().store(file, master);
+    }
+    return ret;
   }
 
   @Override

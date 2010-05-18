@@ -134,7 +134,6 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
       currHash = headMap.isEmpty() ? circle.lastKey() : headMap.lastKey();
       T curNode = circle.get(currHash);
       if (!curNode.equals(startingNode) && !result.contains(curNode)) {  // count small so ok.
-        logger.trace("adding {} as a replica", curNode.toString());
         result.add(curNode);
       }
       headMap = circle.headMap(currHash);

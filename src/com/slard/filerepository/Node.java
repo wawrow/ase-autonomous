@@ -2,6 +2,7 @@ package com.slard.filerepository;
 
 import org.jgroups.Address;
 import org.jgroups.ChannelException;
+import org.jgroups.JChannel;
 
 import java.util.Set;
 
@@ -72,6 +73,8 @@ public interface Node {
   Address getMaster(String name);
 
   Set<Address> getReplicas(String name);
+
+  void registerChannel(JChannel channel);
 
   int getReplicaCount();
 }

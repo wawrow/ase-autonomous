@@ -23,7 +23,6 @@
     <mkdir dir="${dist}/lib"/>
     <jar jarfile="${dist}/lib/FileRepository.jar" basedir="${build}" update="yes">
       <zipfileset src="lib/jgroups-2.10.0.Beta2.jar"/>
-      <zipfileset src="lib/ehcache-core-2.1.0-beta.jar"/>
       <zipfileset src="lib/log4j-1.2.16.jar"/>
       <zipfileset src="lib/jul-to-slf4j-1.6.0.jar"/>
       <zipfileset src="lib/slf4j-api-1.6.0.jar"/>
