@@ -126,18 +126,10 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
   // Client side
 
   @Override
-  public Boolean hasFile(String name, Set<Address> addresses) {
-    Boolean ret = true;
-    for (Object cur : issueRpcs(Calls.HAS_FILE, addresses, GroupRequest.GET_ALL, name)) {
-      ret &= (Boolean) cur;
-    }
-    return ret;
+  public Boolean hasFile(String name, Address address) {
+    return (Boolean) issueRpc(Calls.HAS_FILE, address, GroupRequest.GET_FIRST, name);
   }
 
-  @Override
-  public Boolean hasFile(String name, Address address) {
-    return hasFile(name, new HashSet<Address>(Arrays.asList(address)));
-  }
   // Server side
 
   public Boolean hasFile(String name) {
