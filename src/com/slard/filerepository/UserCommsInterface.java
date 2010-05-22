@@ -1,8 +1,10 @@
 package com.slard.filerepository;
 
+import com.google.inject.ImplementedBy;
 import org.jgroups.Address;
 
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Created by IntelliJ IDEA.
@@ -11,6 +13,7 @@ import java.util.List;
  * Time: 17:52:18
  * Interface presented by servers to clients.
  */
+@ImplementedBy(UserCommsServer.class)
 public interface UserCommsInterface {
   /**
    * Default client cluster name.
@@ -83,4 +86,15 @@ public interface UserCommsInterface {
   boolean delete(String name);
 
   Usage getDiskSpace();
+
+  /**
+   * Created by IntelliJ IDEA.
+   * User: kbrady
+   * Date: 21-May-2010
+   * Time: 14:20:05
+   * To change this template use File | Settings | File Templates.
+   */
+  interface UserCommsFactory {
+    UserCommsInterface create(Node parent, Properties options);
+  }
 }

@@ -1,44 +1,35 @@
 package com.slard.filerepository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.inject.ImplementedBy;
 
 import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.
  * User: kbrady
- * Date: 14-May-2010
- * Time: 13:21:52
+ * Date: 21-May-2010
+ * Time: 10:59:48
  * To change this template use File | Settings | File Templates.
  */
-public class FSDataObject extends DataObjectImpl {
-  transient private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
-  transient private FileSystemHelper fs;
-
-  public FSDataObject(DataObject file, FileSystemHelper fs) {
-    super(file);
-    this.fs = fs;
-  }
-
+@ImplementedBy(FSDataObjectImpl.class)
+public interface FSDataObject extends DataObject {
   @Override
-  public byte[] getData() throws IOException {
-    if (super.getData() == null) {
-      fill();
-    }
-    return super.getData();
-  }
+  byte[] getData() throws IOException;
 
-  public void fill() throws IOException {
-    super.setContent(fs.readFile(getName()));
-  }
+  void fill() throws IOException;
 
-  public void flush() throws IOException {
-    fs.writeFile(getName(), super.getData());
-    super.setContent(null);
-  }
+  void flush() throws IOException;
 
-  public void scrub() {
-    super.setContent(null);
+  void scrub();
+
+  /**
+   * Created by IntelliJ IDEA.
+   * User: kbrady
+   * Date: 21-May-2010
+   * Time: 13:09:44
+   * To change this template use File | Settings | File Templates.
+   */
+  interface FSDataObjectFactory {
+    FSDataObject create(DataObject file, FileSystemHelper fs);
   }
 }

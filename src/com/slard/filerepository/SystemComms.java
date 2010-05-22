@@ -1,14 +1,19 @@
 package com.slard.filerepository;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.assistedinject.Assisted;
 import org.jgroups.*;
 import org.jgroups.blocks.GroupRequest;
 import org.jgroups.blocks.Request;
 import org.jgroups.blocks.RpcDispatcher;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -17,8 +22,10 @@ import java.util.*;
  * Time: 09:44:48
  * To change this template use File | Settings | File Templates.
  */
+@Singleton
 public class SystemComms implements MessageListener, MembershipListener, SystemCommsClient {
-  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+  @InjectLogger
+  Logger logger;
   private static final String CHANNEL_NAME = "FileRepoCluster";
   private final RpcDispatcher dispatcher;
   private final Node parent;
@@ -27,26 +34,33 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
   private CommsPrep commsPrep;
 
 
-  enum Calls implements CommsPrep.Calls {
-    STORE("store"),
-    HAS_FILE("hasFile"),
-    GET_CRC("getCRC"),
-    REPLACE("replace"),
-    RETRIEVE("retrieve"),
-    DELETE("delete");
+  enum Calls implements CommsPrepImpl.Calls {
+    STORE("store", 90000),
+    HAS_FILE("hasFile", 500),
+    GET_CRC("getCRC", 500),
+    REPLACE("replace", 90000),
+    RETRIEVE("retrieve", 90000),
+    DELETE("delete", 500);
 
     private String name;
+    private int timeout;
 
-    Calls(String name) {
+    Calls(String name, int timeout) {
       this.name = name;
+      this.timeout = timeout;
     }
 
     public String method() {
       return name;
     }
+
+    public int timeout() {
+      return timeout;
+    }
   }
 
-  SystemComms(Node parent, Properties options) {
+  @Inject
+  SystemComms(Node parent, @Assisted Properties options) {
     this.parent = parent;
     RpcDispatcher tmp;
     try {
@@ -63,11 +77,11 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
       tmp = null;
     }
     dispatcher = tmp;
-    commsPrep = new CommsPrep(dispatcher, RPC_TIMEOUT);
+    commsPrep = new CommsPrepImpl(dispatcher, RPC_TIMEOUT);
   }
 
   public void setTimeout(int timeout) {
-    commsPrep.setTimeout(timeout);
+    commsPrep.setDefaultTimeout(timeout);
   }
 
   @Override
@@ -75,23 +89,11 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
     return dispatcher.getChannel();
   }
 
-  private List<Object> issueRpcs(CommsPrep.Calls toCall, Collection<Address> addresses, int gatherOption,
-                                 Object... obj) {
-    return commsPrep.issueRpcs(toCall, addresses, gatherOption, obj);
-  }
-
-  private Object issueRpc(CommsPrep.Calls toCall, Address address, int gatherOption, Object... obj) {
-    return commsPrep.issueRpc(toCall, address, gatherOption, obj);
-  }
-
-  private Object issueRpc(CommsPrep.Calls toCall, Address address, int gatherOptions) {
-    return commsPrep.issueRpc(toCall, address, gatherOptions);
-  }
-
   @Override
   public Address getAddress() {
     return dispatcher.getChannel().getAddress();
   }
+
   // Client side
 
   @Override
@@ -103,7 +105,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
     } catch (IOException e) {
       logger.warn("failed to load content for {}", file.getName());
     }
-    for (Object cur : issueRpcs(Calls.STORE, addresses, Request.GET_ALL, file)) {
+    for (Object cur : commsPrep.issueRpcs(Calls.STORE, addresses, Request.GET_ALL, -1, file)) {
       ret &= (Boolean) cur;
     }
     return ret;
@@ -127,9 +129,8 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public Boolean hasFile(String name, Address address) {
-    return (Boolean) issueRpc(Calls.HAS_FILE, address, GroupRequest.GET_FIRST, name);
+    return (Boolean) commsPrep.issueRpc(Calls.HAS_FILE, address, GroupRequest.GET_FIRST, -1, name);
   }
-
   // Server side
 
   public Boolean hasFile(String name) {
@@ -140,7 +141,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public Long getCRC(String name, Address address) {
-    return (Long) issueRpc(Calls.GET_CRC, address, GroupRequest.GET_FIRST, name);
+    return (Long) commsPrep.issueRpc(Calls.GET_CRC, address, GroupRequest.GET_FIRST, -1, name);
   }
   // Server side
 
@@ -158,7 +159,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
     } catch (IOException e) {
       logger.warn("failed to load content for {}", file.getName());
     }
-    for (Object cur : issueRpcs(Calls.REPLACE, addresses, GroupRequest.GET_ALL, file)) {
+    for (Object cur : commsPrep.issueRpcs(Calls.REPLACE, addresses, GroupRequest.GET_ALL, -1, file)) {
       ret &= (Boolean) cur;
     }
     return ret;
@@ -179,7 +180,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
   @Override
   public Boolean delete(String name, Set<Address> addresses) {
     Boolean ret = true;
-    for (Object cur : issueRpcs(Calls.DELETE, addresses, GroupRequest.GET_ALL, name)) {
+    for (Object cur : commsPrep.issueRpcs(Calls.DELETE, addresses, GroupRequest.GET_ALL, -1, name)) {
       ret &= (Boolean) cur;
     }
     return ret;
@@ -199,7 +200,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
 
   @Override
   public DataObject retrieve(String name, Address address) {
-    return (DataObject) issueRpc(Calls.RETRIEVE, address, GroupRequest.GET_FIRST, name);
+    return (DataObject) commsPrep.issueRpc(Calls.RETRIEVE, address, GroupRequest.GET_FIRST, -1, name);
   }
   //Server side
 

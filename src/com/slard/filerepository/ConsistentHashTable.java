@@ -63,4 +63,15 @@ public interface ConsistentHashTable<T> {
   }
 
   Changes<T> update(Set<T> currentMembers);
+
+  /**
+   * Created by IntelliJ IDEA.
+   * User: kbrady
+   * Date: 21-May-2010
+   * Time: 14:05:30
+   * To change this template use File | Settings | File Templates.
+   */
+  interface ConsistentHashTableFactory<T> {
+    ConsistentHashTable<T> create(int numReplicas);
+  }
 }

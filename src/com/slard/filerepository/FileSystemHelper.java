@@ -1,66 +1,48 @@
 package com.slard.filerepository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.inject.ImplementedBy;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
-public class FileSystemHelper {
-  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
-  private final File storeLocation;
+/**
+ * Created by IntelliJ IDEA.
+ * User: kbrady
+ * Date: 21-May-2010
+ * Time: 10:58:29
+ * To change this template use File | Settings | File Templates.
+ */
+@ImplementedBy(FileSystemHelperImpl.class)
+public interface FileSystemHelper {
+  byte[] readFile(String name) throws IOException;
 
-  public FileSystemHelper(File storeLocation) {
-    this.storeLocation = storeLocation;
-  }
+  byte[] readFile(File file) throws IOException;
 
-  public byte[] readFile(String name) throws IOException {
-    return readFile(new File(storeLocation, name));
-  }
+  void writeFile(String name, byte[] fileContents) throws IOException;
 
-  public byte[] readFile(File file) throws IOException {
-    byte[] fileContents = new byte[(int) file.length()];
-    FileInputStream fis = new FileInputStream(file);
-    try {
-      BufferedInputStream bis = new BufferedInputStream(fis);
-      try {
-        bis.read(fileContents, 0, fileContents.length);
-        return fileContents;
-      } finally {
-        bis.close();
-      }
-    } finally {
-      fis.close();
-    }
-  }
+  void writeFile(File file, byte[] fileContents) throws IOException;
 
+  boolean delete(String name);
 
-  public void writeFile(String name, byte[] fileContents) throws IOException {
-    writeFile(new File(storeLocation, name), fileContents);
-  }
+  boolean exists(String name);
 
-  public void writeFile(File file, byte[] fileContents) throws IOException {
-    logger.trace("writing file {} of length {}", file.getName(), fileContents.length);
-    FileOutputStream fos = new FileOutputStream(file);
-    BufferedOutputStream bos = new BufferedOutputStream(fos);
-    try {
-      bos.write(fileContents);
-    } finally {
-      bos.flush();
-      bos.close();
-    }
-  }
+  boolean rename(String from, String to);
 
-  public boolean delete(String name) {
-    return new File(storeLocation, name).delete();
-  }
+  boolean canRead(String name);
 
-  public boolean exists(String name) {
-    return new File(storeLocation, name).exists();
-  }
+  void mkdirs();
 
-  public boolean rename(String from, String to) {
-    File fromFile = new File(storeLocation, from);
-    File toFile = new File(storeLocation, to);
-    return fromFile.renameTo(toFile);
+  List<String> list();
+
+  /**
+   * Created by IntelliJ IDEA.
+   * User: kbrady
+   * Date: 21-May-2010
+   * Time: 13:05:58
+   * To change this template use File | Settings | File Templates.
+   */
+  interface FileSystemHelperFactory {
+    FileSystemHelper create(File directory);
   }
 }

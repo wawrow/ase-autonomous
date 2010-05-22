@@ -1,22 +1,25 @@
 package com.slard.filerepository;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import org.jgroups.Address;
 import org.jgroups.ChannelException;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.RpcDispatcher;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
 import java.util.regex.Pattern;
 
 public class UserCommsServer implements UserCommsInterface {
-  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+  @InjectLogger
+  Logger logger;
   private Node parent = null;
   private Address myAddress;
 
-  public UserCommsServer(Node parent, Properties options) {
+  @Inject
+  public UserCommsServer(Node parent, @Assisted Properties options) {
     this.parent = parent;
     System.setProperty(JGROUPS_PORT_PROP, CLIENT_PORT);
     RpcDispatcher tmp;

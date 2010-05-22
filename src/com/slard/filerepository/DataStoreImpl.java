@@ -1,86 +1,99 @@
 package com.slard.filerepository;
 
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import org.jgroups.blocks.Cache;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * The Class DataStore Implementation.
  */
+@Singleton
 public class DataStoreImpl implements DataStore {
 
   /**
    * The store location path.
    */
-  private String storeLocation;
   private String hostname;
-  private final FileSystemHelper fs;
+  private FileSystemHelper fs;
 
   /**
    * The logger.
    */
-  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+  @InjectLogger
+  Logger logger;
+
   private static final int CACHE_TIME = 1200000;
   private static final int CACHE_SIZE = 100000;
 
-  //private Cache fileCache;
+  private Properties options;
+
   private Cache<String, FSDataObject> fileCache;
+  public final FileSystemHelper.FileSystemHelperFactory fileSystemFactory;
+  public final DataObject.DataObjectFactory dataObjectFactory;
+  public final FSDataObject.FSDataObjectFactory fsdFactory;
+
+  public Provider<Cache<String, FSDataObject>> cacheProvider;
 
   /**
    * Instantiates a new data store implementation.
-   *
-   * @param options the options
    */
-  public DataStoreImpl(Properties options) {
-    this.storeLocation = options.getProperty("datastore.dir", System.getProperty("user.dir", "."));
+  @Inject
+  public DataStoreImpl(FileSystemHelper.FileSystemHelperFactory fileSystemFactory,
+                       DataObject.DataObjectFactory dataObjectFactory,
+                       FSDataObject.FSDataObjectFactory fsdFactory,
+                       Provider<Cache<String, FSDataObject>> cacheProvider) {
+    this.dataObjectFactory = dataObjectFactory;
+    this.fsdFactory = fsdFactory;
+    this.fileSystemFactory = fileSystemFactory;
+    this.cacheProvider = cacheProvider;
+  }
 
-    // Make sure the directory exists...
-    File directory = new File(storeLocation);
-    directory.mkdirs();
-    this.logger.info("Data store initialized in " + storeLocation);
-    this.hostname = options.getProperty("datastore.hostname", "localhost");
-    this.fs = new FileSystemHelper(directory);
+
+  @Override
+  public void initialise(Properties options) {
+    this.options = options;
+    hostname = options.getProperty("datastore.hostname", "localhost");
+    String location = options.getProperty("datastore.dir", System.getProperty("user.dir", "."));
+    File directory = new File(location);
+    fileCache = cacheProvider.get();
+    fs = fileSystemFactory.create(directory);
+    fs.mkdirs();
+    fileCache.setMaxNumberOfEntries(CACHE_SIZE);
+    fileCache.enableReaping(CACHE_TIME);
+    for (String name : fs.list()) {
+      getFile(name);  // has side-effect of populating cache.
+    }
+    logger.info("Data store initialized in " + location);
   }
 
   private FSDataObject getFile(String name) {
-    File file = new File(storeLocation, name);
-    if (!file.canRead()) {
-      //logger.warn("can't read file {}", name);
+    if (!fs.canRead(name)) {
+      logger.warn("can't read file {}", name);
       return null;
     }
     FSDataObject ret = null;
     try {
-      ret = new FSDataObject(new DataObjectImpl(name, fs.readFile(name)), fs);
+      ret = fsdFactory.create(dataObjectFactory.create(name, fs.readFile(name)), fs);
       ret.scrub();
       fileCache.put(name, ret, 0);
     } catch (IOException e) {
-      logger.warn("failed to get file {} from FileSystemHelper", name);
+      e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
     }
     return ret;
   }
 
   @Override
-  public void initialise() {
-    fileCache = new Cache<String, FSDataObject>();
-    fileCache.setMaxNumberOfEntries(CACHE_SIZE);
-    fileCache.enableReaping(CACHE_TIME);
-    for (String name : new File(storeLocation).list()) {
-      getFile(name);  // has side-effect of populating cache.
-    }
-  }
-
-  /**
-   * Gets the directory in which the DataStore stores its files.
-   *
-   * @return String
-   */
-  @Override
-  public String getStoreLocation() {
-    return this.storeLocation;
+  public void setLogger(Logger logger) {
+    this.logger = logger;
   }
 
   /**
@@ -108,7 +121,7 @@ public class DataStoreImpl implements DataStore {
   public Collection<DataObject> getAllDataObjects() {
     logger.trace("cache has {} entries", fileCache.getSize());
     Collection<DataObject> ret = new HashSet<DataObject>();
-    for (String name : new File(storeLocation).list()) {
+    for (String name : fs.list()) {
       if (fileCache.get(name) == null) {
         FSDataObject file = getFile(name);
         if (file == null) {
@@ -117,6 +130,12 @@ public class DataStoreImpl implements DataStore {
         }
         ret.add(file);
       } else {
+        DataObject file = fileCache.get(name);
+        if (ret.contains(file)) {
+          System.out.println(name + " is in the retval");
+          System.out.println(file + " " + file.getName());
+          System.out.println(ret.toArray()[0]);
+        }
         ret.add(fileCache.get(name));
       }
     }
@@ -169,7 +188,7 @@ public class DataStoreImpl implements DataStore {
       return false;
     }
     try {
-      FSDataObject file = new FSDataObject(obj, fs);
+      FSDataObject file = fsdFactory.create(obj, fs);
       logger.trace("Storing the file: {}, {}", name, file.getData().length);
       fileCache.put(name, file, 0);
       file.flush();
@@ -189,7 +208,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public boolean replace(DataObject obj) {
-    FSDataObject file = new FSDataObject(obj, fs);
+    FSDataObject file = fsdFactory.create(obj, fs);
     String name = file.getName();
     if (!fs.exists(name)) {
       return false;
@@ -197,7 +216,6 @@ public class DataStoreImpl implements DataStore {
     // Rename to something temporary until we know the add worked
     String tempFileName = name + ".tmp";
     if (!fs.rename(name, tempFileName)) {
-      //throw new Exception("Could not rename " + dataObject.getName() + " to " + tempFileName);
       return false;
     }
     if (!store(file)) {
@@ -230,7 +248,7 @@ public class DataStoreImpl implements DataStore {
    */
   @Override
   public List<String> list() {
-    return Arrays.asList(new File(storeLocation).list());
+    return fs.list();
   }
 
 

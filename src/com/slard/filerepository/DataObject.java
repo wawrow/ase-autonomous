@@ -1,11 +1,14 @@
 package com.slard.filerepository;
 
+import com.google.inject.ImplementedBy;
+
 import java.io.IOException;
 import java.io.Serializable;
 
 /**
  * The Interface DataObject.
  */
+@ImplementedBy(DataObjectImpl.class)
 public interface DataObject extends Serializable {
 
   /**
@@ -30,4 +33,15 @@ public interface DataObject extends Serializable {
   Long getCRC();
 
   int getSize();
+
+  /**
+   * Created by IntelliJ IDEA.
+   * User: kbrady
+   * Date: 21-May-2010
+   * Time: 13:06:59
+   * To change this template use File | Settings | File Templates.
+   */
+  interface DataObjectFactory {
+    DataObject create(String name, byte[] Content);
+  }
 }

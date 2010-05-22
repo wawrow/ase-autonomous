@@ -1,7 +1,8 @@
 package com.slard.filerepository;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -11,7 +12,8 @@ import java.util.*;
  * @param <T> the generic type
  */
 public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
-  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+  @InjectLogger
+  Logger logger;
   /**
    * The number of replicas.
    */
@@ -32,27 +34,12 @@ public class ConsistentHashTableImpl<T> implements ConsistentHashTable<T> {
    * Instantiates a new consistent hash table implementation.
    *
    * @param numberOfReplicas the number of replicas
-   * @param nodes            initial nodes null for none
-   */
-  public ConsistentHashTableImpl(int numberOfReplicas, Iterable<T> nodes) {
-    this(numberOfReplicas, nodes, new MD5HashProvider());
-  }
-
-  /**
-   * Instantiates a new consistent hash table implementation.
-   *
-   * @param numberOfReplicas the number of replicas
-   * @param nodes            initial nodes null for none
    * @param hashProvider     the hash provider implementation
    */
-  public ConsistentHashTableImpl(int numberOfReplicas, Iterable<T> nodes, HashProvider hashProvider) {
+  @Inject
+  public ConsistentHashTableImpl(HashProvider hashProvider, @Assisted int numberOfReplicas) {
     this.numberOfReplicas = numberOfReplicas;
     this.hashProvider = hashProvider;
-    if (nodes != null) {
-      for (T node : nodes) {
-        add(node);
-      }
-    }
   }
 
   /**
