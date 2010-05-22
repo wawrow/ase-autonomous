@@ -1,5 +1,8 @@
 package com.slard.filerepository;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.tools.jmx.Manager;
 import org.jgroups.ChannelException;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -23,16 +26,24 @@ public class FileRepository {
       hostname = null;
     }
 
-    if (dir != null && hostname != null) {
+    if (hostname != null) {
       File tmp = new File(dir);
       options.put(SystemCommsClient.SYSTEM_NAME_PROP, hostname + "-" + tmp.getParentFile().getName());
     }
-    DataStore store = new DataStoreImpl(options);
-    store.initialise();
+    if (hostname != null) {
+      File tmp = new File(dir);
+      options.put(UserCommsInterface.CLIENT_COMMS_PROP,
+          hostname + "-client-" + tmp.getParentFile().getName());
+    }
 
-    Node node = new NodeImpl(store, options);
+    Injector injector = Guice.createInjector(new FileRepositoryModule());
+    DataStore store = injector.getInstance(DataStore.class);
+    store.initialise(options);
+
+    Node node = injector.getInstance(Node.class);
+    Manager.manage("Repository", injector);
     try {
-      node.start();
+      node.start(options);
     } catch (ChannelException e) {
     }
   }

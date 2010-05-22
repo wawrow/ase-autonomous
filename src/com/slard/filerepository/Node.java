@@ -1,14 +1,17 @@
 package com.slard.filerepository;
 
+import com.google.inject.ImplementedBy;
 import org.jgroups.Address;
 import org.jgroups.ChannelException;
 import org.jgroups.JChannel;
 
+import java.util.Properties;
 import java.util.Set;
 
 /**
  * The Interface Node.
  */
+@ImplementedBy(NodeImpl.class)
 public interface Node {
 
   /**
@@ -16,7 +19,7 @@ public interface Node {
    *
    * @throws ChannelException the channel exception
    */
-  public abstract void start() throws ChannelException;
+  public abstract void start(Properties options) throws ChannelException;
 
   /**
    * Initialize data store.
@@ -32,9 +35,6 @@ public interface Node {
   /**
    * Node joined.
    * Event fired when node joins the system.
-   *
-   * @param node  the node
-   * @param oldCh Hash table state from before the node joins
    */
   void nodeJoined(Address address);
 
@@ -77,4 +77,5 @@ public interface Node {
   void registerChannel(JChannel channel);
 
   int getReplicaCount();
+
 }

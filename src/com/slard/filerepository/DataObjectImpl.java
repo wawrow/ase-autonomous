@@ -1,7 +1,8 @@
 package com.slard.filerepository;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +18,8 @@ public class DataObjectImpl implements DataObject {
    */
   private static final long serialVersionUID = 2411701715160473042L;
 
-  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+  @InjectLogger
+  Logger logger;
 
   /**
    * The name.
@@ -39,7 +41,8 @@ public class DataObjectImpl implements DataObject {
    * @param name    the name
    * @param content the content
    */
-  public DataObjectImpl(String name, byte[] content) {
+  @Inject
+  public DataObjectImpl(@Assisted String name, @Assisted byte[] content) {
     File file = new File(name);
     this.name = file.getName(); // can't deal with directories yet.
     this.content = content;

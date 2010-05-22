@@ -1,7 +1,6 @@
 package com.slard.filerepository;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -16,7 +15,8 @@ public class MD5HashProvider implements HashProvider {
   /**
    * The logger.
    */
-  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+  @InjectLogger
+  Logger logger;
 
   /**
    * The md5 messagedigest.

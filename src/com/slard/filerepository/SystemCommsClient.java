@@ -3,6 +3,7 @@ package com.slard.filerepository;
 import org.jgroups.Address;
 import org.jgroups.Channel;
 
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -113,4 +114,15 @@ public interface SystemCommsClient {
    * Allows us to specify a channel name to override the default.
    */
   final String SYSTEM_NAME_PROP = "system.channel.name";
+
+  /**
+   * Created by IntelliJ IDEA.
+   * User: kbrady
+   * Date: 21-May-2010
+   * Time: 14:15:52
+   * To change this template use File | Settings | File Templates.
+   */
+  interface SystemCommsFactory {
+    SystemCommsClient create(Node parent, Properties options);
+  }
 }

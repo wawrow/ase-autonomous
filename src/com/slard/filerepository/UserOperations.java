@@ -2,6 +2,7 @@ package com.slard.filerepository;
 
 import org.jgroups.Address;
 import org.jgroups.Channel;
+import org.jgroups.util.NotifyingFuture;
 import org.jgroups.util.Tuple;
 
 import java.util.Collection;
@@ -34,6 +35,8 @@ public interface UserOperations {
   Boolean store(DataObject file, Address address);
 
   Boolean storeAll(DataObject file, Address address);
+
+  NotifyingFuture<Object> storeAllAsync(DataObject file, Address address);
 
   /**
    * Retrieve a data object.

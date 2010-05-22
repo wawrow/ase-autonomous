@@ -1,79 +1,144 @@
 package com.slard.filerepository;
 
-import junit.framework.Assert;
+import com.google.inject.Provider;
+import org.easymock.EasyMock;
+import org.jgroups.blocks.Cache;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 
 public class DataStoreTest {
 
   private final byte[] TESTDATA = new byte[]{0, 1, 1};
   private final String TESTSTOREDIR = "teststore";
-  private String dataStoreLocation;
   private DataStore dataStore;
+
+  FileSystemHelper.FileSystemHelperFactory mockFsh;
+  DataObject.DataObjectFactory mockDof;
+  FSDataObject.FSDataObjectFactory mockFsd;
+  Provider<Cache<String, FSDataObject>> cacheProv;
+  DataObject data;
+  FileSystemHelper fsh;
+
+  Logger logger = LoggerFactory.getLogger("tests");
+
+  Properties options;
 
   @Before
   public void setUp() throws Exception {
-    String currentDirectory = System.getProperty("user.dir");
-    Properties options = new Properties();
-    dataStoreLocation = currentDirectory + File.pathSeparator + TESTSTOREDIR;
+    options = new Properties();
+    String dataStoreLocation = TESTSTOREDIR;
     options.put("datastore.dir", dataStoreLocation);
-    dataStore = new DataStoreImpl(options);
-    dataStore.initialise();
+
+    fsh = EasyMock.createMock(FileSystemHelper.class);
+
+    fsh.mkdirs();
+    EasyMock.expectLastCall().once();
+
+    EasyMock.expect(fsh.readFile(EasyMock.anyObject(String.class))).andReturn(TESTDATA).anyTimes();
+
+    fsh.writeFile("a_file", TESTDATA);
+    EasyMock.expectLastCall().anyTimes();
+    fsh.writeFile("banana", TESTDATA);
+    EasyMock.expectLastCall().anyTimes();
+
+    EasyMock.expect(fsh.canRead("a_file")).andReturn(true);
+    EasyMock.expect(fsh.canRead("banana")).andReturn(true);
+
+    List<String> allfiles = Arrays.asList("a_file", "banana");
+    EasyMock.expect(fsh.list()).andReturn(allfiles).anyTimes();
+
+    EasyMock.expect(fsh.delete(EasyMock.anyObject(String.class))).andReturn(true).anyTimes();
+    EasyMock.expect(fsh.rename("a_file", "a_file.tmp")).andReturn(true).anyTimes();
+
+    mockFsh = EasyMock.createMock(FileSystemHelper.FileSystemHelperFactory.class);
+    EasyMock.expect(mockFsh.create(new File("teststore"))).andReturn(fsh).once();
+    EasyMock.replay(mockFsh);
+
+    data = new DataObjectImpl("a_file", TESTDATA);
+    DataObject data2 = new DataObjectImpl("banana", TESTDATA);
+
+    mockDof = EasyMock.createMock(DataObject.DataObjectFactory.class);
+    EasyMock.expect(mockDof.create("a_file", TESTDATA)).andReturn(data).anyTimes();
+    EasyMock.expect(mockDof.create("banana", TESTDATA)).andReturn(data2).anyTimes();
+    EasyMock.replay(mockDof);
+
+    //FSDataObject fsdata = new FSDataObjectImpl(data, fsh);
+    //FSDataObject fsdata2 = new FSDataObjectImpl(data2, fsh);
+
+    mockFsd = new FSDataObject.FSDataObjectFactory() {
+      public FSDataObject create(DataObject datum, FileSystemHelper fs) {
+        return new FSDataObjectImpl(datum, fs);
+      }
+    };
+
+    //mockFsd = EasyMock.createMock(FSDataObject.FSDataObjectFactory.class);
+    //EasyMock.expect(mockFsd.create(data, fsh)).andReturn(fsdata);
+    //EasyMock.expect(mockFsd.create(data2,fsh)).andReturn(fsdata2);
+    //EasyMock.replay(mockFsd);
+
+    final Cache<String, FSDataObject> cache = new Cache<String, FSDataObject>();
+    cacheProv = new Provider<Cache<String, FSDataObject>>() {
+      public Cache<String, FSDataObject> get() {
+        return cache;
+      }
+    };
+
+    dataStore = new DataStoreImpl(mockFsh, mockDof, mockFsd, cacheProv);
+    dataStore.setLogger(logger);
   }
 
-  @Test
-  public void testGetStoreLocation() throws Exception {
-    Assert.assertEquals(this.dataStoreLocation, this.dataStore.getStoreLocation());
-  }
 
   @Test
-  public void testStoreDataObject() throws Exception {
-    String name = new String("testStore");
-    DataObject mockedDataObject = Mockito.mock(DataObject.class);
-    Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
-    Mockito.when(mockedDataObject.getName()).thenReturn(name);
-
+  public void testCanOnlyStoreDataObjectOnce() throws Exception {
+    EasyMock.expect(fsh.exists("a_file")).andReturn(false);
+    EasyMock.expect(fsh.exists("a_file")).andReturn(true);
+    EasyMock.replay(fsh);
+    dataStore.initialise(options);
     try {
-      this.dataStore.store(mockedDataObject);
+      dataStore.store(data);
     } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
 
     try {
-      Assert.assertFalse("Erroneously succeeded in adding the same file twice", dataStore.store(mockedDataObject));
+      Assert.assertFalse("Erroneously succeeded in adding the same file twice",
+          dataStore.store(data));
     } catch (Exception e) {
     }
   }
 
   @Test
-  public void testReplaceDataObject() throws Exception {
-    String name = new String("testReplace");
-    DataObject mockedDataObject = Mockito.mock(DataObject.class);
-    Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
-    Mockito.when(mockedDataObject.getName()).thenReturn(name);
-    Mockito.when(mockedDataObject.getCRC()).thenReturn(123L);
+  public void testReplaceDataObjectWorks() throws Exception {
+    EasyMock.expect(fsh.exists("a_file")).andReturn(false).once();
+    EasyMock.expect(fsh.exists("a_file")).andReturn(true).once();
+    EasyMock.expect(fsh.exists("a_file")).andReturn(false);
+    EasyMock.replay(fsh);
+    dataStore.initialise(options);
 
-    this.dataStore.store(mockedDataObject);
-    Assert.assertTrue(this.dataStore.replace(mockedDataObject));
-    //Assert.fail(e.getMessage());
+    DataObject data2 = new DataObjectImpl("a_file", TESTDATA);
+
+    dataStore.store(data);
+    Assert.assertTrue(dataStore.replace(data2));
   }
 
   @Test
-  public void testGetDataObject() throws Exception {
+  public void testRetrieveSameDataObjectWeStore() throws Exception {
+    EasyMock.expect(fsh.exists("a_file")).andReturn(false).anyTimes();
+    EasyMock.replay(fsh);
+    dataStore.initialise(options);
     try {
-      String name = new String("testGet");
-      DataObject mockedDataObject = Mockito.mock(DataObject.class);
-      Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
-      Mockito.when(mockedDataObject.getName()).thenReturn(name);
-
-      this.dataStore.store(mockedDataObject);
-      DataObject dataObject = this.dataStore.retrieve(name);
+      dataStore.store(data);
+      DataObject dataObject = dataStore.retrieve("a_file");
       Assert.assertNotNull(dataObject);
       Assert.assertTrue(Arrays.equals(dataObject.getData(), TESTDATA));
     } catch (Exception e) {
@@ -82,46 +147,49 @@ public class DataStoreTest {
   }
 
   @Test
-  public void testDeleteDataObject() throws Exception {
+  public void testWhenWeDeleteDataObjectHasFileIsFalse() throws Exception {
+    EasyMock.expect(fsh.exists("a_file")).andReturn(false);
+    EasyMock.expect(fsh.exists("a_file")).andReturn(true);
+    EasyMock.expect(fsh.exists("a_file")).andReturn(false);
+    EasyMock.expect(fsh.canRead("a_file")).andReturn(false);
+    EasyMock.replay(fsh);
+    dataStore.initialise(options);
     try {
-      String name = new String("testDelete");
-      DataObject mockedDataObject = Mockito.mock(DataObject.class);
-      Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
-      Mockito.when(mockedDataObject.getName()).thenReturn(name);
-
-      this.dataStore.store(mockedDataObject);
-      this.dataStore.delete(name);
-      Assert.assertFalse(this.dataStore.hasFile(name));
+      dataStore.store(data);
+      dataStore.delete(data.getName());
+      Assert.assertFalse(dataStore.hasFile(data.getName()));
     } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }
 
   @Test
-  public void testgetAllDataObjects() throws Exception {
-    String name = new String("testGetAll");
-    DataObject mockedDataObject = Mockito.mock(DataObject.class);
-    Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
-    Mockito.when(mockedDataObject.getName()).thenReturn(name);
-
+  public void testGetExpectedNumberOfObjectsFromGetAllDataObjects() throws Exception {
+    EasyMock.expect(fsh.exists("banana")).andReturn(false);
+    EasyMock.expect(fsh.exists("a_file")).andReturn(true);
+    EasyMock.expect(fsh.exists("banana")).andReturn(false);
+    EasyMock.expect(fsh.exists("a_file")).andReturn(true);
+    EasyMock.replay(fsh);
+    dataStore.initialise(options);
     try {
-      this.dataStore.store(mockedDataObject);
-      Assert.assertFalse(this.dataStore.getAllDataObjects().isEmpty());
+      dataStore.store(data);
+      dataStore.store(new DataObjectImpl("banana", TESTDATA));
+      Collection<DataObject> files = dataStore.getAllDataObjects();
+      Assert.assertEquals(2, files.size());
     } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }
 
   @Test
-  public void testContains() throws Exception {
-    String name = new String("testContains");
-    DataObject mockedDataObject = Mockito.mock(DataObject.class);
-    Mockito.when(mockedDataObject.getData()).thenReturn(TESTDATA);
-    Mockito.when(mockedDataObject.getName()).thenReturn(name);
-
+  public void testWhenWeStoreFileHasFileIsTrue() throws Exception {
+    EasyMock.expect(fsh.exists("a_file")).andReturn(false);
+    EasyMock.expect(fsh.exists("a_file")).andReturn(true);
+    EasyMock.replay(fsh);
+    dataStore.initialise(options);
     try {
-      this.dataStore.store(mockedDataObject);
-      Assert.assertTrue(this.dataStore.hasFile(name));
+      dataStore.store(data);
+      Assert.assertTrue(dataStore.hasFile("a_file"));
     } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
@@ -129,11 +197,5 @@ public class DataStoreTest {
 
   @After
   public void tearDown() throws Exception {
-    File directory = new File(this.dataStoreLocation);
-    File[] files = directory.listFiles();
-    for (File file : files) {
-      file.delete();
-    }
-    directory.delete();
   }
 }

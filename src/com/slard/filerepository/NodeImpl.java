@@ -1,12 +1,13 @@
 package com.slard.filerepository;
 
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import org.jgroups.Address;
-import org.jgroups.Channel;
 import org.jgroups.ChannelException;
 import org.jgroups.JChannel;
 import org.jgroups.jmx.JmxConfigurator;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -17,6 +18,7 @@ import java.util.*;
 /**
  * The Class Node Implementation.
  */
+@Singleton
 public class NodeImpl implements Node {
   /**
    * How many places on the Consistent Hash table would one node take.
@@ -31,15 +33,17 @@ public class NodeImpl implements Node {
   /**
    * logger.
    */
-  private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+  @InjectLogger
+  Logger logger;
 
   /**
    * The system communications implementation.
    */
-  private SystemCommsClient systemComms = null;
-
-  private UserCommsInterface userComms = null;
-
+  private SystemCommsClient systemComms;
+  private SystemCommsClient.SystemCommsFactory sysCommsFac;
+  private UserCommsInterface userComms;
+  private UserCommsInterface.UserCommsFactory userCommsFac;
+  private ConsistentHashTable.ConsistentHashTableFactory<Address> chtFac;
   /**
    * The data store.
    */
@@ -48,36 +52,26 @@ public class NodeImpl implements Node {
   /**
    * The Consistent Hash Table.
    */
-  public ConsistentHashTableImpl<Address> cht;
-
-  /**
-   * The options.
-   */
-  Properties options;
-
-  /**
-   * The user channel.
-   */
-  private Channel userChannel;
-
-  /**
-   * The replica guard timer.
-   */
-  private Timer replicaGuardTimer;
+  public ConsistentHashTable<Address> cht;
 
   private Address myAddress;
-  private String name;
+
+  private Provider<Timer> timerProvider;
 
   /**
    * Instantiates a new node implementation.
    *
    * @param dataStore the data store
-   * @param options   the options
    */
-  public NodeImpl(DataStore dataStore, Properties options) {
+  @Inject
+  public NodeImpl(DataStore dataStore, ConsistentHashTable.ConsistentHashTableFactory<Address> chtFac,
+                  Provider<Timer> timerProvider, SystemCommsClient.SystemCommsFactory sysCommsFac,
+                  UserCommsInterface.UserCommsFactory userCommsFac) {
     this.dataStore = dataStore;
-    this.cht = new ConsistentHashTableImpl<Address>(CHT_TICK_COUNT, null);
-    this.options = options;
+    this.chtFac = chtFac;
+    this.timerProvider = timerProvider;
+    this.sysCommsFac = sysCommsFac;
+    this.userCommsFac = userCommsFac;
   }
 
   /**
@@ -87,17 +81,18 @@ public class NodeImpl implements Node {
    * Creates Client communications channel
    * Schedules replica guard runs.
    */
-  public void start() throws ChannelException {
-    systemComms = new SystemComms(this, options);
+  public void start(Properties options) throws ChannelException {
+    cht = chtFac.create(CHT_TICK_COUNT);
+    systemComms = sysCommsFac.create(this, options);
     myAddress = systemComms.getAddress();
     cht.add(myAddress);
     logger.trace("system channel connected and system coms server ready");
     logger.info("My Address: " + myAddress.toString());
 
-    userComms = new UserCommsServer(this, options);
+    userComms = userCommsFac.create(this, options);
     logger.trace("User channel connected and user coms server ready");
 
-    replicaGuardTimer = new Timer();
+    Timer replicaGuardTimer = timerProvider.get();
     replicaGuardTimer.schedule(new TimerTask() {
       @Override
       public void run() {
@@ -115,13 +110,6 @@ public class NodeImpl implements Node {
     } catch (Exception e) {
       logger.warn("unable to register channel {} with JMX", channel.getName());
     }
-  }
-
-  /**
-   * Stops the node.
-   */
-  public void stop() {
-    userChannel.close();
   }
 
   @Override
