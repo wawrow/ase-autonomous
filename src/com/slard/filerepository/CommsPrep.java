@@ -1,6 +1,7 @@
 package com.slard.filerepository;
 
 import org.jgroups.Address;
+import org.jgroups.blocks.RpcDispatcher;
 import org.jgroups.util.NotifyingFuture;
 
 import java.util.Collection;
@@ -28,5 +29,9 @@ public interface CommsPrep {
     String method();
 
     int timeout();
+  }
+
+  public interface CommsPrepFactory {
+    CommsPrep create(RpcDispatcher dispatcher, int timeout);
   }
 }

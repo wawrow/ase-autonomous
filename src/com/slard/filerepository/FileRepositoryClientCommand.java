@@ -5,6 +5,7 @@ import org.jgroups.util.FutureListener;
 import org.jgroups.util.NotifyingFuture;
 import org.jgroups.util.Tuple;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.Console;
@@ -418,9 +419,7 @@ public enum FileRepositoryClientCommand {
   }
 
   private Action action;
-  static
-  @InjectLogger
-  Logger logger;
+  static Logger logger = LoggerFactory.getLogger(FileRepositoryClientCommand.class);
 
   private FileRepositoryClientCommand(Action a) {
     this.action = a;

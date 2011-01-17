@@ -26,9 +26,8 @@ public class FileRepositoryModule extends AbstractModule {
     bind(new TypeLiteral<ConsistentHashTable.ConsistentHashTableFactory<Address>>() {
     }).toProvider(
         FactoryProvider.newFactory(new TypeLiteral<ConsistentHashTable.ConsistentHashTableFactory<Address>>() {
-        },
-            new TypeLiteral<ConsistentHashTableImpl<Address>>() {
-            }));
+        }, new TypeLiteral<ConsistentHashTableImpl<Address>>() {
+        }));
 
     bind(SystemCommsClient.SystemCommsFactory.class).toProvider(
         FactoryProvider.newFactory(SystemCommsClient.SystemCommsFactory.class, SystemComms.class));
@@ -44,6 +43,9 @@ public class FileRepositoryModule extends AbstractModule {
 
     bind(FileSystemHelper.FileSystemHelperFactory.class).toProvider(
         FactoryProvider.newFactory(FileSystemHelper.FileSystemHelperFactory.class, FileSystemHelperImpl.class));
+
+    bind(CommsPrep.CommsPrepFactory.class).toProvider(
+        FactoryProvider.newFactory(CommsPrep.CommsPrepFactory.class, CommsPrepImpl.class));
 
     bindListener(Matchers.any(), new Slf4jTypeListener());
   }

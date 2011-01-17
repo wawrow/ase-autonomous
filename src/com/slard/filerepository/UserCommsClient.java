@@ -1,6 +1,7 @@
 package com.slard.filerepository;
 
 
+import com.google.inject.Inject;
 import org.jgroups.*;
 import org.jgroups.blocks.GroupRequest;
 import org.jgroups.blocks.RpcDispatcher;
@@ -51,7 +52,8 @@ public class UserCommsClient implements UserOperations {
     }
   }
 
-  public UserCommsClient() {
+  @Inject
+  public UserCommsClient(CommsPrep.CommsPrepFactory commsPrepFactory) {
     System.setProperty("jgroups.udp.mcast_port", UserCommsInterface.CLIENT_PORT);
     RpcDispatcher tmp;
     try {
@@ -62,7 +64,7 @@ public class UserCommsClient implements UserOperations {
       tmp = null;
     }
     dispatcher = tmp;
-    commsPrep = new CommsPrepImpl(dispatcher, RPC_TIMEOUT);
+    commsPrep = commsPrepFactory.create(dispatcher, RPC_TIMEOUT);
   }
 
   @Override
