@@ -1,5 +1,7 @@
 package com.slard.filerepository;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 import org.jgroups.Address;
 import org.jgroups.blocks.MethodCall;
 import org.jgroups.blocks.RequestOptions;
@@ -38,7 +40,8 @@ public class CommsPrepImpl implements CommsPrep {
     }
   }
 
-  public CommsPrepImpl(RpcDispatcher dispatcher, int timeout) {
+  @Inject
+  public CommsPrepImpl(@Assisted RpcDispatcher dispatcher, @Assisted int timeout) {
     this.dispatcher = dispatcher;
     this.timeout = timeout;
   }

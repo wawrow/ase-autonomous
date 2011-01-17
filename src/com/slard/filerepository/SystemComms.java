@@ -60,7 +60,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
   }
 
   @Inject
-  SystemComms(Node parent, @Assisted Properties options) {
+  SystemComms(Node parent, @Assisted Properties options, CommsPrep.CommsPrepFactory commsPrepFactory) {
     this.parent = parent;
     RpcDispatcher tmp;
     try {
@@ -77,7 +77,7 @@ public class SystemComms implements MessageListener, MembershipListener, SystemC
       tmp = null;
     }
     dispatcher = tmp;
-    commsPrep = new CommsPrepImpl(dispatcher, RPC_TIMEOUT);
+    commsPrep = commsPrepFactory.create(dispatcher, RPC_TIMEOUT);
   }
 
   public void setTimeout(int timeout) {

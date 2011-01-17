@@ -23,13 +23,14 @@
     <mkdir dir="${dist}/lib"/>
     <jar jarfile="${dist}/lib/FileRepository.jar" basedir="${build}" update="yes">
       <zipfileset src="lib/jgroups-2.10.0.Beta2.jar"/>
+      <zipfileset src="lib/aopalliance.jar"/>
       <zipfileset src="lib/log4j-1.2.16.jar"/>
       <zipfileset src="lib/jul-to-slf4j-1.6.0.jar"/>
       <zipfileset src="lib/slf4j-api-1.6.0.jar"/>
       <zipfileset src="lib/slf4j-log4j12-1.6.0.jar"/>
-      <!--   <zipfileset src="lib/guice-2.0.jar"/>
-  <zipfileset src="lib/guice-jmx-2.0.jar"/>
-  <zipfileset src="lib/guice-assistedinject-2.0.jar"/>   -->
+      <zipfileset src="lib/guice-2.0.jar"/>
+      <zipfileset src="lib/guice-jmx-2.0.jar"/>
+      <zipfileset src="lib/guice-assistedinject-2.0.jar"/>
       <fileset file="lib/log4j.properties"/>
       <manifest>
         <attribute name="Main-Class" value="com.slard.filerepository.FileRepository"/>
@@ -37,6 +38,7 @@
     </jar>
     <jar jarfile="${dist}/lib/FileRepositoryClient.jar" basedir="${build}" update="yes" index="yes">
       <zipfileset src="lib/jgroups-2.10.0.Beta2.jar"/>
+      <zipfileset src="lib/aopalliance.jar"/>
       <zipfileset src="lib/log4j-1.2.16.jar"/>
       <zipfileset src="lib/jul-to-slf4j-1.6.0.jar"/>
       <zipfileset src="lib/slf4j-api-1.6.0.jar"/>

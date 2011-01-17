@@ -5,7 +5,7 @@
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="file://$PROJECT_DIR$/../../Downloads/JGroups-2.10.0.Beta2.src/src" />
+      <root url="file://$USER_HOME$/Downloads/JGroups-2.10.0.Beta2.src/src" />
     </SOURCES>
     <jarDirectory url="file://$PROJECT_DIR$/lib" recursive="false" />
   </library>

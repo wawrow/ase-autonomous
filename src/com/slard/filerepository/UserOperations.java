@@ -1,5 +1,6 @@
 package com.slard.filerepository;
 
+import com.google.inject.ImplementedBy;
 import org.jgroups.Address;
 import org.jgroups.Channel;
 import org.jgroups.util.NotifyingFuture;
@@ -10,6 +11,7 @@ import java.util.Collection;
 /**
  * The Interface UserOperations.
  */
+@ImplementedBy(UserCommsClient.class)
 public interface UserOperations {
 
   /**
